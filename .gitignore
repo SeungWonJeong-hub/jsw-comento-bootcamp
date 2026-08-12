@@ -1,0 +1,17 @@
+# 원본 데이터셋 캐시 (용량이 커서 저장소에 포함하지 않음)
+data/
+.cache/
+*.npy
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
