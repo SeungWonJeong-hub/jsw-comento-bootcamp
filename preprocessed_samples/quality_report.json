@@ -1,0 +1,382 @@
+{
+  "config": {
+    "target_size": [
+      224,
+      224
+    ],
+    "dark_mean_threshold": 40.0,
+    "min_object_area_ratio": 0.1
+  },
+  "total": 40,
+  "kept": 37,
+  "dropped": 3,
+  "saved_samples": [
+    "food101_000_label87.png",
+    "food101_001_label51.png",
+    "food101_002_label92.png",
+    "food101_003_label92.png",
+    "food101_004_label87.png"
+  ],
+  "details": [
+    {
+      "name": "food101_000_label87",
+      "mean_brightness": 160.9113655090332,
+      "object_area_ratio": 0.3047523498535156,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_001_label51",
+      "mean_brightness": 117.40614318847656,
+      "object_area_ratio": 0.44898414611816406,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_002_label92",
+      "mean_brightness": 158.31061553955078,
+      "object_area_ratio": 0.26996612548828125,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_003_label92",
+      "mean_brightness": 144.78954081632654,
+      "object_area_ratio": 0.5150726585276968,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_004_label87",
+      "mean_brightness": 107.33842468261719,
+      "object_area_ratio": 0.3113231658935547,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_005_label98",
+      "mean_brightness": 161.69558715820312,
+      "object_area_ratio": 0.4138336181640625,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_006_label51",
+      "mean_brightness": 156.57787322998047,
+      "object_area_ratio": 0.08690261840820312,
+      "is_too_dark": false,
+      "has_tiny_object": true,
+      "outlier": true,
+      "reason": "tiny_object(ratio=0.087<0.1)"
+    },
+    {
+      "name": "food101_007_label87",
+      "mean_brightness": 131.78543234620417,
+      "object_area_ratio": 0.2066375572643979,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_008_label87",
+      "mean_brightness": 155.51778411865234,
+      "object_area_ratio": 0.20193862915039062,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_009_label92",
+      "mean_brightness": 205.15968704223633,
+      "object_area_ratio": 0.18434524536132812,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_010_label92",
+      "mean_brightness": 76.62257893880208,
+      "object_area_ratio": 0.24305216471354166,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_011_label6",
+      "mean_brightness": 122.14755757649739,
+      "object_area_ratio": 0.21318562825520834,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_012_label6",
+      "mean_brightness": 174.63536071777344,
+      "object_area_ratio": 0.2250823974609375,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_013_label87",
+      "mean_brightness": 145.83560180664062,
+      "object_area_ratio": 0.2423528035481771,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_014_label51",
+      "mean_brightness": 103.00733612804878,
+      "object_area_ratio": 0.25272893074912894,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_015_label98",
+      "mean_brightness": 152.88426208496094,
+      "object_area_ratio": 0.33220672607421875,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_016_label87",
+      "mean_brightness": 141.32265319027414,
+      "object_area_ratio": 0.32463946230417756,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_017_label96",
+      "mean_brightness": 137.71397018432617,
+      "object_area_ratio": 0.4116859436035156,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_018_label6",
+      "mean_brightness": 144.86661911010742,
+      "object_area_ratio": 0.06797599792480469,
+      "is_too_dark": false,
+      "has_tiny_object": true,
+      "outlier": true,
+      "reason": "tiny_object(ratio=0.068<0.1)"
+    },
+    {
+      "name": "food101_019_label98",
+      "mean_brightness": 164.92294359456807,
+      "object_area_ratio": 0.1692648682918848,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_020_label74",
+      "mean_brightness": 141.0296173095703,
+      "object_area_ratio": 0.11643791198730469,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_021_label98",
+      "mean_brightness": 101.32453918457031,
+      "object_area_ratio": 0.1895580291748047,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_022_label92",
+      "mean_brightness": 112.80173736092932,
+      "object_area_ratio": 0.25218576161649214,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_023_label92",
+      "mean_brightness": 158.10953903198242,
+      "object_area_ratio": 0.36341094970703125,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_024_label51",
+      "mean_brightness": 133.00569534301758,
+      "object_area_ratio": 0.243743896484375,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_025_label82",
+      "mean_brightness": 144.36681091707516,
+      "object_area_ratio": 0.2007665696486928,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_026_label98",
+      "mean_brightness": 123.06222534179688,
+      "object_area_ratio": 0.2046381632486979,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_027_label92",
+      "mean_brightness": 146.26215744018555,
+      "object_area_ratio": 0.44425201416015625,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_028_label87",
+      "mean_brightness": 112.37329483032227,
+      "object_area_ratio": 0.43004608154296875,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_029_label82",
+      "mean_brightness": 203.8287582397461,
+      "object_area_ratio": 0.2747173309326172,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_030_label82",
+      "mean_brightness": 98.20393753051758,
+      "object_area_ratio": 0.107269287109375,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_031_label82",
+      "mean_brightness": 183.5227928161621,
+      "object_area_ratio": 0.12136268615722656,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_032_label74",
+      "mean_brightness": 54.45051066080729,
+      "object_area_ratio": 0.1597315470377604,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_033_label98",
+      "mean_brightness": 195.81647872924805,
+      "object_area_ratio": 0.32042694091796875,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_034_label6",
+      "mean_brightness": 127.58729397845953,
+      "object_area_ratio": 0.3211462752937337,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_035_label6",
+      "mean_brightness": 204.65118026733398,
+      "object_area_ratio": 0.3134803771972656,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_036_label51",
+      "mean_brightness": 153.25939178466797,
+      "object_area_ratio": 0.14577293395996094,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_037_label82",
+      "mean_brightness": 161.56741333007812,
+      "object_area_ratio": 0.45308494567871094,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    },
+    {
+      "name": "food101_038_label74",
+      "mean_brightness": 138.7136780104712,
+      "object_area_ratio": 0.05913060373036649,
+      "is_too_dark": false,
+      "has_tiny_object": true,
+      "outlier": true,
+      "reason": "tiny_object(ratio=0.059<0.1)"
+    },
+    {
+      "name": "food101_039_label6",
+      "mean_brightness": 114.46212469362744,
+      "object_area_ratio": 0.14415147569444445,
+      "is_too_dark": false,
+      "has_tiny_object": false,
+      "outlier": false,
+      "reason": "ok"
+    }
+  ]
+}
