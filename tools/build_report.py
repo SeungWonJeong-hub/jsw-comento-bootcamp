@@ -112,6 +112,12 @@ def add_image(slide, path, cx, cy, cw, ch, caption=None):
     return pic
 
 
+def add_notes(slide, text):
+    """발표자 노트. PowerPoint 발표자 보기에서 보인다."""
+    tf = slide.notes_slide.notes_text_frame
+    tf.text = text.strip()
+
+
 def new_slide(prs, page, eyebrow, title, subtitle):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     bg = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, 0,
@@ -131,15 +137,22 @@ def new_slide(prs, page, eyebrow, title, subtitle):
 
 
 def b(t):
-    return (t, SANS, 9.5, BODY)
+    """본문."""
+    return (t, SANS, 10, BODY)
 
 
 def k(t):
-    return (t, SANS_MD, 9.5, INK)
+    """강조 — 수치나 결론."""
+    return (t, SANS_MD, 10, INK)
 
 
 def m(t):
-    return (t, MONO, 8.5, BODY)
+    """등폭 — 표나 수식."""
+    return (t, MONO, 9.5, BODY)
+
+
+def gap():
+    return ("", SANS, 4, BODY)
 
 
 # ---------------------------------------------------------------------------
@@ -153,89 +166,134 @@ def build(prs, s):
 
     # ---------------- 1. 방법 ----------------
     sl = new_slide(
-        prs, 1, "01 / STEREO TRIANGULATION",
-        "두 장의 영상에서 깊이 맵과 3D 포인트 클라우드",
-        f"SPE3R aqua · 256×256 · f = {s['dataset']['fx']:.1f} px · "
-        f"Stanford SLAB · CC BY-NC-SA 4.0")
-    add_image(sl, os.path.join(OUT, "03_spe3r_stereo.png"), 0.72, 1.78, 11.89, 3.00,
-              "RECTIFIED PAIR · DISPARITY · REFERENCE DEPTH · STEREO DEPTH · EXAMPLE CODE")
-    add_panel(sl, 0.72, 5.12, 5.86, 1.73, "두 번째 시점을 어떻게 얻는가", [
-        b("포즈 라벨 1,000개를 재보면 병진이 항상 (0, 0, Z)입니다."),
-        b("카메라 좌표계만 보면 베이스라인이 없습니다."),
-        k("삼각측량에 필요한 것은 카메라와 타겟 사이의 상대 운동입니다."),
-        k("타겟이 회전하므로 타겟 기준으로는 카메라가 궤도를 돈 것과 같습니다."),
-        m("R_ij = R_j · R_iᵀ        t_ij = t_j − R_ij · t_i"),
-        k(f"회전 {best['rotation_deg']:.2f}° 쌍에서 유효 베이스라인 "
-          f"{best['baseline_m']:.3f} m 확보"),
+        prs, 1, "01 / 방법",
+        "카메라가 고정이어도 타겟이 돌면 스테레오가 된다",
+        "SPE3R aqua · 위성 근접 영상 1,000장 · 256×256 · Stanford SLAB · CC BY-NC-SA 4.0")
+    add_image(sl, os.path.join(OUT, "00_concept.png"), 0.72, 1.78, 11.89, 3.00)
+    add_panel(sl, 0.72, 5.02, 5.86, 1.83, "왜 시점이 두 개 필요한가", [
+        b("영상 한 장은 깊이를 잃습니다. 한 시선 위의 모든 점이"),
+        b("같은 화소에 맺히기 때문입니다."),
+        gap(),
+        k("SPE3R은 카메라가 제자리에 고정돼 있습니다."),
+        k("대신 타겟이 매 프레임 무작위로 회전합니다."),
+        b("이 회전이 카메라를 궤도에 올린 것과 같은 효과를 냅니다."),
     ])
-    add_panel(sl, 6.96, 5.12, 5.65, 1.73, "파이프라인", [
-        b("① 쌍 선별 — 회전 8° 이내 + 베이스라인의 횡방향 성분이 지배적일 것"),
-        b("② cv2.stereoRectify — 에피폴라선을 가로 행으로 정렬"),
-        b("③ cv2.StereoSGBM — 화소마다 가로 이동량 d 탐색"),
-        k("④ Z = f · B / d          ← 깊이 맵 (미터 단위)"),
-        k("⑤ X = (u−cx)·Z/f,  Y = (v−cy)·Z/f     ← 포인트 클라우드"),
+    add_panel(sl, 6.96, 5.02, 5.65, 1.83, "파이프라인 5단계", [
+        b("① 쌍 선별 — 회전 8° 이내, 옆으로 움직인 쌍만"),
+        b("② 정렬 — cv2.stereoRectify 로 에피폴라선을 가로로"),
+        b("③ 시차 — cv2.StereoSGBM 으로 가로 이동량 d 탐색"),
+        k("④ 깊이 맵 — Z = f · B / d"),
+        k("⑤ 포인트 클라우드 — X = (u−cx)·Z/f,  Y = (v−cy)·Z/f"),
     ])
+    add_notes(sl, f"""
+이번 과제는 위성 근접 영상에서 깊이 맵을 만들고 3D 포인트 클라우드로 바꾸는 것입니다.
+
+영상 한 장으로는 깊이를 알 수 없습니다. 한 시선 위에 있는 점들이 전부 같은 화소에
+맺히기 때문입니다. 그래서 시점이 두 개 필요합니다.
+
+그런데 쓴 데이터셋은 카메라가 제자리에 고정돼 있습니다. 왼쪽 그림처럼 병진이 항상
+(0, 0, Z)라서, 카메라 좌표계만 보면 베이스라인이 없습니다.
+
+대신 타겟이 매 프레임 무작위로 회전합니다. 가운데 그림처럼 타겟을 기준으로 보면
+카메라가 궤도를 돈 것과 같습니다. 두 뷰의 상대 자세를 계산하면 회전 {best['rotation_deg']:.2f}도짜리
+쌍에서 베이스라인 {best['baseline_m']:.3f} 미터가 나옵니다.
+
+이걸 평행 정렬하면 오른쪽처럼 표준 삼각측량 공식 Z = f 곱하기 B 나누기 d 를
+그대로 쓸 수 있습니다. 시차 1픽셀이 깊이 {best['depth_resolution_m_per_px']*100:.1f} 센티미터에 해당합니다.
+""")
 
     # ---------------- 2. 검증 ----------------
     sl = new_slide(
-        prs, 2, "02 / VALIDATION ON EXACT GROUND TRUTH",
-        "정답이 있는 조건에서 먼저 검증",
-        "구·직육면체의 광선 교차를 해석적으로 풀어 정답 깊이에 렌더링 오차가 없다 · "
-        "남는 오차는 전부 정합 알고리즘에서 온다")
+        prs, 2, "02 / 검증",
+        f"정답 깊이 폭 {syn['gt_span_m']:.2f} m 를 {ss['span_m']:.2f} m 로 복원",
+        "구와 직육면체로 위성을 세우고 광선 교차를 해석적으로 풀면 정답 깊이에 "
+        "오차가 없다 · 남는 오차는 전부 정합에서 온다")
     add_image(sl, os.path.join(OUT, "01_synthetic_validation.png"),
-              0.72, 1.78, 11.89, 3.00,
-              "STEREO PAIR · DISPARITY · GROUND TRUTH / STEREO / EXAMPLE CODE DEPTH")
-    add_panel(sl, 0.72, 5.12, 5.86, 1.73, "정량 결과", [
-        m(f"베이스라인 {syn['baseline_m']:.2f} m · 기대 시차 "
-          f"{syn['expected_disparity_px']:.0f} px · 분해능 "
-          f"{syn['depth_resolution_m_per_px']*100:.1f} cm/px"),
-        m("                RMSE     중앙값    5cm이내   깊이폭"),
-        m(f"스테레오        {ss['rmse']:.4f}   {ss['median_abs']:.4f}    "
-          f"{ss['within_5cm']*100:4.1f}%   {ss['span_m']:.3f}"),
-        m(f"과제 예시       {se['rmse']:.4f}   {se['median_abs']:.4f}    "
-          f"{se['within_5cm']*100:4.1f}%   {se['span_m']:.3f}"),
-        k(f"정답 깊이폭 {syn['gt_span_m']:.3f} m — 스테레오는 {ss['span_m']:.3f} m 로 "
-          f"되살리고, 예시 코드는 {se['span_m']:.3f} m 로 평면이 됩니다."),
+              0.72, 1.78, 11.89, 3.00)
+    add_panel(sl, 0.72, 5.02, 5.86, 1.83, "같은 영상, 두 가지 방법", [
+        b("왼쪽·오른쪽 영상을 만들고 두 방법으로 깊이를 구했습니다."),
+        b("과제 예시 코드에는 정답에 맞춘 최적 정렬까지 해 줬습니다."),
+        gap(),
+        m("                깊이 폭    오차 중앙값   5cm 이내"),
+        m(f"정  답          {syn['gt_span_m']:.3f} m         —          —"),
+        m(f"스테레오        {ss['span_m']:.3f} m       "
+          f"{ss['median_abs']*100:4.1f} cm      {ss['within_5cm']*100:4.1f}%"),
+        m(f"과제 예시       {se['span_m']:.3f} m       "
+          f"{se['median_abs']*100:4.1f} cm      {se['within_5cm']*100:4.1f}%"),
     ])
-    add_panel(sl, 6.96, 5.12, 5.65, 1.73, "Unit Test 65개", [
-        k("해석해 — Z = f·B/d 를 1e-12 까지, 구의 중심 깊이 = 거리−반지름 을 1e-9 까지"),
-        k("불변식 — p_j = R_ij·p_i + t_ij 성립, B와 d를 함께 2배 하면 Z 불변"),
-        k("실패 특성화 — 같은 거리·다른 반사율이 4배 다른 깊이로 읽히는 것,"),
-        b("                 앞면이 그늘이면 깊이 구조가 뭉개지는 것"),
+    add_panel(sl, 6.96, 5.02, 5.65, 1.83, "Unit Test 65개로 수식을 검증", [
+        b("출력 크기와 자료형만 보면 수식이 틀려도 통과합니다."),
+        b("손으로 풀 수 있는 조건을 만들어 수치까지 확인했습니다."),
+        gap(),
+        k("해석해 — Z = f·B/d 를 1e-12 까지 대조"),
+        k("불변식 — B와 d를 함께 2배 하면 Z 는 그대로"),
+        k("실패 특성화 — 같은 거리라도 반사율이 다르면 4배 다른 깊이"),
         b("경계 조건 — 시차 0(무한원점), None 입력, 크기 불일치"),
     ])
+    add_notes(sl, f"""
+실제 데이터에 적용하기 전에, 정답을 아는 조건에서 파이프라인이 맞는지 먼저 확인했습니다.
+
+구와 직육면체로 위성을 세우면 광선과 도형의 교차를 손으로 풀 수 있습니다. 그래서
+정답 깊이에 렌더링 오차가 전혀 없고, 남는 오차는 전부 정합 알고리즘에서 온 것입니다.
+
+오른쪽 세 장을 비교해 주십시오. 네 번째가 정답 깊이인데, 태양전지판 왼쪽 끝과
+오른쪽 끝이 {syn['gt_span_m']:.2f} 미터 차이 납니다. 다섯 번째 스테레오 복원이 그 차이를
+{ss['span_m']:.2f} 미터로 되살립니다. 마지막 과제 예시 코드는 {se['span_m']:.3f} 미터,
+사실상 평면 하나입니다.
+
+오차 중앙값은 {ss['median_abs']*100:.1f} 센티미터 대 {se['median_abs']*100:.1f} 센티미터,
+5센티미터 안에 든 화소는 {ss['within_5cm']*100:.1f} 퍼센트 대 {se['within_5cm']*100:.1f} 퍼센트입니다.
+예시 코드에는 정답에 맞춘 최적 정렬까지 해 준 결과입니다.
+
+Unit Test 는 65개입니다. 출력 크기와 자료형만 보면 수식이 틀려도 통과하기 때문에,
+손으로 풀 수 있는 조건을 만들어 수치까지 대조했습니다.
+""")
 
     # ---------------- 3. 결과와 한계 ----------------
     sl = new_slide(
-        prs, 3, "03 / RESULTS & LIMITS",
-        "SPE3R 실측 결과와 한계",
+        prs, 3, "03 / 결과와 한계",
+        f"실제 위성 영상에서 깊이 오차 중앙값 {best['median_abs']*100:.1f} cm",
         "기준 깊이 = 동봉 메시 40만 점을 z-buffer 로 투영 · "
-        "대조군에는 정답에 대한 최적 아핀정렬을 적용해 유리한 조건을 부여")
-    add_image(sl, os.path.join(OUT, "04_pointclouds.png"), 0.72, 1.78, 11.89, 3.00,
-              "GROUND TRUTH MESH · STEREO DEPTH → 3D (SINGLE VIEW) · EXAMPLE CODE")
-    add_panel(sl, 0.72, 5.12, 5.86, 1.73, "결과", [
-        m(f"후보 20쌍 → 복원 성공 {sur['pairs_reconstructed']}쌍 → "
-          f"오차 10cm 이내 {sur['pairs_within_10cm']}쌍"),
-        m("                RMSE     중앙값    5cm이내"),
-        m(f"스테레오        {best['rmse']:.4f}   {best['median_abs']:.4f}    "
-          f"{best['within_5cm']*100:4.1f}%"),
-        m(f"과제 예시       {bex['rmse']:.4f}   {bex['median_abs']:.4f}    "
-          f"{bex['within_5cm']*100:4.1f}%"),
+        "대조군에는 정답에 맞춘 최적 정렬을 적용해 유리한 조건을 부여")
+    add_image(sl, os.path.join(OUT, "03_spe3r_stereo.png"), 0.72, 1.78, 11.89, 2.55)
+    add_panel(sl, 0.72, 4.56, 6.62, 2.29, "결과", [
+        m("                RMSE      오차 중앙값   5cm 이내"),
+        m(f"스테레오        {best['rmse']:.4f} m    "
+          f"{best['median_abs']*100:4.1f} cm      {best['within_5cm']*100:4.1f}%"),
+        m(f"과제 예시       {bex['rmse']:.4f} m    "
+          f"{bex['median_abs']*100:4.1f} cm      {bex['within_5cm']*100:4.1f}%"),
+        gap(),
         k(f"포인트 클라우드 {s['best_pair_points']:,}점 · 메시 대비 Chamfer "
-          f"{s['best_pair_chamfer_pred_to_gt']:.4f}"),
-        b(f"예시 코드는 최적 정렬 스케일 {bex['affine_scale']:+.3f} — 관계가 뒤집힙니다."),
+          f"{s['best_pair_chamfer_pred_to_gt']:.4f}  →"),
+        gap(),
+        b(f"한계 — 조건을 만족하는 쌍이 후보 20개 중 {sur['pairs_within_10cm']}개, "
+          f"유효화소 {best['valid_ratio']*100:.0f}%,"),
+        b(f"단일 시점이라 뒷면은 복원 불가, 정답 자세를 그대로 사용,"),
+        b(f"깊이 분해능 하한 {best['depth_resolution_m_per_px']*100:.1f} cm/px "
+          f"(dZ = Z²/fB)"),
     ])
-    add_panel(sl, 6.96, 5.12, 5.65, 1.73, "정합을 좌우하는 요인 · 한계", [
-        k("① 표면 무늬 — 조명만 뒤집어 앞면을 그늘에 넣는 통제 실험"),
-        b(f"     깊이폭 {ss['span_m']:.3f} → 0.572 m. 블록 크기를 바꿔도 회복되지 않습니다."),
-        k("② 이상치 필터 — filterSpeckles + 중앙값 3×3"),
-        b(f"     RMSE {best['rmse_unfiltered']:.3f} → {best['rmse']:.3f} "
-          f"(중앙값은 {best['median_abs_unfiltered']:.4f} → {best['median_abs']:.4f} 로 거의 불변)"),
-        b(f"한계 — 1,000장 중 쓸 만한 쌍이 3개, 유효화소 {best['valid_ratio']*100:.0f}%, "
-          f"단일 뷰라 뒷면은 복원 불가,"),
-        b(f"          정답 자세를 그대로 사용, 분해능 하한 "
-          f"{best['depth_resolution_m_per_px']*100:.1f} cm/px (dZ = Z²/fB)"),
-    ])
+    add_image(sl, os.path.join(OUT, "04_pointclouds.png"), 7.58, 4.56, 5.03, 2.29)
+    add_notes(sl, f"""
+실제 SPE3R 위성 영상 결과입니다.
+
+왼쪽 두 장이 정렬된 스테레오 쌍입니다. 배경에 지구가 보이고, 타겟이 {best['rotation_deg']:.2f}도
+돌아간 두 시점입니다. 세 번째가 찾아낸 시차이고, 네 번째가 동봉된 메시로 만든 기준 깊이입니다.
+
+네 번째와 다섯 번째를 비교해 주십시오. 기준 깊이는 위쪽 태양전지판이 노랗고 아래
+본체로 갈수록 파래지는 그라데이션인데, 스테레오 복원이 그 구조를 그대로 잡아냅니다.
+반면 맨 오른쪽 과제 예시 코드는 거의 균일한 초록입니다. 깊이 정보가 없다는 뜻입니다.
+
+수치로는 오차 중앙값 {best['median_abs']*100:.1f} 센티미터, 5센티미터 이내가 {best['within_5cm']*100:.1f} 퍼센트입니다.
+예시 코드는 {bex['median_abs']*100:.1f} 센티미터, {bex['within_5cm']*100:.1f} 퍼센트입니다.
+
+이 깊이 맵을 역투영하면 오른쪽 아래 포인트 클라우드가 나옵니다. {s['best_pair_points']:,}점이고
+정답 메시 대비 Chamfer 거리는 {s['best_pair_chamfer_pred_to_gt']:.4f} 입니다.
+
+한계도 말씀드리겠습니다. 조건을 만족하는 쌍이 후보 20개 중 {sur['pairs_within_10cm']}개뿐이고,
+유효 화소는 {best['valid_ratio']*100:.0f} 퍼센트입니다. 단일 시점이라 타겟 뒷면은 원리적으로
+복원되지 않고, 자세는 데이터셋이 준 정답을 그대로 썼습니다. 실제 상대항법에서는
+자세도 추정해야 하고 그 오차가 삼각측량에 미치는 영향은 이번에 측정하지 않았습니다.
+""")
 
 
 def main() -> int:
