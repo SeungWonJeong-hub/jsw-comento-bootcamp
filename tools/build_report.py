@@ -56,6 +56,20 @@ def set_font(run, name, size, color, bold=False):
         rPr.append(rPr.makeelement(ns + tag, {"typeface": name}))
 
 
+def style_paragraph(para, name, size, color):
+    """문단과 그 안의 런에 모두 글꼴을 지정한다.
+
+    런에만 지정하면 텍스트가 빈 문단은 기본 크기(18pt)로 높이를 잡아
+    줄 간격이 어긋난다. 표에서 빈 칸이 한 행씩 밀리는 원인이었다.
+    """
+    para.font.name = name
+    para.font.size = Pt(size)
+    para.font.color.rgb = color
+    run = para.add_run()
+    set_font(run, name, size, color)
+    return run
+
+
 def add_text(slide, x, y, w, h, lines, align=PP_ALIGN.LEFT, spacing=1.35):
     box = slide.shapes.add_textbox(Inches(x), Inches(y), Inches(w), Inches(h))
     tf = box.text_frame
@@ -66,8 +80,7 @@ def add_text(slide, x, y, w, h, lines, align=PP_ALIGN.LEFT, spacing=1.35):
         para = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
         para.alignment = align
         para.line_spacing = spacing
-        set_font(para.add_run(), name, size, color)
-        para.runs[0].text = text
+        style_paragraph(para, name, size, color).text = text
     return box
 
 
@@ -81,6 +94,38 @@ def add_card(slide, x, y, w, h):
     shape.line.width = Pt(0.75)
     shape.shadow.inherit = False
     return shape
+
+
+def add_matrix(slide, x, y, col_w, rows, row_h=0.235):
+    """표를 그린다. 열마다 별도 텍스트 상자를 둔다.
+
+    등폭 글꼴로 공백을 맞추는 방식은 쓸 수 없다. Cascadia Mono 에는 한글이 없어
+    대체 글꼴로 그려지는데 그 글꼴은 고정폭이 아니라서 열이 어긋난다.
+    열을 상자로 분리하면 글꼴과 무관하게 정렬이 맞는다.
+
+    Parameters
+    ----------
+    col_w : 열 너비 목록 [inch]. 첫 열은 왼쪽 정렬, 나머지는 오른쪽 정렬.
+    rows : (텍스트 튜플, 스타일) 목록. 스타일은 'head' | 'key' | 'body'.
+    """
+    styles = {
+        "head": (SANS, 9, MUTED),
+        "key": (SANS_MD, 10, INK),
+        "body": (SANS, 10, BODY),
+    }
+    for j, cw in enumerate(col_w):
+        left = x + sum(col_w[:j])
+        box = slide.shapes.add_textbox(Inches(left), Inches(y), Inches(cw),
+                                       Inches(row_h * len(rows)))
+        tf = box.text_frame
+        tf.word_wrap = False
+        tf.margin_left = tf.margin_right = tf.margin_top = tf.margin_bottom = 0
+        for i, (cells, style) in enumerate(rows):
+            para = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
+            para.alignment = PP_ALIGN.LEFT if j == 0 else PP_ALIGN.RIGHT
+            para.line_spacing = 1.45
+            name, size, color = styles[style]
+            style_paragraph(para, name, size, color).text = cells[j]
 
 
 def add_panel(slide, x, y, w, h, heading, lines):
@@ -169,8 +214,8 @@ def build(prs, s):
         prs, 1, "01 / 방법",
         "카메라가 고정이어도 타겟이 돌면 스테레오가 된다",
         "SPE3R aqua · 위성 근접 영상 1,000장 · 256×256 · Stanford SLAB · CC BY-NC-SA 4.0")
-    add_image(sl, os.path.join(OUT, "00_concept.png"), 0.72, 1.78, 11.89, 3.00)
-    add_panel(sl, 0.72, 5.02, 5.86, 1.83, "왜 시점이 두 개 필요한가", [
+    add_image(sl, os.path.join(OUT, "00_concept.png"), 0.72, 1.78, 11.89, 2.75)
+    add_panel(sl, 0.72, 4.78, 5.86, 2.07, "왜 시점이 두 개 필요한가", [
         b("영상 한 장은 깊이를 잃습니다. 한 시선 위의 모든 점이"),
         b("같은 화소에 맺히기 때문입니다."),
         gap(),
@@ -178,7 +223,7 @@ def build(prs, s):
         k("대신 타겟이 매 프레임 무작위로 회전합니다."),
         b("이 회전이 카메라를 궤도에 올린 것과 같은 효과를 냅니다."),
     ])
-    add_panel(sl, 6.96, 5.02, 5.65, 1.83, "파이프라인 5단계", [
+    add_panel(sl, 6.96, 4.78, 5.65, 2.07, "파이프라인 5단계", [
         b("① 쌍 선별 — 회전 8° 이내, 옆으로 움직인 쌍만"),
         b("② 정렬 — cv2.stereoRectify 로 에피폴라선을 가로로"),
         b("③ 시차 — cv2.StereoSGBM 으로 가로 이동량 d 탐색"),
@@ -209,19 +254,20 @@ def build(prs, s):
         "구와 직육면체로 위성을 세우고 광선 교차를 해석적으로 풀면 정답 깊이에 "
         "오차가 없다 · 남는 오차는 전부 정합에서 온다")
     add_image(sl, os.path.join(OUT, "01_synthetic_validation.png"),
-              0.72, 1.78, 11.89, 3.00)
-    add_panel(sl, 0.72, 5.02, 5.86, 1.83, "같은 영상, 두 가지 방법", [
+              0.72, 1.78, 11.89, 2.75)
+    add_panel(sl, 0.72, 4.78, 5.86, 2.07, "같은 영상, 두 가지 방법", [
         b("왼쪽·오른쪽 영상을 만들고 두 방법으로 깊이를 구했습니다."),
         b("과제 예시 코드에는 정답에 맞춘 최적 정렬까지 해 줬습니다."),
-        gap(),
-        m("                깊이 폭    오차 중앙값   5cm 이내"),
-        m(f"정  답          {syn['gt_span_m']:.3f} m         —          —"),
-        m(f"스테레오        {ss['span_m']:.3f} m       "
-          f"{ss['median_abs']*100:4.1f} cm      {ss['within_5cm']*100:4.1f}%"),
-        m(f"과제 예시       {se['span_m']:.3f} m       "
-          f"{se['median_abs']*100:4.1f} cm      {se['within_5cm']*100:4.1f}%"),
     ])
-    add_panel(sl, 6.96, 5.02, 5.65, 1.83, "Unit Test 65개로 수식을 검증", [
+    add_matrix(sl, 0.98, 5.70, [1.55, 1.25, 1.30, 1.05], [
+        (("", "깊이 폭", "오차 중앙값", "5cm 이내"), "head"),
+        (("정답", f"{syn['gt_span_m']:.3f} m", "—", "—"), "body"),
+        (("스테레오", f"{ss['span_m']:.3f} m", f"{ss['median_abs']*100:.1f} cm",
+          f"{ss['within_5cm']*100:.1f}%"), "key"),
+        (("과제 예시", f"{se['span_m']:.3f} m", f"{se['median_abs']*100:.1f} cm",
+          f"{se['within_5cm']*100:.1f}%"), "body"),
+    ])
+    add_panel(sl, 6.96, 4.78, 5.65, 2.07, "Unit Test 65개로 수식을 검증", [
         b("출력 크기와 자료형만 보면 수식이 틀려도 통과합니다."),
         b("손으로 풀 수 있는 조건을 만들어 수치까지 확인했습니다."),
         gap(),
@@ -256,22 +302,24 @@ Unit Test 는 65개입니다. 출력 크기와 자료형만 보면 수식이 틀
         "기준 깊이 = 동봉 메시 40만 점을 z-buffer 로 투영 · "
         "대조군에는 정답에 맞춘 최적 정렬을 적용해 유리한 조건을 부여")
     add_image(sl, os.path.join(OUT, "03_spe3r_stereo.png"), 0.72, 1.78, 11.89, 2.55)
-    add_panel(sl, 0.72, 4.56, 6.62, 2.29, "결과", [
-        m("                RMSE      오차 중앙값   5cm 이내"),
-        m(f"스테레오        {best['rmse']:.4f} m    "
-          f"{best['median_abs']*100:4.1f} cm      {best['within_5cm']*100:4.1f}%"),
-        m(f"과제 예시       {bex['rmse']:.4f} m    "
-          f"{bex['median_abs']*100:4.1f} cm      {bex['within_5cm']*100:4.1f}%"),
-        gap(),
+    add_card(sl, 0.72, 4.56, 6.62, 2.29)
+    add_text(sl, 0.98, 4.75, 6.10, 0.24, [("결과", SANS_SB, 10.5, INK)])
+    add_matrix(sl, 0.98, 5.05, [1.55, 1.40, 1.40, 1.15], [
+        (("", "RMSE", "오차 중앙값", "5cm 이내"), "head"),
+        (("스테레오", f"{best['rmse']:.4f} m", f"{best['median_abs']*100:.1f} cm",
+          f"{best['within_5cm']*100:.1f}%"), "key"),
+        (("과제 예시", f"{bex['rmse']:.4f} m", f"{bex['median_abs']*100:.1f} cm",
+          f"{bex['within_5cm']*100:.1f}%"), "body"),
+    ])
+    add_text(sl, 0.98, 5.85, 6.10, 0.92, [
         k(f"포인트 클라우드 {s['best_pair_points']:,}점 · 메시 대비 Chamfer "
           f"{s['best_pair_chamfer_pred_to_gt']:.4f}  →"),
         gap(),
-        b(f"한계 — 조건을 만족하는 쌍이 후보 20개 중 {sur['pairs_within_10cm']}개, "
-          f"유효화소 {best['valid_ratio']*100:.0f}%,"),
-        b(f"단일 시점이라 뒷면은 복원 불가, 정답 자세를 그대로 사용,"),
-        b(f"깊이 분해능 하한 {best['depth_resolution_m_per_px']*100:.1f} cm/px "
-          f"(dZ = Z²/fB)"),
-    ])
+        b(f"한계 — 쓸 만한 쌍이 후보 20개 중 {sur['pairs_within_10cm']}개, "
+          f"유효화소 {best['valid_ratio']*100:.0f}%, 단일 시점이라 뒷면은 복원 불가,"),
+        b(f"정답 자세를 그대로 사용, 깊이 분해능 하한 "
+          f"{best['depth_resolution_m_per_px']*100:.1f} cm/px (dZ = Z²/fB)"),
+    ], spacing=1.3)
     add_image(sl, os.path.join(OUT, "04_pointclouds.png"), 7.58, 4.56, 5.03, 2.29)
     add_notes(sl, f"""
 실제 SPE3R 위성 영상 결과입니다.
