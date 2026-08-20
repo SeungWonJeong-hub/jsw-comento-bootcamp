@@ -1,0 +1,6005 @@
+{
+ "n": 1000,
+ "rows": [
+  {
+   "name": "food101_0000_label87",
+   "label": 87,
+   "mean_brightness": 160.9113655090332,
+   "object_area_ratio": 0.3047523498535156
+  },
+  {
+   "name": "food101_0001_label51",
+   "label": 51,
+   "mean_brightness": 117.40614318847656,
+   "object_area_ratio": 0.44898414611816406
+  },
+  {
+   "name": "food101_0002_label92",
+   "label": 92,
+   "mean_brightness": 158.31061553955078,
+   "object_area_ratio": 0.26996612548828125
+  },
+  {
+   "name": "food101_0003_label92",
+   "label": 92,
+   "mean_brightness": 144.78954081632654,
+   "object_area_ratio": 0.5150726585276968
+  },
+  {
+   "name": "food101_0004_label87",
+   "label": 87,
+   "mean_brightness": 107.33842468261719,
+   "object_area_ratio": 0.3113231658935547
+  },
+  {
+   "name": "food101_0005_label98",
+   "label": 98,
+   "mean_brightness": 161.69558715820312,
+   "object_area_ratio": 0.4138336181640625
+  },
+  {
+   "name": "food101_0006_label51",
+   "label": 51,
+   "mean_brightness": 156.57787322998047,
+   "object_area_ratio": 0.08690261840820312
+  },
+  {
+   "name": "food101_0007_label87",
+   "label": 87,
+   "mean_brightness": 131.78543234620417,
+   "object_area_ratio": 0.2066375572643979
+  },
+  {
+   "name": "food101_0008_label87",
+   "label": 87,
+   "mean_brightness": 155.51778411865234,
+   "object_area_ratio": 0.20193862915039062
+  },
+  {
+   "name": "food101_0009_label92",
+   "label": 92,
+   "mean_brightness": 205.15968704223633,
+   "object_area_ratio": 0.18434524536132812
+  },
+  {
+   "name": "food101_0010_label92",
+   "label": 92,
+   "mean_brightness": 76.62257893880208,
+   "object_area_ratio": 0.24305216471354166
+  },
+  {
+   "name": "food101_0011_label6",
+   "label": 6,
+   "mean_brightness": 122.14755757649739,
+   "object_area_ratio": 0.21318562825520834
+  },
+  {
+   "name": "food101_0012_label6",
+   "label": 6,
+   "mean_brightness": 174.63536071777344,
+   "object_area_ratio": 0.2250823974609375
+  },
+  {
+   "name": "food101_0013_label87",
+   "label": 87,
+   "mean_brightness": 145.83560180664062,
+   "object_area_ratio": 0.2423528035481771
+  },
+  {
+   "name": "food101_0014_label51",
+   "label": 51,
+   "mean_brightness": 103.00733612804878,
+   "object_area_ratio": 0.25272893074912894
+  },
+  {
+   "name": "food101_0015_label98",
+   "label": 98,
+   "mean_brightness": 152.88426208496094,
+   "object_area_ratio": 0.33220672607421875
+  },
+  {
+   "name": "food101_0016_label87",
+   "label": 87,
+   "mean_brightness": 141.32265319027414,
+   "object_area_ratio": 0.32463946230417756
+  },
+  {
+   "name": "food101_0017_label96",
+   "label": 96,
+   "mean_brightness": 137.71397018432617,
+   "object_area_ratio": 0.4116859436035156
+  },
+  {
+   "name": "food101_0018_label6",
+   "label": 6,
+   "mean_brightness": 144.86661911010742,
+   "object_area_ratio": 0.06797599792480469
+  },
+  {
+   "name": "food101_0019_label98",
+   "label": 98,
+   "mean_brightness": 164.92294359456807,
+   "object_area_ratio": 0.1692648682918848
+  },
+  {
+   "name": "food101_0020_label74",
+   "label": 74,
+   "mean_brightness": 141.0296173095703,
+   "object_area_ratio": 0.11643791198730469
+  },
+  {
+   "name": "food101_0021_label98",
+   "label": 98,
+   "mean_brightness": 101.32453918457031,
+   "object_area_ratio": 0.1895580291748047
+  },
+  {
+   "name": "food101_0022_label92",
+   "label": 92,
+   "mean_brightness": 112.80173736092932,
+   "object_area_ratio": 0.25218576161649214
+  },
+  {
+   "name": "food101_0023_label92",
+   "label": 92,
+   "mean_brightness": 158.10953903198242,
+   "object_area_ratio": 0.36341094970703125
+  },
+  {
+   "name": "food101_0024_label51",
+   "label": 51,
+   "mean_brightness": 133.00569534301758,
+   "object_area_ratio": 0.243743896484375
+  },
+  {
+   "name": "food101_0025_label82",
+   "label": 82,
+   "mean_brightness": 144.36681091707516,
+   "object_area_ratio": 0.2007665696486928
+  },
+  {
+   "name": "food101_0026_label98",
+   "label": 98,
+   "mean_brightness": 123.06222534179688,
+   "object_area_ratio": 0.2046381632486979
+  },
+  {
+   "name": "food101_0027_label92",
+   "label": 92,
+   "mean_brightness": 146.26215744018555,
+   "object_area_ratio": 0.44425201416015625
+  },
+  {
+   "name": "food101_0028_label87",
+   "label": 87,
+   "mean_brightness": 112.37329483032227,
+   "object_area_ratio": 0.43004608154296875
+  },
+  {
+   "name": "food101_0029_label82",
+   "label": 82,
+   "mean_brightness": 203.8287582397461,
+   "object_area_ratio": 0.2747173309326172
+  },
+  {
+   "name": "food101_0030_label82",
+   "label": 82,
+   "mean_brightness": 98.20393753051758,
+   "object_area_ratio": 0.107269287109375
+  },
+  {
+   "name": "food101_0031_label82",
+   "label": 82,
+   "mean_brightness": 183.5227928161621,
+   "object_area_ratio": 0.12136268615722656
+  },
+  {
+   "name": "food101_0032_label74",
+   "label": 74,
+   "mean_brightness": 54.45051066080729,
+   "object_area_ratio": 0.1597315470377604
+  },
+  {
+   "name": "food101_0033_label98",
+   "label": 98,
+   "mean_brightness": 195.81647872924805,
+   "object_area_ratio": 0.32042694091796875
+  },
+  {
+   "name": "food101_0034_label6",
+   "label": 6,
+   "mean_brightness": 127.58729397845953,
+   "object_area_ratio": 0.3211462752937337
+  },
+  {
+   "name": "food101_0035_label6",
+   "label": 6,
+   "mean_brightness": 204.65118026733398,
+   "object_area_ratio": 0.3134803771972656
+  },
+  {
+   "name": "food101_0036_label51",
+   "label": 51,
+   "mean_brightness": 153.25939178466797,
+   "object_area_ratio": 0.14577293395996094
+  },
+  {
+   "name": "food101_0037_label82",
+   "label": 82,
+   "mean_brightness": 161.56741333007812,
+   "object_area_ratio": 0.45308494567871094
+  },
+  {
+   "name": "food101_0038_label74",
+   "label": 74,
+   "mean_brightness": 138.7136780104712,
+   "object_area_ratio": 0.05913060373036649
+  },
+  {
+   "name": "food101_0039_label6",
+   "label": 6,
+   "mean_brightness": 114.46212469362744,
+   "object_area_ratio": 0.14415147569444445
+  },
+  {
+   "name": "food101_0040_label51",
+   "label": 51,
+   "mean_brightness": 169.78235626220703,
+   "object_area_ratio": 0.14087677001953125
+  },
+  {
+   "name": "food101_0041_label92",
+   "label": 92,
+   "mean_brightness": 173.92791748046875,
+   "object_area_ratio": 0.1839923858642578
+  },
+  {
+   "name": "food101_0042_label74",
+   "label": 74,
+   "mean_brightness": 163.96315383911133,
+   "object_area_ratio": 0.18318748474121094
+  },
+  {
+   "name": "food101_0043_label98",
+   "label": 98,
+   "mean_brightness": 129.98067092895508,
+   "object_area_ratio": 0.18513107299804688
+  },
+  {
+   "name": "food101_0044_label82",
+   "label": 82,
+   "mean_brightness": 135.93281936645508,
+   "object_area_ratio": 0.09876060485839844
+  },
+  {
+   "name": "food101_0045_label98",
+   "label": 98,
+   "mean_brightness": 124.10739135742188,
+   "object_area_ratio": 0.5799503326416016
+  },
+  {
+   "name": "food101_0046_label51",
+   "label": 51,
+   "mean_brightness": 109.34501266479492,
+   "object_area_ratio": 0.4358367919921875
+  },
+  {
+   "name": "food101_0047_label51",
+   "label": 51,
+   "mean_brightness": 218.64438247680664,
+   "object_area_ratio": 0.10132217407226562
+  },
+  {
+   "name": "food101_0048_label51",
+   "label": 51,
+   "mean_brightness": 178.93138353388997,
+   "object_area_ratio": 0.07549077541748526
+  },
+  {
+   "name": "food101_0049_label98",
+   "label": 98,
+   "mean_brightness": 176.37383984375,
+   "object_area_ratio": 0.199908203125
+  },
+  {
+   "name": "food101_0050_label6",
+   "label": 6,
+   "mean_brightness": 102.10434341430664,
+   "object_area_ratio": 0.2059173583984375
+  },
+  {
+   "name": "food101_0051_label98",
+   "label": 98,
+   "mean_brightness": 102.1871109008789,
+   "object_area_ratio": 0.29154396057128906
+  },
+  {
+   "name": "food101_0052_label82",
+   "label": 82,
+   "mean_brightness": 161.1406453450521,
+   "object_area_ratio": 0.43918609619140625
+  },
+  {
+   "name": "food101_0053_label98",
+   "label": 98,
+   "mean_brightness": 175.82143783569336,
+   "object_area_ratio": 0.34743499755859375
+  },
+  {
+   "name": "food101_0054_label87",
+   "label": 87,
+   "mean_brightness": 137.3461456298828,
+   "object_area_ratio": 0.28989919026692706
+  },
+  {
+   "name": "food101_0055_label82",
+   "label": 82,
+   "mean_brightness": 116.63407516479492,
+   "object_area_ratio": 0.12491798400878906
+  },
+  {
+   "name": "food101_0056_label98",
+   "label": 98,
+   "mean_brightness": 164.14832305908203,
+   "object_area_ratio": 0.3728446960449219
+  },
+  {
+   "name": "food101_0057_label98",
+   "label": 98,
+   "mean_brightness": 166.35393905639648,
+   "object_area_ratio": 0.19295501708984375
+  },
+  {
+   "name": "food101_0058_label6",
+   "label": 6,
+   "mean_brightness": 158.89646530151367,
+   "object_area_ratio": 0.20055770874023438
+  },
+  {
+   "name": "food101_0059_label82",
+   "label": 82,
+   "mean_brightness": 188.7198829650879,
+   "object_area_ratio": 0.3928394317626953
+  },
+  {
+   "name": "food101_0060_label98",
+   "label": 98,
+   "mean_brightness": 69.40478134155273,
+   "object_area_ratio": 0.2944297790527344
+  },
+  {
+   "name": "food101_0061_label39",
+   "label": 39,
+   "mean_brightness": 143.15003967285156,
+   "object_area_ratio": 0.11944325764973958
+  },
+  {
+   "name": "food101_0062_label92",
+   "label": 92,
+   "mean_brightness": 155.98459243774414,
+   "object_area_ratio": 0.1338348388671875
+  },
+  {
+   "name": "food101_0063_label6",
+   "label": 6,
+   "mean_brightness": 111.81335067749023,
+   "object_area_ratio": 0.2845726013183594
+  },
+  {
+   "name": "food101_0064_label98",
+   "label": 98,
+   "mean_brightness": 121.36773300170898,
+   "object_area_ratio": 0.18355751037597656
+  },
+  {
+   "name": "food101_0065_label51",
+   "label": 51,
+   "mean_brightness": 91.59480285644531,
+   "object_area_ratio": 0.19251251220703125
+  },
+  {
+   "name": "food101_0066_label87",
+   "label": 87,
+   "mean_brightness": 191.6467514038086,
+   "object_area_ratio": 0.22631072998046875
+  },
+  {
+   "name": "food101_0067_label51",
+   "label": 51,
+   "mean_brightness": 135.79375076293945,
+   "object_area_ratio": 0.24361038208007812
+  },
+  {
+   "name": "food101_0068_label74",
+   "label": 74,
+   "mean_brightness": 127.4549331665039,
+   "object_area_ratio": 0.17563247680664062
+  },
+  {
+   "name": "food101_0069_label51",
+   "label": 51,
+   "mean_brightness": 86.75122578938802,
+   "object_area_ratio": 0.248321533203125
+  },
+  {
+   "name": "food101_0070_label82",
+   "label": 82,
+   "mean_brightness": 117.49188995361328,
+   "object_area_ratio": 0.12754058837890625
+  },
+  {
+   "name": "food101_0071_label51",
+   "label": 51,
+   "mean_brightness": 87.38538106282552,
+   "object_area_ratio": 0.15099080403645834
+  },
+  {
+   "name": "food101_0072_label92",
+   "label": 92,
+   "mean_brightness": 184.07447814941406,
+   "object_area_ratio": 0.34821319580078125
+  },
+  {
+   "name": "food101_0073_label87",
+   "label": 87,
+   "mean_brightness": 110.53186416625977,
+   "object_area_ratio": 0.2884502410888672
+  },
+  {
+   "name": "food101_0074_label92",
+   "label": 92,
+   "mean_brightness": 80.34302775065105,
+   "object_area_ratio": 0.199951171875
+  },
+  {
+   "name": "food101_0075_label82",
+   "label": 82,
+   "mean_brightness": 137.2086385091146,
+   "object_area_ratio": 0.34292348225911456
+  },
+  {
+   "name": "food101_0076_label98",
+   "label": 98,
+   "mean_brightness": 87.3216667175293,
+   "object_area_ratio": 0.9960975646972656
+  },
+  {
+   "name": "food101_0077_label98",
+   "label": 98,
+   "mean_brightness": 167.9736671447754,
+   "object_area_ratio": 0.2404956817626953
+  },
+  {
+   "name": "food101_0078_label74",
+   "label": 74,
+   "mean_brightness": 200.2406945353403,
+   "object_area_ratio": 0.1404077020615183
+  },
+  {
+   "name": "food101_0079_label51",
+   "label": 51,
+   "mean_brightness": 83.64974975585938,
+   "object_area_ratio": 0.25805091857910156
+  },
+  {
+   "name": "food101_0080_label74",
+   "label": 74,
+   "mean_brightness": 157.75040817260742,
+   "object_area_ratio": 0.15698623657226562
+  },
+  {
+   "name": "food101_0081_label51",
+   "label": 51,
+   "mean_brightness": 131.93911743164062,
+   "object_area_ratio": 0.26054128011067706
+  },
+  {
+   "name": "food101_0082_label96",
+   "label": 96,
+   "mean_brightness": 184.29285430908203,
+   "object_area_ratio": 0.4452800750732422
+  },
+  {
+   "name": "food101_0083_label39",
+   "label": 39,
+   "mean_brightness": 199.0597267150879,
+   "object_area_ratio": 0.2632865905761719
+  },
+  {
+   "name": "food101_0084_label51",
+   "label": 51,
+   "mean_brightness": 142.38724772135416,
+   "object_area_ratio": 0.5440241495768229
+  },
+  {
+   "name": "food101_0085_label98",
+   "label": 98,
+   "mean_brightness": 173.61674880981445,
+   "object_area_ratio": 0.25701141357421875
+  },
+  {
+   "name": "food101_0086_label87",
+   "label": 87,
+   "mean_brightness": 103.14356231689453,
+   "object_area_ratio": 0.44074440002441406
+  },
+  {
+   "name": "food101_0087_label96",
+   "label": 96,
+   "mean_brightness": 130.0429344177246,
+   "object_area_ratio": 0.30028724670410156
+  },
+  {
+   "name": "food101_0088_label6",
+   "label": 6,
+   "mean_brightness": 124.90202331542969,
+   "object_area_ratio": 0.43686676025390625
+  },
+  {
+   "name": "food101_0089_label82",
+   "label": 82,
+   "mean_brightness": 110.21416091918945,
+   "object_area_ratio": 0.32309913635253906
+  },
+  {
+   "name": "food101_0090_label82",
+   "label": 82,
+   "mean_brightness": 155.48008346557617,
+   "object_area_ratio": 0.2575263977050781
+  },
+  {
+   "name": "food101_0091_label74",
+   "label": 74,
+   "mean_brightness": 92.79975867146597,
+   "object_area_ratio": 0.2805137434554974
+  },
+  {
+   "name": "food101_0092_label87",
+   "label": 87,
+   "mean_brightness": 91.39836120605469,
+   "object_area_ratio": 0.12900797526041666
+  },
+  {
+   "name": "food101_0093_label82",
+   "label": 82,
+   "mean_brightness": 116.51961771647136,
+   "object_area_ratio": 0.1665623982747396
+  },
+  {
+   "name": "food101_0094_label98",
+   "label": 98,
+   "mean_brightness": 158.92574055989584,
+   "object_area_ratio": 0.36873626708984375
+  },
+  {
+   "name": "food101_0095_label96",
+   "label": 96,
+   "mean_brightness": 124.04764938354492,
+   "object_area_ratio": 0.9960975646972656
+  },
+  {
+   "name": "food101_0096_label6",
+   "label": 6,
+   "mean_brightness": 159.9911346435547,
+   "object_area_ratio": 0.16544532775878906
+  },
+  {
+   "name": "food101_0097_label98",
+   "label": 98,
+   "mean_brightness": 177.05065155029297,
+   "object_area_ratio": 0.3885231018066406
+  },
+  {
+   "name": "food101_0098_label74",
+   "label": 74,
+   "mean_brightness": 131.06027550146771,
+   "object_area_ratio": 0.07485896220645792
+  },
+  {
+   "name": "food101_0099_label82",
+   "label": 82,
+   "mean_brightness": 145.71403080006544,
+   "object_area_ratio": 0.31103515625
+  },
+  {
+   "name": "food101_0100_label87",
+   "label": 87,
+   "mean_brightness": 139.73627471923828,
+   "object_area_ratio": 0.1936664581298828
+  },
+  {
+   "name": "food101_0101_label6",
+   "label": 6,
+   "mean_brightness": 112.75875345865886,
+   "object_area_ratio": 0.26782480875651044
+  },
+  {
+   "name": "food101_0102_label82",
+   "label": 82,
+   "mean_brightness": 239.54891967773438,
+   "object_area_ratio": 0.3671741485595703
+  },
+  {
+   "name": "food101_0103_label6",
+   "label": 6,
+   "mean_brightness": 109.99401346842448,
+   "object_area_ratio": 0.2208124796549479
+  },
+  {
+   "name": "food101_0104_label74",
+   "label": 74,
+   "mean_brightness": 183.21416854858398,
+   "object_area_ratio": 0.25598907470703125
+  },
+  {
+   "name": "food101_0105_label6",
+   "label": 6,
+   "mean_brightness": 170.9867286682129,
+   "object_area_ratio": 0.16493797302246094
+  },
+  {
+   "name": "food101_0106_label74",
+   "label": 74,
+   "mean_brightness": 183.54824829101562,
+   "object_area_ratio": 0.3971061706542969
+  },
+  {
+   "name": "food101_0107_label96",
+   "label": 96,
+   "mean_brightness": 172.51410647087695,
+   "object_area_ratio": 0.35845467931937175
+  },
+  {
+   "name": "food101_0108_label6",
+   "label": 6,
+   "mean_brightness": 126.72020721435547,
+   "object_area_ratio": 0.223602294921875
+  },
+  {
+   "name": "food101_0109_label87",
+   "label": 87,
+   "mean_brightness": 144.73652140299478,
+   "object_area_ratio": 0.1747614542643229
+  },
+  {
+   "name": "food101_0110_label51",
+   "label": 51,
+   "mean_brightness": 99.39249420166016,
+   "object_area_ratio": 0.24805641174316406
+  },
+  {
+   "name": "food101_0111_label98",
+   "label": 98,
+   "mean_brightness": 147.1807403564453,
+   "object_area_ratio": 0.25572967529296875
+  },
+  {
+   "name": "food101_0112_label82",
+   "label": 82,
+   "mean_brightness": 175.64248657226562,
+   "object_area_ratio": 0.20046424865722656
+  },
+  {
+   "name": "food101_0113_label98",
+   "label": 98,
+   "mean_brightness": 124.48423767089844,
+   "object_area_ratio": 0.32781028747558594
+  },
+  {
+   "name": "food101_0114_label87",
+   "label": 87,
+   "mean_brightness": 125.23043060302734,
+   "object_area_ratio": 0.4319038391113281
+  },
+  {
+   "name": "food101_0115_label96",
+   "label": 96,
+   "mean_brightness": 117.49720001220703,
+   "object_area_ratio": 0.1858959197998047
+  },
+  {
+   "name": "food101_0116_label51",
+   "label": 51,
+   "mean_brightness": 134.46407881853787,
+   "object_area_ratio": 0.23932155678851175
+  },
+  {
+   "name": "food101_0117_label82",
+   "label": 82,
+   "mean_brightness": 166.89697647094727,
+   "object_area_ratio": 0.321746826171875
+  },
+  {
+   "name": "food101_0118_label51",
+   "label": 51,
+   "mean_brightness": 94.26662538109755,
+   "object_area_ratio": 0.2984095982142857
+  },
+  {
+   "name": "food101_0119_label98",
+   "label": 98,
+   "mean_brightness": 150.7886199951172,
+   "object_area_ratio": 0.334716796875
+  },
+  {
+   "name": "food101_0120_label6",
+   "label": 6,
+   "mean_brightness": 166.1053695678711,
+   "object_area_ratio": 0.12327003479003906
+  },
+  {
+   "name": "food101_0121_label74",
+   "label": 74,
+   "mean_brightness": 125.01114400227864,
+   "object_area_ratio": 0.3046722412109375
+  },
+  {
+   "name": "food101_0122_label98",
+   "label": 98,
+   "mean_brightness": 114.42974472045898,
+   "object_area_ratio": 0.15651893615722656
+  },
+  {
+   "name": "food101_0123_label74",
+   "label": 74,
+   "mean_brightness": 91.34366607666016,
+   "object_area_ratio": 0.10881805419921875
+  },
+  {
+   "name": "food101_0124_label6",
+   "label": 6,
+   "mean_brightness": 189.254945563504,
+   "object_area_ratio": 0.19114936307730923
+  },
+  {
+   "name": "food101_0125_label51",
+   "label": 51,
+   "mean_brightness": 142.22342681884766,
+   "object_area_ratio": 0.157989501953125
+  },
+  {
+   "name": "food101_0126_label6",
+   "label": 6,
+   "mean_brightness": 143.6688623366013,
+   "object_area_ratio": 0.045084635416666664
+  },
+  {
+   "name": "food101_0127_label74",
+   "label": 74,
+   "mean_brightness": 162.28393046061197,
+   "object_area_ratio": 0.0744781494140625
+  },
+  {
+   "name": "food101_0128_label92",
+   "label": 92,
+   "mean_brightness": 125.45900472005208,
+   "object_area_ratio": 0.31970977783203125
+  },
+  {
+   "name": "food101_0129_label98",
+   "label": 98,
+   "mean_brightness": 176.32399368286133,
+   "object_area_ratio": 0.16195106506347656
+  },
+  {
+   "name": "food101_0130_label51",
+   "label": 51,
+   "mean_brightness": 129.5758399963379,
+   "object_area_ratio": 0.29915618896484375
+  },
+  {
+   "name": "food101_0131_label87",
+   "label": 87,
+   "mean_brightness": 133.63341267903647,
+   "object_area_ratio": 0.35095469156901044
+  },
+  {
+   "name": "food101_0132_label98",
+   "label": 98,
+   "mean_brightness": 147.0854034423828,
+   "object_area_ratio": 0.37188975016276044
+  },
+  {
+   "name": "food101_0133_label6",
+   "label": 6,
+   "mean_brightness": 129.23209126790366,
+   "object_area_ratio": 0.37943776448567706
+  },
+  {
+   "name": "food101_0134_label98",
+   "label": 98,
+   "mean_brightness": 56.71443589154412,
+   "object_area_ratio": 0.025333180147058824
+  },
+  {
+   "name": "food101_0135_label6",
+   "label": 6,
+   "mean_brightness": 169.9698944091797,
+   "object_area_ratio": 0.2637672424316406
+  },
+  {
+   "name": "food101_0136_label98",
+   "label": 98,
+   "mean_brightness": 212.5314826965332,
+   "object_area_ratio": 0.375396728515625
+  },
+  {
+   "name": "food101_0137_label92",
+   "label": 92,
+   "mean_brightness": 157.35350294237014,
+   "object_area_ratio": 0.29003272118506496
+  },
+  {
+   "name": "food101_0138_label82",
+   "label": 82,
+   "mean_brightness": 154.28160858154297,
+   "object_area_ratio": 0.9960975646972656
+  },
+  {
+   "name": "food101_0139_label74",
+   "label": 74,
+   "mean_brightness": 190.90064115674085,
+   "object_area_ratio": 0.3922227789594241
+  },
+  {
+   "name": "food101_0140_label92",
+   "label": 92,
+   "mean_brightness": 132.7534065246582,
+   "object_area_ratio": 0.05645942687988281
+  },
+  {
+   "name": "food101_0141_label92",
+   "label": 92,
+   "mean_brightness": 142.00401814778647,
+   "object_area_ratio": 0.4722340901692708
+  },
+  {
+   "name": "food101_0142_label92",
+   "label": 92,
+   "mean_brightness": 167.41590679985336,
+   "object_area_ratio": 0.48248487903225806
+  },
+  {
+   "name": "food101_0143_label96",
+   "label": 96,
+   "mean_brightness": 137.54991149902344,
+   "object_area_ratio": 0.1755243937174479
+  },
+  {
+   "name": "food101_0144_label39",
+   "label": 39,
+   "mean_brightness": 184.74709701538086,
+   "object_area_ratio": 0.47147560119628906
+  },
+  {
+   "name": "food101_0145_label51",
+   "label": 51,
+   "mean_brightness": 115.92692565917969,
+   "object_area_ratio": 0.23309707641601562
+  },
+  {
+   "name": "food101_0146_label98",
+   "label": 98,
+   "mean_brightness": 216.4224067408377,
+   "object_area_ratio": 0.1139714905104712
+  },
+  {
+   "name": "food101_0147_label87",
+   "label": 87,
+   "mean_brightness": 165.60097122192383,
+   "object_area_ratio": 0.3028526306152344
+  },
+  {
+   "name": "food101_0148_label51",
+   "label": 51,
+   "mean_brightness": 128.08087158203125,
+   "object_area_ratio": 0.32681846618652344
+  },
+  {
+   "name": "food101_0149_label98",
+   "label": 98,
+   "mean_brightness": 174.01266974803664,
+   "object_area_ratio": 0.24693482084424084
+  },
+  {
+   "name": "food101_0150_label74",
+   "label": 74,
+   "mean_brightness": 115.21370697021484,
+   "object_area_ratio": 0.08831596374511719
+  },
+  {
+   "name": "food101_0151_label87",
+   "label": 87,
+   "mean_brightness": 167.69733683268228,
+   "object_area_ratio": 0.1692021687825521
+  },
+  {
+   "name": "food101_0152_label51",
+   "label": 51,
+   "mean_brightness": 137.6196034749349,
+   "object_area_ratio": 0.3988138834635417
+  },
+  {
+   "name": "food101_0153_label51",
+   "label": 51,
+   "mean_brightness": 122.20753860473633,
+   "object_area_ratio": 0.3364677429199219
+  },
+  {
+   "name": "food101_0154_label98",
+   "label": 98,
+   "mean_brightness": 165.10153118737475,
+   "object_area_ratio": 0.26349965556112226
+  },
+  {
+   "name": "food101_0155_label51",
+   "label": 51,
+   "mean_brightness": 105.27912521362305,
+   "object_area_ratio": 0.08746147155761719
+  },
+  {
+   "name": "food101_0156_label92",
+   "label": 92,
+   "mean_brightness": 142.07076687282986,
+   "object_area_ratio": 0.2365383572048611
+  },
+  {
+   "name": "food101_0157_label51",
+   "label": 51,
+   "mean_brightness": 107.93931070963542,
+   "object_area_ratio": 0.29549916585286456
+  },
+  {
+   "name": "food101_0158_label98",
+   "label": 98,
+   "mean_brightness": 166.35159810384116,
+   "object_area_ratio": 0.17882283528645834
+  },
+  {
+   "name": "food101_0159_label6",
+   "label": 6,
+   "mean_brightness": 136.00257873535156,
+   "object_area_ratio": 0.7992172241210938
+  },
+  {
+   "name": "food101_0160_label74",
+   "label": 74,
+   "mean_brightness": 122.64614359537761,
+   "object_area_ratio": 0.23016357421875
+  },
+  {
+   "name": "food101_0161_label82",
+   "label": 82,
+   "mean_brightness": 110.64031982421875,
+   "object_area_ratio": 0.048520406087239586
+  },
+  {
+   "name": "food101_0162_label87",
+   "label": 87,
+   "mean_brightness": 118.18016052246094,
+   "object_area_ratio": 0.06538963317871094
+  },
+  {
+   "name": "food101_0163_label92",
+   "label": 92,
+   "mean_brightness": 194.04824829101562,
+   "object_area_ratio": 0.15905189514160156
+  },
+  {
+   "name": "food101_0164_label87",
+   "label": 87,
+   "mean_brightness": 129.9670155843099,
+   "object_area_ratio": 0.44750213623046875
+  },
+  {
+   "name": "food101_0165_label92",
+   "label": 92,
+   "mean_brightness": 159.30596160888672,
+   "object_area_ratio": 0.15567779541015625
+  },
+  {
+   "name": "food101_0166_label87",
+   "label": 87,
+   "mean_brightness": 113.36549377441406,
+   "object_area_ratio": 0.420379638671875
+  },
+  {
+   "name": "food101_0167_label92",
+   "label": 92,
+   "mean_brightness": 164.03941345214844,
+   "object_area_ratio": 0.23400115966796875
+  },
+  {
+   "name": "food101_0168_label92",
+   "label": 92,
+   "mean_brightness": 106.2060317993164,
+   "object_area_ratio": 0.21611976623535156
+  },
+  {
+   "name": "food101_0169_label92",
+   "label": 92,
+   "mean_brightness": 89.05442301432292,
+   "object_area_ratio": 0.3553314208984375
+  },
+  {
+   "name": "food101_0170_label98",
+   "label": 98,
+   "mean_brightness": 136.88858032226562,
+   "object_area_ratio": 0.37366994222005206
+  },
+  {
+   "name": "food101_0171_label74",
+   "label": 74,
+   "mean_brightness": 213.9249267578125,
+   "object_area_ratio": 0.2520256042480469
+  },
+  {
+   "name": "food101_0172_label82",
+   "label": 82,
+   "mean_brightness": 159.92564010620117,
+   "object_area_ratio": 0.28554344177246094
+  },
+  {
+   "name": "food101_0173_label98",
+   "label": 98,
+   "mean_brightness": 115.35247421264648,
+   "object_area_ratio": 0.14063453674316406
+  },
+  {
+   "name": "food101_0174_label96",
+   "label": 96,
+   "mean_brightness": 173.1612777709961,
+   "object_area_ratio": 0.39026641845703125
+  },
+  {
+   "name": "food101_0175_label51",
+   "label": 51,
+   "mean_brightness": 161.33456802368164,
+   "object_area_ratio": 0.3519783020019531
+  },
+  {
+   "name": "food101_0176_label92",
+   "label": 92,
+   "mean_brightness": 178.16499710083008,
+   "object_area_ratio": 0.23049545288085938
+  },
+  {
+   "name": "food101_0177_label87",
+   "label": 87,
+   "mean_brightness": 137.46107482910156,
+   "object_area_ratio": 0.24283345540364584
+  },
+  {
+   "name": "food101_0178_label74",
+   "label": 74,
+   "mean_brightness": 132.9548797607422,
+   "object_area_ratio": 0.41997019449869794
+  },
+  {
+   "name": "food101_0179_label51",
+   "label": 51,
+   "mean_brightness": 141.48379724312827,
+   "object_area_ratio": 0.2741788694371728
+  },
+  {
+   "name": "food101_0180_label98",
+   "label": 98,
+   "mean_brightness": 97.72567182410424,
+   "object_area_ratio": 0.41092286746742673
+  },
+  {
+   "name": "food101_0181_label96",
+   "label": 96,
+   "mean_brightness": 112.70946116727941,
+   "object_area_ratio": 0.35333754595588235
+  },
+  {
+   "name": "food101_0182_label92",
+   "label": 92,
+   "mean_brightness": 138.10986008986927,
+   "object_area_ratio": 0.2478585835375817
+  },
+  {
+   "name": "food101_0183_label92",
+   "label": 92,
+   "mean_brightness": 214.03595352172852,
+   "object_area_ratio": 0.4609565734863281
+  },
+  {
+   "name": "food101_0184_label6",
+   "label": 6,
+   "mean_brightness": 158.4240608215332,
+   "object_area_ratio": 0.6779766082763672
+  },
+  {
+   "name": "food101_0185_label92",
+   "label": 92,
+   "mean_brightness": 177.63385391235352,
+   "object_area_ratio": 0.8677387237548828
+  },
+  {
+   "name": "food101_0186_label6",
+   "label": 6,
+   "mean_brightness": 101.16788482666016,
+   "object_area_ratio": 0.2858543395996094
+  },
+  {
+   "name": "food101_0187_label51",
+   "label": 51,
+   "mean_brightness": 164.66610717773438,
+   "object_area_ratio": 0.21851730346679688
+  },
+  {
+   "name": "food101_0188_label92",
+   "label": 92,
+   "mean_brightness": 166.7225341796875,
+   "object_area_ratio": 0.12380599975585938
+  },
+  {
+   "name": "food101_0189_label51",
+   "label": 51,
+   "mean_brightness": 120.42445755004883,
+   "object_area_ratio": 0.18119239807128906
+  },
+  {
+   "name": "food101_0190_label82",
+   "label": 82,
+   "mean_brightness": 157.33908462524414,
+   "object_area_ratio": 0.4907569885253906
+  },
+  {
+   "name": "food101_0191_label92",
+   "label": 92,
+   "mean_brightness": 170.11396424463192,
+   "object_area_ratio": 0.38267470283742333
+  },
+  {
+   "name": "food101_0192_label6",
+   "label": 6,
+   "mean_brightness": 149.8530502319336,
+   "object_area_ratio": 0.19513702392578125
+  },
+  {
+   "name": "food101_0193_label87",
+   "label": 87,
+   "mean_brightness": 173.65887832641602,
+   "object_area_ratio": 0.12958145141601562
+  },
+  {
+   "name": "food101_0194_label6",
+   "label": 6,
+   "mean_brightness": 70.77833557128906,
+   "object_area_ratio": 0.2732353210449219
+  },
+  {
+   "name": "food101_0195_label6",
+   "label": 6,
+   "mean_brightness": 144.73983764648438,
+   "object_area_ratio": 0.2572479248046875
+  },
+  {
+   "name": "food101_0196_label92",
+   "label": 92,
+   "mean_brightness": 171.47542826334634,
+   "object_area_ratio": 0.19917805989583334
+  },
+  {
+   "name": "food101_0197_label92",
+   "label": 92,
+   "mean_brightness": 147.16184017595307,
+   "object_area_ratio": 0.14218291788856305
+  },
+  {
+   "name": "food101_0198_label98",
+   "label": 98,
+   "mean_brightness": 111.34724807739258,
+   "object_area_ratio": 0.07640647888183594
+  },
+  {
+   "name": "food101_0199_label87",
+   "label": 87,
+   "mean_brightness": 109.99139785766602,
+   "object_area_ratio": 0.3628654479980469
+  },
+  {
+   "name": "food101_0200_label92",
+   "label": 92,
+   "mean_brightness": 188.08179092407227,
+   "object_area_ratio": 0.23913955688476562
+  },
+  {
+   "name": "food101_0201_label74",
+   "label": 74,
+   "mean_brightness": 103.21544901529948,
+   "object_area_ratio": 0.32421112060546875
+  },
+  {
+   "name": "food101_0202_label39",
+   "label": 39,
+   "mean_brightness": 157.89139938354492,
+   "object_area_ratio": 0.22264862060546875
+  },
+  {
+   "name": "food101_0203_label82",
+   "label": 82,
+   "mean_brightness": 105.06304423014323,
+   "object_area_ratio": 0.10892232259114583
+  },
+  {
+   "name": "food101_0204_label87",
+   "label": 87,
+   "mean_brightness": 154.19647979736328,
+   "object_area_ratio": 0.06629371643066406
+  },
+  {
+   "name": "food101_0205_label87",
+   "label": 87,
+   "mean_brightness": 214.55840682983398,
+   "object_area_ratio": 0.07105827331542969
+  },
+  {
+   "name": "food101_0206_label6",
+   "label": 6,
+   "mean_brightness": 141.99092864990234,
+   "object_area_ratio": 0.1783599853515625
+  },
+  {
+   "name": "food101_0207_label87",
+   "label": 87,
+   "mean_brightness": 190.70515831195016,
+   "object_area_ratio": 0.2586000504032258
+  },
+  {
+   "name": "food101_0208_label6",
+   "label": 6,
+   "mean_brightness": 169.5806121826172,
+   "object_area_ratio": 0.5225334167480469
+  },
+  {
+   "name": "food101_0209_label87",
+   "label": 87,
+   "mean_brightness": 160.82931009928384,
+   "object_area_ratio": 0.35365549723307294
+  },
+  {
+   "name": "food101_0210_label51",
+   "label": 51,
+   "mean_brightness": 161.5947153376437,
+   "object_area_ratio": 0.17406104076867815
+  },
+  {
+   "name": "food101_0211_label74",
+   "label": 74,
+   "mean_brightness": 127.22086334228516,
+   "object_area_ratio": 0.236328125
+  },
+  {
+   "name": "food101_0212_label51",
+   "label": 51,
+   "mean_brightness": 177.4296875,
+   "object_area_ratio": 0.18217002467105264
+  },
+  {
+   "name": "food101_0213_label87",
+   "label": 87,
+   "mean_brightness": 187.52917098999023,
+   "object_area_ratio": 0.32581138610839844
+  },
+  {
+   "name": "food101_0214_label96",
+   "label": 96,
+   "mean_brightness": 165.68861389160156,
+   "object_area_ratio": 0.1480579376220703
+  },
+  {
+   "name": "food101_0215_label96",
+   "label": 96,
+   "mean_brightness": 145.2449188232422,
+   "object_area_ratio": 0.1609935760498047
+  },
+  {
+   "name": "food101_0216_label92",
+   "label": 92,
+   "mean_brightness": 143.46805318196616,
+   "object_area_ratio": 0.3871714274088542
+  },
+  {
+   "name": "food101_0217_label96",
+   "label": 96,
+   "mean_brightness": 140.54942122054973,
+   "object_area_ratio": 0.25599997954842935
+  },
+  {
+   "name": "food101_0218_label6",
+   "label": 6,
+   "mean_brightness": 162.19694137573242,
+   "object_area_ratio": 0.14270973205566406
+  },
+  {
+   "name": "food101_0219_label92",
+   "label": 92,
+   "mean_brightness": 188.6020851135254,
+   "object_area_ratio": 0.29894065856933594
+  },
+  {
+   "name": "food101_0220_label6",
+   "label": 6,
+   "mean_brightness": 150.46129608154297,
+   "object_area_ratio": 0.12204742431640625
+  },
+  {
+   "name": "food101_0221_label6",
+   "label": 6,
+   "mean_brightness": 223.94089889526367,
+   "object_area_ratio": 0.2234172821044922
+  },
+  {
+   "name": "food101_0222_label96",
+   "label": 96,
+   "mean_brightness": 104.47874069213867,
+   "object_area_ratio": 0.3266429901123047
+  },
+  {
+   "name": "food101_0223_label98",
+   "label": 98,
+   "mean_brightness": 98.14114761352539,
+   "object_area_ratio": 0.13069915771484375
+  },
+  {
+   "name": "food101_0224_label87",
+   "label": 87,
+   "mean_brightness": 198.54166857587975,
+   "object_area_ratio": 0.1894932184750733
+  },
+  {
+   "name": "food101_0225_label87",
+   "label": 87,
+   "mean_brightness": 164.2071189880371,
+   "object_area_ratio": 0.36673927307128906
+  },
+  {
+   "name": "food101_0226_label39",
+   "label": 39,
+   "mean_brightness": 155.8927764892578,
+   "object_area_ratio": 0.23348236083984375
+  },
+  {
+   "name": "food101_0227_label82",
+   "label": 82,
+   "mean_brightness": 134.3183364868164,
+   "object_area_ratio": 0.9225273132324219
+  },
+  {
+   "name": "food101_0228_label39",
+   "label": 39,
+   "mean_brightness": 138.5726203918457,
+   "object_area_ratio": 0.3540191650390625
+  },
+  {
+   "name": "food101_0229_label96",
+   "label": 96,
+   "mean_brightness": 117.03254250919117,
+   "object_area_ratio": 0.40847024356617645
+  },
+  {
+   "name": "food101_0230_label6",
+   "label": 6,
+   "mean_brightness": 144.7188377380371,
+   "object_area_ratio": 0.11874198913574219
+  },
+  {
+   "name": "food101_0231_label39",
+   "label": 39,
+   "mean_brightness": 166.92623138427734,
+   "object_area_ratio": 0.27285003662109375
+  },
+  {
+   "name": "food101_0232_label82",
+   "label": 82,
+   "mean_brightness": 153.54718017578125,
+   "object_area_ratio": 0.2747611999511719
+  },
+  {
+   "name": "food101_0233_label87",
+   "label": 87,
+   "mean_brightness": 127.56062868128272,
+   "object_area_ratio": 0.24975458115183247
+  },
+  {
+   "name": "food101_0234_label74",
+   "label": 74,
+   "mean_brightness": 89.88616561889648,
+   "object_area_ratio": 0.13985633850097656
+  },
+  {
+   "name": "food101_0235_label6",
+   "label": 6,
+   "mean_brightness": 112.10928726196289,
+   "object_area_ratio": 0.3390769958496094
+  },
+  {
+   "name": "food101_0236_label6",
+   "label": 6,
+   "mean_brightness": 158.00760650634766,
+   "object_area_ratio": 0.22113990783691406
+  },
+  {
+   "name": "food101_0237_label96",
+   "label": 96,
+   "mean_brightness": 102.93027548265707,
+   "object_area_ratio": 0.09352758916884817
+  },
+  {
+   "name": "food101_0238_label74",
+   "label": 74,
+   "mean_brightness": 144.15686858504398,
+   "object_area_ratio": 0.36911771444281527
+  },
+  {
+   "name": "food101_0239_label82",
+   "label": 82,
+   "mean_brightness": 125.97448221842448,
+   "object_area_ratio": 0.12601216634114584
+  },
+  {
+   "name": "food101_0240_label74",
+   "label": 74,
+   "mean_brightness": 166.21714401245117,
+   "object_area_ratio": 0.3753166198730469
+  },
+  {
+   "name": "food101_0241_label96",
+   "label": 96,
+   "mean_brightness": 174.14657974243164,
+   "object_area_ratio": 0.2806663513183594
+  },
+  {
+   "name": "food101_0242_label87",
+   "label": 87,
+   "mean_brightness": 129.76238632202148,
+   "object_area_ratio": 0.36309242248535156
+  },
+  {
+   "name": "food101_0243_label87",
+   "label": 87,
+   "mean_brightness": 183.68177032470703,
+   "object_area_ratio": 0.24637603759765625
+  },
+  {
+   "name": "food101_0244_label74",
+   "label": 74,
+   "mean_brightness": 125.66058349609375,
+   "object_area_ratio": 0.36047108968098956
+  },
+  {
+   "name": "food101_0245_label74",
+   "label": 74,
+   "mean_brightness": 177.9811019897461,
+   "object_area_ratio": 0.9960975646972656
+  },
+  {
+   "name": "food101_0246_label51",
+   "label": 51,
+   "mean_brightness": 179.7013397216797,
+   "object_area_ratio": 0.4947643280029297
+  },
+  {
+   "name": "food101_0247_label6",
+   "label": 6,
+   "mean_brightness": 111.08624776204427,
+   "object_area_ratio": 0.29425048828125
+  },
+  {
+   "name": "food101_0248_label87",
+   "label": 87,
+   "mean_brightness": 151.25606536865234,
+   "object_area_ratio": 0.28748321533203125
+  },
+  {
+   "name": "food101_0249_label87",
+   "label": 87,
+   "mean_brightness": 79.60546875,
+   "object_area_ratio": 0.24881998697916666
+  },
+  {
+   "name": "food101_0250_label82",
+   "label": 82,
+   "mean_brightness": 189.18853791721205,
+   "object_area_ratio": 0.4292171138743455
+  },
+  {
+   "name": "food101_0251_label51",
+   "label": 51,
+   "mean_brightness": 138.48062896728516,
+   "object_area_ratio": 0.1707630157470703
+  },
+  {
+   "name": "food101_0252_label74",
+   "label": 74,
+   "mean_brightness": 196.31072998046875,
+   "object_area_ratio": 0.3617401123046875
+  },
+  {
+   "name": "food101_0253_label87",
+   "label": 87,
+   "mean_brightness": 129.58042526245117,
+   "object_area_ratio": 0.2315235137939453
+  },
+  {
+   "name": "food101_0254_label74",
+   "label": 74,
+   "mean_brightness": 131.96792602539062,
+   "object_area_ratio": 0.2607555389404297
+  },
+  {
+   "name": "food101_0255_label96",
+   "label": 96,
+   "mean_brightness": 131.8141860961914,
+   "object_area_ratio": 0.390716552734375
+  },
+  {
+   "name": "food101_0256_label39",
+   "label": 39,
+   "mean_brightness": 202.49090576171875,
+   "object_area_ratio": 0.2629680633544922
+  },
+  {
+   "name": "food101_0257_label6",
+   "label": 6,
+   "mean_brightness": 111.59025573730469,
+   "object_area_ratio": 0.3683338165283203
+  },
+  {
+   "name": "food101_0258_label6",
+   "label": 6,
+   "mean_brightness": 173.2382454597513,
+   "object_area_ratio": 0.13249805710078533
+  },
+  {
+   "name": "food101_0259_label82",
+   "label": 82,
+   "mean_brightness": 117.23721822102864,
+   "object_area_ratio": 0.2663472493489583
+  },
+  {
+   "name": "food101_0260_label87",
+   "label": 87,
+   "mean_brightness": 99.38489786783855,
+   "object_area_ratio": 0.5148239135742188
+  },
+  {
+   "name": "food101_0261_label98",
+   "label": 98,
+   "mean_brightness": 124.30923461914062,
+   "object_area_ratio": 0.26314544677734375
+  },
+  {
+   "name": "food101_0262_label82",
+   "label": 82,
+   "mean_brightness": 206.43294143676758,
+   "object_area_ratio": 0.0827484130859375
+  },
+  {
+   "name": "food101_0263_label51",
+   "label": 51,
+   "mean_brightness": 141.41522979736328,
+   "object_area_ratio": 0.4106903076171875
+  },
+  {
+   "name": "food101_0264_label51",
+   "label": 51,
+   "mean_brightness": 118.52681587837837,
+   "object_area_ratio": 0.39281126829954954
+  },
+  {
+   "name": "food101_0265_label51",
+   "label": 51,
+   "mean_brightness": 137.3429412841797,
+   "object_area_ratio": 0.35761260986328125
+  },
+  {
+   "name": "food101_0266_label98",
+   "label": 98,
+   "mean_brightness": 153.55290985107422,
+   "object_area_ratio": 0.3586406707763672
+  },
+  {
+   "name": "food101_0267_label98",
+   "label": 98,
+   "mean_brightness": 109.42436218261719,
+   "object_area_ratio": 0.3823413848876953
+  },
+  {
+   "name": "food101_0268_label74",
+   "label": 74,
+   "mean_brightness": 147.65840530395508,
+   "object_area_ratio": 0.06550979614257812
+  },
+  {
+   "name": "food101_0269_label92",
+   "label": 92,
+   "mean_brightness": 151.74009704589844,
+   "object_area_ratio": 0.21815109252929688
+  },
+  {
+   "name": "food101_0270_label92",
+   "label": 92,
+   "mean_brightness": 115.72844696044922,
+   "object_area_ratio": 0.1590137481689453
+  },
+  {
+   "name": "food101_0271_label87",
+   "label": 87,
+   "mean_brightness": 123.01279830932617,
+   "object_area_ratio": 0.4587078094482422
+  },
+  {
+   "name": "food101_0272_label6",
+   "label": 6,
+   "mean_brightness": 164.2438850402832,
+   "object_area_ratio": 0.3088531494140625
+  },
+  {
+   "name": "food101_0273_label92",
+   "label": 92,
+   "mean_brightness": 147.8547324934555,
+   "object_area_ratio": 0.386133323789267
+  },
+  {
+   "name": "food101_0274_label98",
+   "label": 98,
+   "mean_brightness": 86.60618591308594,
+   "object_area_ratio": 0.12852986653645834
+  },
+  {
+   "name": "food101_0275_label98",
+   "label": 98,
+   "mean_brightness": 126.48071670532227,
+   "object_area_ratio": 0.4031543731689453
+  },
+  {
+   "name": "food101_0276_label82",
+   "label": 82,
+   "mean_brightness": 188.55123901367188,
+   "object_area_ratio": 0.15894699096679688
+  },
+  {
+   "name": "food101_0277_label92",
+   "label": 92,
+   "mean_brightness": 108.16935729980469,
+   "object_area_ratio": 0.15776634216308594
+  },
+  {
+   "name": "food101_0278_label96",
+   "label": 96,
+   "mean_brightness": 132.1951446533203,
+   "object_area_ratio": 0.1995824178059896
+  },
+  {
+   "name": "food101_0279_label98",
+   "label": 98,
+   "mean_brightness": 137.49319076538086,
+   "object_area_ratio": 0.22225570678710938
+  },
+  {
+   "name": "food101_0280_label82",
+   "label": 82,
+   "mean_brightness": 137.35912322998047,
+   "object_area_ratio": 0.9960975646972656
+  },
+  {
+   "name": "food101_0281_label92",
+   "label": 92,
+   "mean_brightness": 138.55112892670158,
+   "object_area_ratio": 0.20736103157722513
+  },
+  {
+   "name": "food101_0282_label6",
+   "label": 6,
+   "mean_brightness": 168.80475997924805,
+   "object_area_ratio": 0.17365264892578125
+  },
+  {
+   "name": "food101_0283_label98",
+   "label": 98,
+   "mean_brightness": 124.47650505514706,
+   "object_area_ratio": 0.5181066176470588
+  },
+  {
+   "name": "food101_0284_label87",
+   "label": 87,
+   "mean_brightness": 134.6802101135254,
+   "object_area_ratio": 0.1342487335205078
+  },
+  {
+   "name": "food101_0285_label87",
+   "label": 87,
+   "mean_brightness": 208.63499473057186,
+   "object_area_ratio": 0.2670254078079179
+  },
+  {
+   "name": "food101_0286_label87",
+   "label": 87,
+   "mean_brightness": 133.06843948364258,
+   "object_area_ratio": 0.3183002471923828
+  },
+  {
+   "name": "food101_0287_label82",
+   "label": 82,
+   "mean_brightness": 213.9423065185547,
+   "object_area_ratio": 0.04424858093261719
+  },
+  {
+   "name": "food101_0288_label92",
+   "label": 92,
+   "mean_brightness": 123.62800216674805,
+   "object_area_ratio": 0.43033409118652344
+  },
+  {
+   "name": "food101_0289_label87",
+   "label": 87,
+   "mean_brightness": 133.8225555419922,
+   "object_area_ratio": 0.3312969207763672
+  },
+  {
+   "name": "food101_0290_label6",
+   "label": 6,
+   "mean_brightness": 128.4359588623047,
+   "object_area_ratio": 0.17362213134765625
+  },
+  {
+   "name": "food101_0291_label98",
+   "label": 98,
+   "mean_brightness": 90.92697525024414,
+   "object_area_ratio": 0.20163726806640625
+  },
+  {
+   "name": "food101_0292_label87",
+   "label": 87,
+   "mean_brightness": 146.22743606567383,
+   "object_area_ratio": 0.2331104278564453
+  },
+  {
+   "name": "food101_0293_label82",
+   "label": 82,
+   "mean_brightness": 103.46867752075195,
+   "object_area_ratio": 0.11481094360351562
+  },
+  {
+   "name": "food101_0294_label74",
+   "label": 74,
+   "mean_brightness": 170.8074791393979,
+   "object_area_ratio": 0.23525953043193717
+  },
+  {
+   "name": "food101_0295_label96",
+   "label": 96,
+   "mean_brightness": 133.20800018310547,
+   "object_area_ratio": 0.1506214141845703
+  },
+  {
+   "name": "food101_0296_label87",
+   "label": 87,
+   "mean_brightness": 176.5843760172526,
+   "object_area_ratio": 0.32350921630859375
+  },
+  {
+   "name": "food101_0297_label82",
+   "label": 82,
+   "mean_brightness": 218.33002090454102,
+   "object_area_ratio": 0.4009132385253906
+  },
+  {
+   "name": "food101_0298_label74",
+   "label": 74,
+   "mean_brightness": 170.88446044921875,
+   "object_area_ratio": 0.3436279296875
+  },
+  {
+   "name": "food101_0299_label51",
+   "label": 51,
+   "mean_brightness": 114.35792922973633,
+   "object_area_ratio": 0.3375244140625
+  },
+  {
+   "name": "food101_0300_label74",
+   "label": 74,
+   "mean_brightness": 129.47349548339844,
+   "object_area_ratio": 0.25734901428222656
+  },
+  {
+   "name": "food101_0301_label98",
+   "label": 98,
+   "mean_brightness": 149.89935302734375,
+   "object_area_ratio": 0.17876434326171875
+  },
+  {
+   "name": "food101_0302_label87",
+   "label": 87,
+   "mean_brightness": 171.13755416870117,
+   "object_area_ratio": 0.17538070678710938
+  },
+  {
+   "name": "food101_0303_label39",
+   "label": 39,
+   "mean_brightness": 193.88584955824606,
+   "object_area_ratio": 0.1848208442408377
+  },
+  {
+   "name": "food101_0304_label39",
+   "label": 39,
+   "mean_brightness": 115.0071792602539,
+   "object_area_ratio": 0.24367523193359375
+  },
+  {
+   "name": "food101_0305_label39",
+   "label": 39,
+   "mean_brightness": 151.7212791442871,
+   "object_area_ratio": 0.4314231872558594
+  },
+  {
+   "name": "food101_0306_label92",
+   "label": 92,
+   "mean_brightness": 173.58494186401367,
+   "object_area_ratio": 0.3914833068847656
+  },
+  {
+   "name": "food101_0307_label87",
+   "label": 87,
+   "mean_brightness": 116.95648085861056,
+   "object_area_ratio": 0.23839591487279843
+  },
+  {
+   "name": "food101_0308_label82",
+   "label": 82,
+   "mean_brightness": 119.55970764160156,
+   "object_area_ratio": 0.5141448974609375
+  },
+  {
+   "name": "food101_0309_label74",
+   "label": 74,
+   "mean_brightness": 131.10116068522134,
+   "object_area_ratio": 0.1482365926106771
+  },
+  {
+   "name": "food101_0310_label87",
+   "label": 87,
+   "mean_brightness": 137.08493423461914,
+   "object_area_ratio": 0.17989158630371094
+  },
+  {
+   "name": "food101_0311_label96",
+   "label": 96,
+   "mean_brightness": 73.73522567749023,
+   "object_area_ratio": 0.33319091796875
+  },
+  {
+   "name": "food101_0312_label51",
+   "label": 51,
+   "mean_brightness": 148.69269943237305,
+   "object_area_ratio": 0.2206859588623047
+  },
+  {
+   "name": "food101_0313_label6",
+   "label": 6,
+   "mean_brightness": 154.34578323364258,
+   "object_area_ratio": 0.35529327392578125
+  },
+  {
+   "name": "food101_0314_label82",
+   "label": 82,
+   "mean_brightness": 190.0892333984375,
+   "object_area_ratio": 0.017242431640625
+  },
+  {
+   "name": "food101_0315_label82",
+   "label": 82,
+   "mean_brightness": 122.17827860514323,
+   "object_area_ratio": 0.9785715738932291
+  },
+  {
+   "name": "food101_0316_label98",
+   "label": 98,
+   "mean_brightness": 81.1904296875,
+   "object_area_ratio": 0.2269611358642578
+  },
+  {
+   "name": "food101_0317_label92",
+   "label": 92,
+   "mean_brightness": 151.41618946335078,
+   "object_area_ratio": 0.44145737892670156
+  },
+  {
+   "name": "food101_0318_label74",
+   "label": 74,
+   "mean_brightness": 107.48880386352539,
+   "object_area_ratio": 0.1460418701171875
+  },
+  {
+   "name": "food101_0319_label39",
+   "label": 39,
+   "mean_brightness": 126.31712341308594,
+   "object_area_ratio": 0.32399940490722656
+  },
+  {
+   "name": "food101_0320_label96",
+   "label": 96,
+   "mean_brightness": 158.6034927368164,
+   "object_area_ratio": 0.40676116943359375
+  },
+  {
+   "name": "food101_0321_label82",
+   "label": 82,
+   "mean_brightness": 129.13140869140625,
+   "object_area_ratio": 0.22530364990234375
+  },
+  {
+   "name": "food101_0322_label92",
+   "label": 92,
+   "mean_brightness": 181.26278686523438,
+   "object_area_ratio": 0.3127174377441406
+  },
+  {
+   "name": "food101_0323_label74",
+   "label": 74,
+   "mean_brightness": 177.92416763305664,
+   "object_area_ratio": 0.21440505981445312
+  },
+  {
+   "name": "food101_0324_label82",
+   "label": 82,
+   "mean_brightness": 155.55376052856445,
+   "object_area_ratio": 0.258392333984375
+  },
+  {
+   "name": "food101_0325_label92",
+   "label": 92,
+   "mean_brightness": 161.60502243041992,
+   "object_area_ratio": 0.386383056640625
+  },
+  {
+   "name": "food101_0326_label74",
+   "label": 74,
+   "mean_brightness": 176.08768844604492,
+   "object_area_ratio": 0.26126861572265625
+  },
+  {
+   "name": "food101_0327_label74",
+   "label": 74,
+   "mean_brightness": 143.85836029052734,
+   "object_area_ratio": 0.12406730651855469
+  },
+  {
+   "name": "food101_0328_label51",
+   "label": 51,
+   "mean_brightness": 145.5377426147461,
+   "object_area_ratio": 0.1078033447265625
+  },
+  {
+   "name": "food101_0329_label82",
+   "label": 82,
+   "mean_brightness": 183.44692993164062,
+   "object_area_ratio": 0.38573455810546875
+  },
+  {
+   "name": "food101_0330_label74",
+   "label": 74,
+   "mean_brightness": 142.73521931966147,
+   "object_area_ratio": 0.3062337239583333
+  },
+  {
+   "name": "food101_0331_label82",
+   "label": 82,
+   "mean_brightness": 67.32679738562092,
+   "object_area_ratio": 0.47331686580882354
+  },
+  {
+   "name": "food101_0332_label51",
+   "label": 51,
+   "mean_brightness": 167.89058303833008,
+   "object_area_ratio": 0.07654762268066406
+  },
+  {
+   "name": "food101_0333_label51",
+   "label": 51,
+   "mean_brightness": 123.49029032389323,
+   "object_area_ratio": 0.07717641194661458
+  },
+  {
+   "name": "food101_0334_label74",
+   "label": 74,
+   "mean_brightness": 194.28318405151367,
+   "object_area_ratio": 0.2596244812011719
+  },
+  {
+   "name": "food101_0335_label98",
+   "label": 98,
+   "mean_brightness": 144.2781219482422,
+   "object_area_ratio": 0.1820049285888672
+  },
+  {
+   "name": "food101_0336_label82",
+   "label": 82,
+   "mean_brightness": 140.07975006103516,
+   "object_area_ratio": 0.41431236267089844
+  },
+  {
+   "name": "food101_0337_label51",
+   "label": 51,
+   "mean_brightness": 155.79389929646598,
+   "object_area_ratio": 0.35324719813481675
+  },
+  {
+   "name": "food101_0338_label6",
+   "label": 6,
+   "mean_brightness": 151.55111694335938,
+   "object_area_ratio": 0.3682842254638672
+  },
+  {
+   "name": "food101_0339_label39",
+   "label": 39,
+   "mean_brightness": 158.46654256184897,
+   "object_area_ratio": 0.1974767049153646
+  },
+  {
+   "name": "food101_0340_label87",
+   "label": 87,
+   "mean_brightness": 132.38839532632744,
+   "object_area_ratio": 0.2751630484882006
+  },
+  {
+   "name": "food101_0341_label98",
+   "label": 98,
+   "mean_brightness": 63.247894287109375,
+   "object_area_ratio": 0.06682586669921875
+  },
+  {
+   "name": "food101_0342_label51",
+   "label": 51,
+   "mean_brightness": 167.7670440673828,
+   "object_area_ratio": 0.39440155029296875
+  },
+  {
+   "name": "food101_0343_label82",
+   "label": 82,
+   "mean_brightness": 190.48385348494764,
+   "object_area_ratio": 0.39912774051047123
+  },
+  {
+   "name": "food101_0344_label98",
+   "label": 98,
+   "mean_brightness": 175.2504425048828,
+   "object_area_ratio": 0.33576393127441406
+  },
+  {
+   "name": "food101_0345_label6",
+   "label": 6,
+   "mean_brightness": 98.34493509928386,
+   "object_area_ratio": 0.32228342692057294
+  },
+  {
+   "name": "food101_0346_label6",
+   "label": 6,
+   "mean_brightness": 207.58032608032227,
+   "object_area_ratio": 0.39034080505371094
+  },
+  {
+   "name": "food101_0347_label39",
+   "label": 39,
+   "mean_brightness": 107.02119445800781,
+   "object_area_ratio": 0.1527252197265625
+  },
+  {
+   "name": "food101_0348_label74",
+   "label": 74,
+   "mean_brightness": 134.28806686401367,
+   "object_area_ratio": 0.16478729248046875
+  },
+  {
+   "name": "food101_0349_label74",
+   "label": 74,
+   "mean_brightness": 114.61625695353403,
+   "object_area_ratio": 0.3792437009162304
+  },
+  {
+   "name": "food101_0350_label51",
+   "label": 51,
+   "mean_brightness": 106.92190933227539,
+   "object_area_ratio": 0.18111419677734375
+  },
+  {
+   "name": "food101_0351_label74",
+   "label": 74,
+   "mean_brightness": 137.12643432617188,
+   "object_area_ratio": 0.16997146606445312
+  },
+  {
+   "name": "food101_0352_label98",
+   "label": 98,
+   "mean_brightness": 84.75936889648438,
+   "object_area_ratio": 0.26800282796223956
+  },
+  {
+   "name": "food101_0353_label98",
+   "label": 98,
+   "mean_brightness": 159.12670135498047,
+   "object_area_ratio": 0.37316322326660156
+  },
+  {
+   "name": "food101_0354_label6",
+   "label": 6,
+   "mean_brightness": 128.84589385986328,
+   "object_area_ratio": 0.27315521240234375
+  },
+  {
+   "name": "food101_0355_label39",
+   "label": 39,
+   "mean_brightness": 131.2502899169922,
+   "object_area_ratio": 0.28525733947753906
+  },
+  {
+   "name": "food101_0356_label39",
+   "label": 39,
+   "mean_brightness": 156.4101104736328,
+   "object_area_ratio": 0.281524658203125
+  },
+  {
+   "name": "food101_0357_label82",
+   "label": 82,
+   "mean_brightness": 202.99825286865234,
+   "object_area_ratio": 0.2085590362548828
+  },
+  {
+   "name": "food101_0358_label82",
+   "label": 82,
+   "mean_brightness": 145.78157424926758,
+   "object_area_ratio": 0.2633342742919922
+  },
+  {
+   "name": "food101_0359_label74",
+   "label": 74,
+   "mean_brightness": 132.66445922851562,
+   "object_area_ratio": 0.2226409912109375
+  },
+  {
+   "name": "food101_0360_label51",
+   "label": 51,
+   "mean_brightness": 139.5727335611979,
+   "object_area_ratio": 0.4747873942057292
+  },
+  {
+   "name": "food101_0361_label98",
+   "label": 98,
+   "mean_brightness": 167.12168884277344,
+   "object_area_ratio": 0.20007705688476562
+  },
+  {
+   "name": "food101_0362_label6",
+   "label": 6,
+   "mean_brightness": 143.17935943603516,
+   "object_area_ratio": 0.25082969665527344
+  },
+  {
+   "name": "food101_0363_label6",
+   "label": 6,
+   "mean_brightness": 163.96038055419922,
+   "object_area_ratio": 0.2727317810058594
+  },
+  {
+   "name": "food101_0364_label82",
+   "label": 82,
+   "mean_brightness": 211.69043731689453,
+   "object_area_ratio": 0.20485877990722656
+  },
+  {
+   "name": "food101_0365_label92",
+   "label": 92,
+   "mean_brightness": 122.7509053548177,
+   "object_area_ratio": 0.25399017333984375
+  },
+  {
+   "name": "food101_0366_label51",
+   "label": 51,
+   "mean_brightness": 93.61836242675781,
+   "object_area_ratio": 0.12418874104817708
+  },
+  {
+   "name": "food101_0367_label74",
+   "label": 74,
+   "mean_brightness": 164.7346534729004,
+   "object_area_ratio": 0.2992115020751953
+  },
+  {
+   "name": "food101_0368_label6",
+   "label": 6,
+   "mean_brightness": 135.35647093658892,
+   "object_area_ratio": 0.43013734511661805
+  },
+  {
+   "name": "food101_0369_label74",
+   "label": 74,
+   "mean_brightness": 103.10216903686523,
+   "object_area_ratio": 0.13898468017578125
+  },
+  {
+   "name": "food101_0370_label6",
+   "label": 6,
+   "mean_brightness": 177.24248123168945,
+   "object_area_ratio": 0.23310470581054688
+  },
+  {
+   "name": "food101_0371_label82",
+   "label": 82,
+   "mean_brightness": 127.6635513305664,
+   "object_area_ratio": 0.34639739990234375
+  },
+  {
+   "name": "food101_0372_label39",
+   "label": 39,
+   "mean_brightness": 162.78206253051758,
+   "object_area_ratio": 0.39428138732910156
+  },
+  {
+   "name": "food101_0373_label51",
+   "label": 51,
+   "mean_brightness": 133.02801005045572,
+   "object_area_ratio": 0.18180338541666666
+  },
+  {
+   "name": "food101_0374_label92",
+   "label": 92,
+   "mean_brightness": 90.71140034993489,
+   "object_area_ratio": 0.44838714599609375
+  },
+  {
+   "name": "food101_0375_label98",
+   "label": 98,
+   "mean_brightness": 178.08290100097656,
+   "object_area_ratio": 0.1742534637451172
+  },
+  {
+   "name": "food101_0376_label92",
+   "label": 92,
+   "mean_brightness": 185.09012985229492,
+   "object_area_ratio": 0.1323528289794922
+  },
+  {
+   "name": "food101_0377_label98",
+   "label": 98,
+   "mean_brightness": 121.69440078735352,
+   "object_area_ratio": 0.2337799072265625
+  },
+  {
+   "name": "food101_0378_label82",
+   "label": 82,
+   "mean_brightness": 150.36888122558594,
+   "object_area_ratio": 0.40840721130371094
+  },
+  {
+   "name": "food101_0379_label92",
+   "label": 92,
+   "mean_brightness": 101.42044439935064,
+   "object_area_ratio": 0.5436688311688311
+  },
+  {
+   "name": "food101_0380_label51",
+   "label": 51,
+   "mean_brightness": 137.92219161987305,
+   "object_area_ratio": 0.3136138916015625
+  },
+  {
+   "name": "food101_0381_label82",
+   "label": 82,
+   "mean_brightness": 179.4447784423828,
+   "object_area_ratio": 0.3866984049479167
+  },
+  {
+   "name": "food101_0382_label82",
+   "label": 82,
+   "mean_brightness": 118.90112686157227,
+   "object_area_ratio": 0.44969749450683594
+  },
+  {
+   "name": "food101_0383_label96",
+   "label": 96,
+   "mean_brightness": 98.19871520996094,
+   "object_area_ratio": 0.30120849609375
+  },
+  {
+   "name": "food101_0384_label6",
+   "label": 6,
+   "mean_brightness": 176.83732376975576,
+   "object_area_ratio": 0.21793339170258622
+  },
+  {
+   "name": "food101_0385_label98",
+   "label": 98,
+   "mean_brightness": 152.7041015625,
+   "object_area_ratio": 0.2833080291748047
+  },
+  {
+   "name": "food101_0386_label74",
+   "label": 74,
+   "mean_brightness": 175.7036895751953,
+   "object_area_ratio": 0.4156970977783203
+  },
+  {
+   "name": "food101_0387_label6",
+   "label": 6,
+   "mean_brightness": 136.85767618815103,
+   "object_area_ratio": 0.40269215901692706
+  },
+  {
+   "name": "food101_0388_label51",
+   "label": 51,
+   "mean_brightness": 144.77824783325195,
+   "object_area_ratio": 0.26639747619628906
+  },
+  {
+   "name": "food101_0389_label87",
+   "label": 87,
+   "mean_brightness": 150.8358154296875,
+   "object_area_ratio": 0.2220306396484375
+  },
+  {
+   "name": "food101_0390_label87",
+   "label": 87,
+   "mean_brightness": 169.9018440246582,
+   "object_area_ratio": 0.19714736938476562
+  },
+  {
+   "name": "food101_0391_label98",
+   "label": 98,
+   "mean_brightness": 122.58818685732648,
+   "object_area_ratio": 0.3226246184125964
+  },
+  {
+   "name": "food101_0392_label6",
+   "label": 6,
+   "mean_brightness": 131.1221214414267,
+   "object_area_ratio": 0.3112473412958115
+  },
+  {
+   "name": "food101_0393_label6",
+   "label": 6,
+   "mean_brightness": 96.34774398803711,
+   "object_area_ratio": 0.1083984375
+  },
+  {
+   "name": "food101_0394_label82",
+   "label": 82,
+   "mean_brightness": 130.58448791503906,
+   "object_area_ratio": 0.3123118082682292
+  },
+  {
+   "name": "food101_0395_label98",
+   "label": 98,
+   "mean_brightness": 116.72480773925781,
+   "object_area_ratio": 0.19489542643229166
+  },
+  {
+   "name": "food101_0396_label6",
+   "label": 6,
+   "mean_brightness": 188.90492248535156,
+   "object_area_ratio": 0.15860366821289062
+  },
+  {
+   "name": "food101_0397_label74",
+   "label": 74,
+   "mean_brightness": 160.53596115112305,
+   "object_area_ratio": 0.2613201141357422
+  },
+  {
+   "name": "food101_0398_label96",
+   "label": 96,
+   "mean_brightness": 131.0305430094401,
+   "object_area_ratio": 0.06434885660807292
+  },
+  {
+   "name": "food101_0399_label92",
+   "label": 92,
+   "mean_brightness": 159.87722396850586,
+   "object_area_ratio": 0.4486522674560547
+  },
+  {
+   "name": "food101_0400_label92",
+   "label": 92,
+   "mean_brightness": 126.7675552368164,
+   "object_area_ratio": 0.41870880126953125
+  },
+  {
+   "name": "food101_0401_label87",
+   "label": 87,
+   "mean_brightness": 131.0389633178711,
+   "object_area_ratio": 0.1970539093017578
+  },
+  {
+   "name": "food101_0402_label39",
+   "label": 39,
+   "mean_brightness": 126.00432385896382,
+   "object_area_ratio": 0.22816868832236842
+  },
+  {
+   "name": "food101_0403_label82",
+   "label": 82,
+   "mean_brightness": 192.53835678100586,
+   "object_area_ratio": 0.2307720184326172
+  },
+  {
+   "name": "food101_0404_label82",
+   "label": 82,
+   "mean_brightness": 182.68573093913614,
+   "object_area_ratio": 0.20447480366492146
+  },
+  {
+   "name": "food101_0405_label74",
+   "label": 74,
+   "mean_brightness": 123.5552484497389,
+   "object_area_ratio": 0.2967577105091384
+  },
+  {
+   "name": "food101_0406_label74",
+   "label": 74,
+   "mean_brightness": 159.2717514038086,
+   "object_area_ratio": 0.2431640625
+  },
+  {
+   "name": "food101_0407_label6",
+   "label": 6,
+   "mean_brightness": 131.51763916015625,
+   "object_area_ratio": 0.3094482421875
+  },
+  {
+   "name": "food101_0408_label92",
+   "label": 92,
+   "mean_brightness": 165.63028971354166,
+   "object_area_ratio": 0.2201665242513021
+  },
+  {
+   "name": "food101_0409_label51",
+   "label": 51,
+   "mean_brightness": 127.56113591269842,
+   "object_area_ratio": 0.17371574280753968
+  },
+  {
+   "name": "food101_0410_label92",
+   "label": 92,
+   "mean_brightness": 127.3529052734375,
+   "object_area_ratio": 0.14650726318359375
+  },
+  {
+   "name": "food101_0411_label51",
+   "label": 51,
+   "mean_brightness": 130.06914138793945,
+   "object_area_ratio": 0.4442577362060547
+  },
+  {
+   "name": "food101_0412_label6",
+   "label": 6,
+   "mean_brightness": 213.6314510569853,
+   "object_area_ratio": 0.3746036305147059
+  },
+  {
+   "name": "food101_0413_label82",
+   "label": 82,
+   "mean_brightness": 165.76378631591797,
+   "object_area_ratio": 0.17725372314453125
+  },
+  {
+   "name": "food101_0414_label87",
+   "label": 87,
+   "mean_brightness": 199.66674041748047,
+   "object_area_ratio": 0.4492301940917969
+  },
+  {
+   "name": "food101_0415_label39",
+   "label": 39,
+   "mean_brightness": 130.67701721191406,
+   "object_area_ratio": 0.3311309814453125
+  },
+  {
+   "name": "food101_0416_label98",
+   "label": 98,
+   "mean_brightness": 167.6393699645996,
+   "object_area_ratio": 0.22937583923339844
+  },
+  {
+   "name": "food101_0417_label87",
+   "label": 87,
+   "mean_brightness": 128.63196563720703,
+   "object_area_ratio": 0.24747276306152344
+  },
+  {
+   "name": "food101_0418_label96",
+   "label": 96,
+   "mean_brightness": 141.2459831237793,
+   "object_area_ratio": 0.2340869903564453
+  },
+  {
+   "name": "food101_0419_label98",
+   "label": 98,
+   "mean_brightness": 106.65147399902344,
+   "object_area_ratio": 0.1863994598388672
+  },
+  {
+   "name": "food101_0420_label6",
+   "label": 6,
+   "mean_brightness": 131.09237670898438,
+   "object_area_ratio": 0.38135719299316406
+  },
+  {
+   "name": "food101_0421_label92",
+   "label": 92,
+   "mean_brightness": 150.21611653008807,
+   "object_area_ratio": 0.99609375
+  },
+  {
+   "name": "food101_0422_label92",
+   "label": 92,
+   "mean_brightness": 180.6428985595703,
+   "object_area_ratio": 0.05698966979980469
+  },
+  {
+   "name": "food101_0423_label87",
+   "label": 87,
+   "mean_brightness": 47.95648956298828,
+   "object_area_ratio": 0.03610038757324219
+  },
+  {
+   "name": "food101_0424_label74",
+   "label": 74,
+   "mean_brightness": 98.24733618291884,
+   "object_area_ratio": 0.38895819698952877
+  },
+  {
+   "name": "food101_0425_label51",
+   "label": 51,
+   "mean_brightness": 130.10523986816406,
+   "object_area_ratio": 0.07228342692057292
+  },
+  {
+   "name": "food101_0426_label39",
+   "label": 39,
+   "mean_brightness": 135.14131546020508,
+   "object_area_ratio": 0.24578857421875
+  },
+  {
+   "name": "food101_0427_label92",
+   "label": 92,
+   "mean_brightness": 110.48831939697266,
+   "object_area_ratio": 0.48138427734375
+  },
+  {
+   "name": "food101_0428_label87",
+   "label": 87,
+   "mean_brightness": 200.08105850219727,
+   "object_area_ratio": 0.1769428253173828
+  },
+  {
+   "name": "food101_0429_label82",
+   "label": 82,
+   "mean_brightness": 134.25941467285156,
+   "object_area_ratio": 0.7034149169921875
+  },
+  {
+   "name": "food101_0430_label51",
+   "label": 51,
+   "mean_brightness": 129.43440628051758,
+   "object_area_ratio": 0.3309307098388672
+  },
+  {
+   "name": "food101_0431_label98",
+   "label": 98,
+   "mean_brightness": 169.62572733561197,
+   "object_area_ratio": 0.4251759847005208
+  },
+  {
+   "name": "food101_0432_label87",
+   "label": 87,
+   "mean_brightness": 159.66649881998697,
+   "object_area_ratio": 0.19937642415364584
+  },
+  {
+   "name": "food101_0433_label51",
+   "label": 51,
+   "mean_brightness": 158.12885284423828,
+   "object_area_ratio": 0.17775344848632812
+  },
+  {
+   "name": "food101_0434_label92",
+   "label": 92,
+   "mean_brightness": 175.04855346679688,
+   "object_area_ratio": 0.9960975646972656
+  },
+  {
+   "name": "food101_0435_label82",
+   "label": 82,
+   "mean_brightness": 166.8588981628418,
+   "object_area_ratio": 0.31160736083984375
+  },
+  {
+   "name": "food101_0436_label6",
+   "label": 6,
+   "mean_brightness": 130.76343154907227,
+   "object_area_ratio": 0.17592239379882812
+  },
+  {
+   "name": "food101_0437_label74",
+   "label": 74,
+   "mean_brightness": 164.94623947143555,
+   "object_area_ratio": 0.35352134704589844
+  },
+  {
+   "name": "food101_0438_label96",
+   "label": 96,
+   "mean_brightness": 150.73901558420366,
+   "object_area_ratio": 0.14066324657310705
+  },
+  {
+   "name": "food101_0439_label51",
+   "label": 51,
+   "mean_brightness": 150.13771057128906,
+   "object_area_ratio": 0.2921104431152344
+  },
+  {
+   "name": "food101_0440_label51",
+   "label": 51,
+   "mean_brightness": 170.76964569091797,
+   "object_area_ratio": 0.32061004638671875
+  },
+  {
+   "name": "food101_0441_label74",
+   "label": 74,
+   "mean_brightness": 147.99671936035156,
+   "object_area_ratio": 0.11031723022460938
+  },
+  {
+   "name": "food101_0442_label74",
+   "label": 74,
+   "mean_brightness": 116.4067268371582,
+   "object_area_ratio": 0.3034191131591797
+  },
+  {
+   "name": "food101_0443_label96",
+   "label": 96,
+   "mean_brightness": 138.06072998046875,
+   "object_area_ratio": 0.42412376403808594
+  },
+  {
+   "name": "food101_0444_label74",
+   "label": 74,
+   "mean_brightness": 173.86248851102943,
+   "object_area_ratio": 0.22080365349264705
+  },
+  {
+   "name": "food101_0445_label92",
+   "label": 92,
+   "mean_brightness": 185.0636444091797,
+   "object_area_ratio": 0.33677101135253906
+  },
+  {
+   "name": "food101_0446_label87",
+   "label": 87,
+   "mean_brightness": 179.27750142415366,
+   "object_area_ratio": 0.3171844482421875
+  },
+  {
+   "name": "food101_0447_label82",
+   "label": 82,
+   "mean_brightness": 205.16510009765625,
+   "object_area_ratio": 0.5781059265136719
+  },
+  {
+   "name": "food101_0448_label87",
+   "label": 87,
+   "mean_brightness": 162.07192993164062,
+   "object_area_ratio": 0.7214488983154297
+  },
+  {
+   "name": "food101_0449_label92",
+   "label": 92,
+   "mean_brightness": 160.34416580200195,
+   "object_area_ratio": 0.14520645141601562
+  },
+  {
+   "name": "food101_0450_label39",
+   "label": 39,
+   "mean_brightness": 169.99944305419922,
+   "object_area_ratio": 0.16217613220214844
+  },
+  {
+   "name": "food101_0451_label74",
+   "label": 74,
+   "mean_brightness": 140.2314910888672,
+   "object_area_ratio": 0.07738113403320312
+  },
+  {
+   "name": "food101_0452_label74",
+   "label": 74,
+   "mean_brightness": 123.95196972017973,
+   "object_area_ratio": 0.1849054074754902
+  },
+  {
+   "name": "food101_0453_label96",
+   "label": 96,
+   "mean_brightness": 176.8047218322754,
+   "object_area_ratio": 0.09186363220214844
+  },
+  {
+   "name": "food101_0454_label74",
+   "label": 74,
+   "mean_brightness": 168.66778564453125,
+   "object_area_ratio": 0.10429191589355469
+  },
+  {
+   "name": "food101_0455_label39",
+   "label": 39,
+   "mean_brightness": 112.74757766723633,
+   "object_area_ratio": 0.17614364624023438
+  },
+  {
+   "name": "food101_0456_label74",
+   "label": 74,
+   "mean_brightness": 169.9675471957478,
+   "object_area_ratio": 0.44807894978005863
+  },
+  {
+   "name": "food101_0457_label87",
+   "label": 87,
+   "mean_brightness": 223.43015788612564,
+   "object_area_ratio": 0.08140747709424084
+  },
+  {
+   "name": "food101_0458_label39",
+   "label": 39,
+   "mean_brightness": 124.29145812988281,
+   "object_area_ratio": 0.2913614908854167
+  },
+  {
+   "name": "food101_0459_label87",
+   "label": 87,
+   "mean_brightness": 171.70718002319336,
+   "object_area_ratio": 0.17096900939941406
+  },
+  {
+   "name": "food101_0460_label82",
+   "label": 82,
+   "mean_brightness": 179.36576461791992,
+   "object_area_ratio": 0.10737228393554688
+  },
+  {
+   "name": "food101_0461_label87",
+   "label": 87,
+   "mean_brightness": 204.255859375,
+   "object_area_ratio": 0.17871602376302084
+  },
+  {
+   "name": "food101_0462_label6",
+   "label": 6,
+   "mean_brightness": 137.72034454345703,
+   "object_area_ratio": 0.3554668426513672
+  },
+  {
+   "name": "food101_0463_label82",
+   "label": 82,
+   "mean_brightness": 109.48441569010417,
+   "object_area_ratio": 0.1712163289388021
+  },
+  {
+   "name": "food101_0464_label92",
+   "label": 92,
+   "mean_brightness": 184.17613983154297,
+   "object_area_ratio": 0.2499217987060547
+  },
+  {
+   "name": "food101_0465_label92",
+   "label": 92,
+   "mean_brightness": 163.39704168030104,
+   "object_area_ratio": 0.2082915780431937
+  },
+  {
+   "name": "food101_0466_label39",
+   "label": 39,
+   "mean_brightness": 166.3996467590332,
+   "object_area_ratio": 0.13824081420898438
+  },
+  {
+   "name": "food101_0467_label92",
+   "label": 92,
+   "mean_brightness": 167.51686096191406,
+   "object_area_ratio": 0.2059955596923828
+  },
+  {
+   "name": "food101_0468_label51",
+   "label": 51,
+   "mean_brightness": 138.4049530029297,
+   "object_area_ratio": 0.08794403076171875
+  },
+  {
+   "name": "food101_0469_label51",
+   "label": 51,
+   "mean_brightness": 96.81197599085365,
+   "object_area_ratio": 0.4805813470066519
+  },
+  {
+   "name": "food101_0470_label6",
+   "label": 6,
+   "mean_brightness": 166.1436996459961,
+   "object_area_ratio": 0.12654495239257812
+  },
+  {
+   "name": "food101_0471_label82",
+   "label": 82,
+   "mean_brightness": 168.2723731994629,
+   "object_area_ratio": 0.23819923400878906
+  },
+  {
+   "name": "food101_0472_label51",
+   "label": 51,
+   "mean_brightness": 156.25216786649216,
+   "object_area_ratio": 0.28784307509816753
+  },
+  {
+   "name": "food101_0473_label74",
+   "label": 74,
+   "mean_brightness": 184.53723526000977,
+   "object_area_ratio": 0.2201366424560547
+  },
+  {
+   "name": "food101_0474_label74",
+   "label": 74,
+   "mean_brightness": 162.9220848083496,
+   "object_area_ratio": 0.16152191162109375
+  },
+  {
+   "name": "food101_0475_label39",
+   "label": 39,
+   "mean_brightness": 188.05108642578125,
+   "object_area_ratio": 0.23861185709635416
+  },
+  {
+   "name": "food101_0476_label92",
+   "label": 92,
+   "mean_brightness": 82.38573196171465,
+   "object_area_ratio": 0.32936998936518325
+  },
+  {
+   "name": "food101_0477_label92",
+   "label": 92,
+   "mean_brightness": 179.47203063964844,
+   "object_area_ratio": 0.3945026397705078
+  },
+  {
+   "name": "food101_0478_label74",
+   "label": 74,
+   "mean_brightness": 94.5250015258789,
+   "object_area_ratio": 0.26360511779785156
+  },
+  {
+   "name": "food101_0479_label51",
+   "label": 51,
+   "mean_brightness": 114.95160675048828,
+   "object_area_ratio": 0.2803478240966797
+  },
+  {
+   "name": "food101_0480_label6",
+   "label": 6,
+   "mean_brightness": 174.71547317504883,
+   "object_area_ratio": 0.2906608581542969
+  },
+  {
+   "name": "food101_0481_label51",
+   "label": 51,
+   "mean_brightness": 179.88702011108398,
+   "object_area_ratio": 0.2747955322265625
+  },
+  {
+   "name": "food101_0482_label98",
+   "label": 98,
+   "mean_brightness": 154.91564559936523,
+   "object_area_ratio": 0.3524036407470703
+  },
+  {
+   "name": "food101_0483_label39",
+   "label": 39,
+   "mean_brightness": 130.36537170410156,
+   "object_area_ratio": 0.041768391927083336
+  },
+  {
+   "name": "food101_0484_label92",
+   "label": 92,
+   "mean_brightness": 125.71410624186198,
+   "object_area_ratio": 0.27245330810546875
+  },
+  {
+   "name": "food101_0485_label96",
+   "label": 96,
+   "mean_brightness": 128.0549659729004,
+   "object_area_ratio": 0.3841228485107422
+  },
+  {
+   "name": "food101_0486_label39",
+   "label": 39,
+   "mean_brightness": 107.02456665039062,
+   "object_area_ratio": 0.1295954386393229
+  },
+  {
+   "name": "food101_0487_label98",
+   "label": 98,
+   "mean_brightness": 135.47451400756836,
+   "object_area_ratio": 0.30177879333496094
+  },
+  {
+   "name": "food101_0488_label51",
+   "label": 51,
+   "mean_brightness": 133.92644119262695,
+   "object_area_ratio": 0.2560157775878906
+  },
+  {
+   "name": "food101_0489_label92",
+   "label": 92,
+   "mean_brightness": 116.90004984537761,
+   "object_area_ratio": 0.2312596638997396
+  },
+  {
+   "name": "food101_0490_label51",
+   "label": 51,
+   "mean_brightness": 126.43926620483398,
+   "object_area_ratio": 0.2342090606689453
+  },
+  {
+   "name": "food101_0491_label82",
+   "label": 82,
+   "mean_brightness": 129.21736945236157,
+   "object_area_ratio": 0.849284914495114
+  },
+  {
+   "name": "food101_0492_label87",
+   "label": 87,
+   "mean_brightness": 137.64153289794922,
+   "object_area_ratio": 0.18290138244628906
+  },
+  {
+   "name": "food101_0493_label82",
+   "label": 82,
+   "mean_brightness": 133.5434366861979,
+   "object_area_ratio": 0.28219350179036456
+  },
+  {
+   "name": "food101_0494_label87",
+   "label": 87,
+   "mean_brightness": 137.14865112304688,
+   "object_area_ratio": 0.4071636199951172
+  },
+  {
+   "name": "food101_0495_label74",
+   "label": 74,
+   "mean_brightness": 135.9915542602539,
+   "object_area_ratio": 0.06537055969238281
+  },
+  {
+   "name": "food101_0496_label39",
+   "label": 39,
+   "mean_brightness": 169.22565714518228,
+   "object_area_ratio": 0.41987355550130206
+  },
+  {
+   "name": "food101_0497_label92",
+   "label": 92,
+   "mean_brightness": 105.49952697753906,
+   "object_area_ratio": 0.16259256998697916
+  },
+  {
+   "name": "food101_0498_label6",
+   "label": 6,
+   "mean_brightness": 119.37618255615234,
+   "object_area_ratio": 0.1705188751220703
+  },
+  {
+   "name": "food101_0499_label87",
+   "label": 87,
+   "mean_brightness": 71.61077202690973,
+   "object_area_ratio": 0.440765380859375
+  },
+  {
+   "name": "food101_0500_label87",
+   "label": 87,
+   "mean_brightness": 122.77016932270917,
+   "object_area_ratio": 0.4002525056025896
+  },
+  {
+   "name": "food101_0501_label82",
+   "label": 82,
+   "mean_brightness": 130.39704513549805,
+   "object_area_ratio": 0.3959980010986328
+  },
+  {
+   "name": "food101_0502_label98",
+   "label": 98,
+   "mean_brightness": 85.29804823133681,
+   "object_area_ratio": 0.19376966688368055
+  },
+  {
+   "name": "food101_0503_label82",
+   "label": 82,
+   "mean_brightness": 180.8063133998691,
+   "object_area_ratio": 0.10140655677356021
+  },
+  {
+   "name": "food101_0504_label98",
+   "label": 98,
+   "mean_brightness": 86.76058261846406,
+   "object_area_ratio": 0.3175966350081699
+  },
+  {
+   "name": "food101_0505_label51",
+   "label": 51,
+   "mean_brightness": 141.93190146579803,
+   "object_area_ratio": 0.11398742874592833
+  },
+  {
+   "name": "food101_0506_label82",
+   "label": 82,
+   "mean_brightness": 171.2263854623538,
+   "object_area_ratio": 0.20481256853070176
+  },
+  {
+   "name": "food101_0507_label6",
+   "label": 6,
+   "mean_brightness": 97.62034606933594,
+   "object_area_ratio": 0.377227783203125
+  },
+  {
+   "name": "food101_0508_label74",
+   "label": 74,
+   "mean_brightness": 98.06874084472656,
+   "object_area_ratio": 0.3457298278808594
+  },
+  {
+   "name": "food101_0509_label92",
+   "label": 92,
+   "mean_brightness": 110.70635986328125,
+   "object_area_ratio": 0.20687103271484375
+  },
+  {
+   "name": "food101_0510_label98",
+   "label": 98,
+   "mean_brightness": 97.37612533569336,
+   "object_area_ratio": 0.4613685607910156
+  },
+  {
+   "name": "food101_0511_label92",
+   "label": 92,
+   "mean_brightness": 191.89031600952148,
+   "object_area_ratio": 0.4166717529296875
+  },
+  {
+   "name": "food101_0512_label98",
+   "label": 98,
+   "mean_brightness": 110.44259262084961,
+   "object_area_ratio": 0.2126789093017578
+  },
+  {
+   "name": "food101_0513_label39",
+   "label": 39,
+   "mean_brightness": 138.6828409830729,
+   "object_area_ratio": 0.174163818359375
+  },
+  {
+   "name": "food101_0514_label98",
+   "label": 98,
+   "mean_brightness": 123.01573181152344,
+   "object_area_ratio": 0.3064384460449219
+  },
+  {
+   "name": "food101_0515_label82",
+   "label": 82,
+   "mean_brightness": 172.56620279947916,
+   "object_area_ratio": 0.5409825642903646
+  },
+  {
+   "name": "food101_0516_label87",
+   "label": 87,
+   "mean_brightness": 112.39748764038086,
+   "object_area_ratio": 0.2501201629638672
+  },
+  {
+   "name": "food101_0517_label98",
+   "label": 98,
+   "mean_brightness": 154.92113876342773,
+   "object_area_ratio": 0.4014091491699219
+  },
+  {
+   "name": "food101_0518_label82",
+   "label": 82,
+   "mean_brightness": 179.71270680147057,
+   "object_area_ratio": 0.2866900275735294
+  },
+  {
+   "name": "food101_0519_label98",
+   "label": 98,
+   "mean_brightness": 50.804768880208336,
+   "object_area_ratio": 0.09836578369140625
+  },
+  {
+   "name": "food101_0520_label51",
+   "label": 51,
+   "mean_brightness": 142.34061622191012,
+   "object_area_ratio": 0.34411209620786515
+  },
+  {
+   "name": "food101_0521_label98",
+   "label": 98,
+   "mean_brightness": 136.19219970703125,
+   "object_area_ratio": 0.1367772420247396
+  },
+  {
+   "name": "food101_0522_label96",
+   "label": 96,
+   "mean_brightness": 157.84186935424805,
+   "object_area_ratio": 0.14872360229492188
+  },
+  {
+   "name": "food101_0523_label39",
+   "label": 39,
+   "mean_brightness": 129.79794311523438,
+   "object_area_ratio": 0.30602264404296875
+  },
+  {
+   "name": "food101_0524_label92",
+   "label": 92,
+   "mean_brightness": 142.77318954467773,
+   "object_area_ratio": 0.2672309875488281
+  },
+  {
+   "name": "food101_0525_label6",
+   "label": 6,
+   "mean_brightness": 166.62294006347656,
+   "object_area_ratio": 0.3337516784667969
+  },
+  {
+   "name": "food101_0526_label82",
+   "label": 82,
+   "mean_brightness": 141.04431915283203,
+   "object_area_ratio": 0.1665210723876953
+  },
+  {
+   "name": "food101_0527_label6",
+   "label": 6,
+   "mean_brightness": 183.25148010253906,
+   "object_area_ratio": 0.05484771728515625
+  },
+  {
+   "name": "food101_0528_label82",
+   "label": 82,
+   "mean_brightness": 191.43137741088867,
+   "object_area_ratio": 0.2287464141845703
+  },
+  {
+   "name": "food101_0529_label39",
+   "label": 39,
+   "mean_brightness": 202.72655232747397,
+   "object_area_ratio": 0.4638926188151042
+  },
+  {
+   "name": "food101_0530_label92",
+   "label": 92,
+   "mean_brightness": 190.45819473266602,
+   "object_area_ratio": 0.19205856323242188
+  },
+  {
+   "name": "food101_0531_label98",
+   "label": 98,
+   "mean_brightness": 126.96214803059895,
+   "object_area_ratio": 0.4225819905598958
+  },
+  {
+   "name": "food101_0532_label82",
+   "label": 82,
+   "mean_brightness": 203.86328125,
+   "object_area_ratio": 0.23302078247070312
+  },
+  {
+   "name": "food101_0533_label98",
+   "label": 98,
+   "mean_brightness": 148.300754494863,
+   "object_area_ratio": 0.45353779354207435
+  },
+  {
+   "name": "food101_0534_label87",
+   "label": 87,
+   "mean_brightness": 179.935546875,
+   "object_area_ratio": 0.379302978515625
+  },
+  {
+   "name": "food101_0535_label51",
+   "label": 51,
+   "mean_brightness": 52.46806335449219,
+   "object_area_ratio": 0.16253089904785156
+  },
+  {
+   "name": "food101_0536_label51",
+   "label": 51,
+   "mean_brightness": 126.84249496459961,
+   "object_area_ratio": 0.45162010192871094
+  },
+  {
+   "name": "food101_0537_label74",
+   "label": 74,
+   "mean_brightness": 174.01909255981445,
+   "object_area_ratio": 0.22529220581054688
+  },
+  {
+   "name": "food101_0538_label74",
+   "label": 74,
+   "mean_brightness": 168.0110740661621,
+   "object_area_ratio": 0.14529800415039062
+  },
+  {
+   "name": "food101_0539_label82",
+   "label": 82,
+   "mean_brightness": 179.0385627746582,
+   "object_area_ratio": 0.2620582580566406
+  },
+  {
+   "name": "food101_0540_label51",
+   "label": 51,
+   "mean_brightness": 145.95817184448242,
+   "object_area_ratio": 0.40976715087890625
+  },
+  {
+   "name": "food101_0541_label6",
+   "label": 6,
+   "mean_brightness": 91.7369499206543,
+   "object_area_ratio": 0.18839263916015625
+  },
+  {
+   "name": "food101_0542_label82",
+   "label": 82,
+   "mean_brightness": 149.6659393310547,
+   "object_area_ratio": 0.40574073791503906
+  },
+  {
+   "name": "food101_0543_label98",
+   "label": 98,
+   "mean_brightness": 153.50735932393792,
+   "object_area_ratio": 0.2843424479166667
+  },
+  {
+   "name": "food101_0544_label92",
+   "label": 92,
+   "mean_brightness": 129.9158172607422,
+   "object_area_ratio": 0.32407887776692706
+  },
+  {
+   "name": "food101_0545_label51",
+   "label": 51,
+   "mean_brightness": 167.77359008789062,
+   "object_area_ratio": 0.4377593994140625
+  },
+  {
+   "name": "food101_0546_label51",
+   "label": 51,
+   "mean_brightness": 115.26289367675781,
+   "object_area_ratio": 0.29053688049316406
+  },
+  {
+   "name": "food101_0547_label6",
+   "label": 6,
+   "mean_brightness": 161.93849182128906,
+   "object_area_ratio": 0.4999961853027344
+  },
+  {
+   "name": "food101_0548_label6",
+   "label": 6,
+   "mean_brightness": 145.84913635253906,
+   "object_area_ratio": 0.3110860188802083
+  },
+  {
+   "name": "food101_0549_label96",
+   "label": 96,
+   "mean_brightness": 177.19819259643555,
+   "object_area_ratio": 0.40279388427734375
+  },
+  {
+   "name": "food101_0550_label82",
+   "label": 82,
+   "mean_brightness": 192.8124693627451,
+   "object_area_ratio": 0.3604090073529412
+  },
+  {
+   "name": "food101_0551_label87",
+   "label": 87,
+   "mean_brightness": 129.78896484375,
+   "object_area_ratio": 0.2047707950367647
+  },
+  {
+   "name": "food101_0552_label74",
+   "label": 74,
+   "mean_brightness": 146.7235565185547,
+   "object_area_ratio": 0.1526317596435547
+  },
+  {
+   "name": "food101_0553_label87",
+   "label": 87,
+   "mean_brightness": 115.8019027709961,
+   "object_area_ratio": 0.25388336181640625
+  },
+  {
+   "name": "food101_0554_label39",
+   "label": 39,
+   "mean_brightness": 102.32583957248264,
+   "object_area_ratio": 0.13818359375
+  },
+  {
+   "name": "food101_0555_label96",
+   "label": 96,
+   "mean_brightness": 158.57406997680664,
+   "object_area_ratio": 0.41623497009277344
+  },
+  {
+   "name": "food101_0556_label39",
+   "label": 39,
+   "mean_brightness": 118.66576766967773,
+   "object_area_ratio": 0.24454116821289062
+  },
+  {
+   "name": "food101_0557_label82",
+   "label": 82,
+   "mean_brightness": 110.52175394694011,
+   "object_area_ratio": 0.3643442789713542
+  },
+  {
+   "name": "food101_0558_label39",
+   "label": 39,
+   "mean_brightness": 170.42661666870117,
+   "object_area_ratio": 0.19144630432128906
+  },
+  {
+   "name": "food101_0559_label82",
+   "label": 82,
+   "mean_brightness": 103.56314468383789,
+   "object_area_ratio": 0.036273956298828125
+  },
+  {
+   "name": "food101_0560_label96",
+   "label": 96,
+   "mean_brightness": 138.30586751302084,
+   "object_area_ratio": 0.2518819173177083
+  },
+  {
+   "name": "food101_0561_label6",
+   "label": 6,
+   "mean_brightness": 129.47338104248047,
+   "object_area_ratio": 0.28864097595214844
+  },
+  {
+   "name": "food101_0562_label82",
+   "label": 82,
+   "mean_brightness": 143.71651566590313,
+   "object_area_ratio": 0.37173541803010474
+  },
+  {
+   "name": "food101_0563_label74",
+   "label": 74,
+   "mean_brightness": 155.2897071838379,
+   "object_area_ratio": 0.31543731689453125
+  },
+  {
+   "name": "food101_0564_label87",
+   "label": 87,
+   "mean_brightness": 122.99898529052734,
+   "object_area_ratio": 0.3637237548828125
+  },
+  {
+   "name": "food101_0565_label51",
+   "label": 51,
+   "mean_brightness": 161.17707443237305,
+   "object_area_ratio": 0.20991134643554688
+  },
+  {
+   "name": "food101_0566_label74",
+   "label": 74,
+   "mean_brightness": 132.20731099446616,
+   "object_area_ratio": 0.7772649129231771
+  },
+  {
+   "name": "food101_0567_label87",
+   "label": 87,
+   "mean_brightness": 171.22998046875,
+   "object_area_ratio": 0.3605613708496094
+  },
+  {
+   "name": "food101_0568_label98",
+   "label": 98,
+   "mean_brightness": 118.45824178059895,
+   "object_area_ratio": 0.10563151041666667
+  },
+  {
+   "name": "food101_0569_label6",
+   "label": 6,
+   "mean_brightness": 106.86062622070312,
+   "object_area_ratio": 0.2106501261393229
+  },
+  {
+   "name": "food101_0570_label74",
+   "label": 74,
+   "mean_brightness": 108.06938552856445,
+   "object_area_ratio": 0.12824058532714844
+  },
+  {
+   "name": "food101_0571_label96",
+   "label": 96,
+   "mean_brightness": 177.3518409729004,
+   "object_area_ratio": 0.24945449829101562
+  },
+  {
+   "name": "food101_0572_label98",
+   "label": 98,
+   "mean_brightness": 177.1596476236979,
+   "object_area_ratio": 0.21332550048828125
+  },
+  {
+   "name": "food101_0573_label87",
+   "label": 87,
+   "mean_brightness": 111.46820449829102,
+   "object_area_ratio": 0.3986682891845703
+  },
+  {
+   "name": "food101_0574_label6",
+   "label": 6,
+   "mean_brightness": 164.5095977783203,
+   "object_area_ratio": 0.1273829142252604
+  },
+  {
+   "name": "food101_0575_label51",
+   "label": 51,
+   "mean_brightness": 100.8085823059082,
+   "object_area_ratio": 0.11374282836914062
+  },
+  {
+   "name": "food101_0576_label6",
+   "label": 6,
+   "mean_brightness": 156.04248428344727,
+   "object_area_ratio": 0.09755325317382812
+  },
+  {
+   "name": "food101_0577_label82",
+   "label": 82,
+   "mean_brightness": 169.96433639526367,
+   "object_area_ratio": 0.24742698669433594
+  },
+  {
+   "name": "food101_0578_label82",
+   "label": 82,
+   "mean_brightness": 170.26853942871094,
+   "object_area_ratio": 0.14309120178222656
+  },
+  {
+   "name": "food101_0579_label51",
+   "label": 51,
+   "mean_brightness": 147.27582295735678,
+   "object_area_ratio": 0.72894287109375
+  },
+  {
+   "name": "food101_0580_label51",
+   "label": 51,
+   "mean_brightness": 74.2659441380719,
+   "object_area_ratio": 0.2760448580473856
+  },
+  {
+   "name": "food101_0581_label87",
+   "label": 87,
+   "mean_brightness": 133.90720099803664,
+   "object_area_ratio": 0.36619048592931935
+  },
+  {
+   "name": "food101_0582_label98",
+   "label": 98,
+   "mean_brightness": 207.62754440307617,
+   "object_area_ratio": 0.16288375854492188
+  },
+  {
+   "name": "food101_0583_label82",
+   "label": 82,
+   "mean_brightness": 138.4697074142157,
+   "object_area_ratio": 0.34609566482843135
+  },
+  {
+   "name": "food101_0584_label74",
+   "label": 74,
+   "mean_brightness": 178.81777954101562,
+   "object_area_ratio": 0.29677581787109375
+  },
+  {
+   "name": "food101_0585_label82",
+   "label": 82,
+   "mean_brightness": 164.8860206604004,
+   "object_area_ratio": 0.3896923065185547
+  },
+  {
+   "name": "food101_0586_label87",
+   "label": 87,
+   "mean_brightness": 151.86116409301758,
+   "object_area_ratio": 0.416046142578125
+  },
+  {
+   "name": "food101_0587_label82",
+   "label": 82,
+   "mean_brightness": 142.54426193237305,
+   "object_area_ratio": 0.3405895233154297
+  },
+  {
+   "name": "food101_0588_label51",
+   "label": 51,
+   "mean_brightness": 139.11342239379883,
+   "object_area_ratio": 0.21861839294433594
+  },
+  {
+   "name": "food101_0589_label82",
+   "label": 82,
+   "mean_brightness": 157.260757526178,
+   "object_area_ratio": 0.12169451488874346
+  },
+  {
+   "name": "food101_0590_label39",
+   "label": 39,
+   "mean_brightness": 183.47061157226562,
+   "object_area_ratio": 0.2946434020996094
+  },
+  {
+   "name": "food101_0591_label82",
+   "label": 82,
+   "mean_brightness": 223.73270416259766,
+   "object_area_ratio": 0.41935157775878906
+  },
+  {
+   "name": "food101_0592_label39",
+   "label": 39,
+   "mean_brightness": 203.48423385620117,
+   "object_area_ratio": 0.132965087890625
+  },
+  {
+   "name": "food101_0593_label82",
+   "label": 82,
+   "mean_brightness": 130.17713419596353,
+   "object_area_ratio": 0.45468902587890625
+  },
+  {
+   "name": "food101_0594_label98",
+   "label": 98,
+   "mean_brightness": 82.74807739257812,
+   "object_area_ratio": 0.5377222696940104
+  },
+  {
+   "name": "food101_0595_label98",
+   "label": 98,
+   "mean_brightness": 151.0987803141276,
+   "object_area_ratio": 0.5905329386393229
+  },
+  {
+   "name": "food101_0596_label82",
+   "label": 82,
+   "mean_brightness": 94.86769367637434,
+   "object_area_ratio": 0.3466438972513089
+  },
+  {
+   "name": "food101_0597_label82",
+   "label": 82,
+   "mean_brightness": 190.9183807373047,
+   "object_area_ratio": 0.46506500244140625
+  },
+  {
+   "name": "food101_0598_label6",
+   "label": 6,
+   "mean_brightness": 166.7503547668457,
+   "object_area_ratio": 0.9960975646972656
+  },
+  {
+   "name": "food101_0599_label39",
+   "label": 39,
+   "mean_brightness": 93.12360000610352,
+   "object_area_ratio": 0.1399059295654297
+  },
+  {
+   "name": "food101_0600_label96",
+   "label": 96,
+   "mean_brightness": 124.33747494533527,
+   "object_area_ratio": 0.25395465105685133
+  },
+  {
+   "name": "food101_0601_label87",
+   "label": 87,
+   "mean_brightness": 169.5555593101211,
+   "object_area_ratio": 0.25625473075259514
+  },
+  {
+   "name": "food101_0602_label82",
+   "label": 82,
+   "mean_brightness": 153.37446975708008,
+   "object_area_ratio": 0.22783470153808594
+  },
+  {
+   "name": "food101_0603_label92",
+   "label": 92,
+   "mean_brightness": 165.22624969482422,
+   "object_area_ratio": 0.2227630615234375
+  },
+  {
+   "name": "food101_0604_label51",
+   "label": 51,
+   "mean_brightness": 166.5244255065918,
+   "object_area_ratio": 0.4659748077392578
+  },
+  {
+   "name": "food101_0605_label39",
+   "label": 39,
+   "mean_brightness": 166.5252431233724,
+   "object_area_ratio": 0.06770833333333333
+  },
+  {
+   "name": "food101_0606_label82",
+   "label": 82,
+   "mean_brightness": 129.02528742661448,
+   "object_area_ratio": 0.21810023238747553
+  },
+  {
+   "name": "food101_0607_label98",
+   "label": 98,
+   "mean_brightness": 113.67812728881836,
+   "object_area_ratio": 0.19948959350585938
+  },
+  {
+   "name": "food101_0608_label87",
+   "label": 87,
+   "mean_brightness": 115.10908126831055,
+   "object_area_ratio": 0.29222679138183594
+  },
+  {
+   "name": "food101_0609_label87",
+   "label": 87,
+   "mean_brightness": 118.69629669189453,
+   "object_area_ratio": 0.19335174560546875
+  },
+  {
+   "name": "food101_0610_label51",
+   "label": 51,
+   "mean_brightness": 99.4265365600586,
+   "object_area_ratio": 0.3309326171875
+  },
+  {
+   "name": "food101_0611_label39",
+   "label": 39,
+   "mean_brightness": 149.67507553100586,
+   "object_area_ratio": 0.20148849487304688
+  },
+  {
+   "name": "food101_0612_label82",
+   "label": 82,
+   "mean_brightness": 110.13539632161458,
+   "object_area_ratio": 0.09875233968098958
+  },
+  {
+   "name": "food101_0613_label87",
+   "label": 87,
+   "mean_brightness": 198.74366383272059,
+   "object_area_ratio": 0.3748621323529412
+  },
+  {
+   "name": "food101_0614_label98",
+   "label": 98,
+   "mean_brightness": 154.79125213623047,
+   "object_area_ratio": 0.1523571014404297
+  },
+  {
+   "name": "food101_0615_label6",
+   "label": 6,
+   "mean_brightness": 101.13950729370117,
+   "object_area_ratio": 0.33835792541503906
+  },
+  {
+   "name": "food101_0616_label6",
+   "label": 6,
+   "mean_brightness": 164.38664627075195,
+   "object_area_ratio": 0.1768207550048828
+  },
+  {
+   "name": "food101_0617_label82",
+   "label": 82,
+   "mean_brightness": 162.78120803833008,
+   "object_area_ratio": 0.31867027282714844
+  },
+  {
+   "name": "food101_0618_label51",
+   "label": 51,
+   "mean_brightness": 112.78075790405273,
+   "object_area_ratio": 0.2539520263671875
+  },
+  {
+   "name": "food101_0619_label51",
+   "label": 51,
+   "mean_brightness": 154.69662475585938,
+   "object_area_ratio": 0.3270988464355469
+  },
+  {
+   "name": "food101_0620_label98",
+   "label": 98,
+   "mean_brightness": 115.41594950358073,
+   "object_area_ratio": 0.45567067464192706
+  },
+  {
+   "name": "food101_0621_label51",
+   "label": 51,
+   "mean_brightness": 89.77762603759766,
+   "object_area_ratio": 0.1808338165283203
+  },
+  {
+   "name": "food101_0622_label82",
+   "label": 82,
+   "mean_brightness": 168.5209025930851,
+   "object_area_ratio": 0.13616294049202127
+  },
+  {
+   "name": "food101_0623_label82",
+   "label": 82,
+   "mean_brightness": 167.99771426361386,
+   "object_area_ratio": 0.10415377475247525
+  },
+  {
+   "name": "food101_0624_label74",
+   "label": 74,
+   "mean_brightness": 142.88486862182617,
+   "object_area_ratio": 0.21323394775390625
+  },
+  {
+   "name": "food101_0625_label51",
+   "label": 51,
+   "mean_brightness": 117.26461283365886,
+   "object_area_ratio": 0.19776407877604166
+  },
+  {
+   "name": "food101_0626_label92",
+   "label": 92,
+   "mean_brightness": 172.95925521850586,
+   "object_area_ratio": 0.2905902862548828
+  },
+  {
+   "name": "food101_0627_label39",
+   "label": 39,
+   "mean_brightness": 117.44812774658203,
+   "object_area_ratio": 0.34990882873535156
+  },
+  {
+   "name": "food101_0628_label92",
+   "label": 92,
+   "mean_brightness": 192.28271865844727,
+   "object_area_ratio": 0.2736034393310547
+  },
+  {
+   "name": "food101_0629_label39",
+   "label": 39,
+   "mean_brightness": 155.35560989379883,
+   "object_area_ratio": 0.24782943725585938
+  },
+  {
+   "name": "food101_0630_label66",
+   "label": 66,
+   "mean_brightness": 164.03252665201822,
+   "object_area_ratio": 0.3056844075520833
+  },
+  {
+   "name": "food101_0631_label6",
+   "label": 6,
+   "mean_brightness": 109.42603556315105,
+   "object_area_ratio": 0.1469294230143229
+  },
+  {
+   "name": "food101_0632_label66",
+   "label": 66,
+   "mean_brightness": 133.50608825683594,
+   "object_area_ratio": 0.11852518717447917
+  },
+  {
+   "name": "food101_0633_label98",
+   "label": 98,
+   "mean_brightness": 187.36951446533203,
+   "object_area_ratio": 0.9960975646972656
+  },
+  {
+   "name": "food101_0634_label92",
+   "label": 92,
+   "mean_brightness": 83.59789530436198,
+   "object_area_ratio": 0.13220723470052084
+  },
+  {
+   "name": "food101_0635_label51",
+   "label": 51,
+   "mean_brightness": 154.51760482788086,
+   "object_area_ratio": 0.19098281860351562
+  },
+  {
+   "name": "food101_0636_label82",
+   "label": 82,
+   "mean_brightness": 143.58776092529297,
+   "object_area_ratio": 0.4546089172363281
+  },
+  {
+   "name": "food101_0637_label98",
+   "label": 98,
+   "mean_brightness": 141.00264616935485,
+   "object_area_ratio": 0.19734008431085043
+  },
+  {
+   "name": "food101_0638_label92",
+   "label": 92,
+   "mean_brightness": 116.79593404134114,
+   "object_area_ratio": 0.10274759928385417
+  },
+  {
+   "name": "food101_0639_label98",
+   "label": 98,
+   "mean_brightness": 163.5584831237793,
+   "object_area_ratio": 0.25833892822265625
+  },
+  {
+   "name": "food101_0640_label92",
+   "label": 92,
+   "mean_brightness": 167.4005286731021,
+   "object_area_ratio": 0.1516509530431937
+  },
+  {
+   "name": "food101_0641_label82",
+   "label": 82,
+   "mean_brightness": 129.17933146158853,
+   "object_area_ratio": 0.1510899861653646
+  },
+  {
+   "name": "food101_0642_label92",
+   "label": 92,
+   "mean_brightness": 130.26389694213867,
+   "object_area_ratio": 0.11571502685546875
+  },
+  {
+   "name": "food101_0643_label96",
+   "label": 96,
+   "mean_brightness": 156.73202514648438,
+   "object_area_ratio": 0.2596759796142578
+  },
+  {
+   "name": "food101_0644_label98",
+   "label": 98,
+   "mean_brightness": 112.10264205932617,
+   "object_area_ratio": 0.3359718322753906
+  },
+  {
+   "name": "food101_0645_label96",
+   "label": 96,
+   "mean_brightness": 133.4459228515625,
+   "object_area_ratio": 0.2951679229736328
+  },
+  {
+   "name": "food101_0646_label92",
+   "label": 92,
+   "mean_brightness": 142.75310516357422,
+   "object_area_ratio": 0.15998458862304688
+  },
+  {
+   "name": "food101_0647_label6",
+   "label": 6,
+   "mean_brightness": 160.3470001220703,
+   "object_area_ratio": 0.2746143341064453
+  },
+  {
+   "name": "food101_0648_label98",
+   "label": 98,
+   "mean_brightness": 94.21660213526393,
+   "object_area_ratio": 0.22694338801319647
+  },
+  {
+   "name": "food101_0649_label39",
+   "label": 39,
+   "mean_brightness": 148.2130355834961,
+   "object_area_ratio": 0.3954315185546875
+  },
+  {
+   "name": "food101_0650_label87",
+   "label": 87,
+   "mean_brightness": 87.23133042279412,
+   "object_area_ratio": 0.10297628165849673
+  },
+  {
+   "name": "food101_0651_label74",
+   "label": 74,
+   "mean_brightness": 123.94331335896597,
+   "object_area_ratio": 0.24728249754581152
+  },
+  {
+   "name": "food101_0652_label98",
+   "label": 98,
+   "mean_brightness": 107.17606735229492,
+   "object_area_ratio": 0.3389320373535156
+  },
+  {
+   "name": "food101_0653_label6",
+   "label": 6,
+   "mean_brightness": 185.28519439697266,
+   "object_area_ratio": 0.11777687072753906
+  },
+  {
+   "name": "food101_0654_label82",
+   "label": 82,
+   "mean_brightness": 117.2487678527832,
+   "object_area_ratio": 0.4015083312988281
+  },
+  {
+   "name": "food101_0655_label74",
+   "label": 74,
+   "mean_brightness": 161.30632527669272,
+   "object_area_ratio": 0.11776224772135417
+  },
+  {
+   "name": "food101_0656_label92",
+   "label": 92,
+   "mean_brightness": 154.05806477864584,
+   "object_area_ratio": 0.23448944091796875
+  },
+  {
+   "name": "food101_0657_label96",
+   "label": 96,
+   "mean_brightness": 154.74484634399414,
+   "object_area_ratio": 0.45114707946777344
+  },
+  {
+   "name": "food101_0658_label96",
+   "label": 96,
+   "mean_brightness": 102.25129699707031,
+   "object_area_ratio": 0.3310871124267578
+  },
+  {
+   "name": "food101_0659_label6",
+   "label": 6,
+   "mean_brightness": 178.76707458496094,
+   "object_area_ratio": 0.21044158935546875
+  },
+  {
+   "name": "food101_0660_label51",
+   "label": 51,
+   "mean_brightness": 145.45256805419922,
+   "object_area_ratio": 0.1579914093017578
+  },
+  {
+   "name": "food101_0661_label92",
+   "label": 92,
+   "mean_brightness": 182.87916946411133,
+   "object_area_ratio": 0.4390068054199219
+  },
+  {
+   "name": "food101_0662_label82",
+   "label": 82,
+   "mean_brightness": 163.0954793294271,
+   "object_area_ratio": 0.304168701171875
+  },
+  {
+   "name": "food101_0663_label66",
+   "label": 66,
+   "mean_brightness": 122.53384017944336,
+   "object_area_ratio": 0.4131641387939453
+  },
+  {
+   "name": "food101_0664_label51",
+   "label": 51,
+   "mean_brightness": 128.81853485107422,
+   "object_area_ratio": 0.4031085968017578
+  },
+  {
+   "name": "food101_0665_label51",
+   "label": 51,
+   "mean_brightness": 109.68857955932617,
+   "object_area_ratio": 0.42748260498046875
+  },
+  {
+   "name": "food101_0666_label6",
+   "label": 6,
+   "mean_brightness": 197.2572364807129,
+   "object_area_ratio": 0.4693336486816406
+  },
+  {
+   "name": "food101_0667_label74",
+   "label": 74,
+   "mean_brightness": 165.57161712646484,
+   "object_area_ratio": 0.31572532653808594
+  },
+  {
+   "name": "food101_0668_label92",
+   "label": 92,
+   "mean_brightness": 119.43019485473633,
+   "object_area_ratio": 0.3991851806640625
+  },
+  {
+   "name": "food101_0669_label98",
+   "label": 98,
+   "mean_brightness": 114.30797576904297,
+   "object_area_ratio": 0.3850746154785156
+  },
+  {
+   "name": "food101_0670_label82",
+   "label": 82,
+   "mean_brightness": 192.0884666442871,
+   "object_area_ratio": 0.1884002685546875
+  },
+  {
+   "name": "food101_0671_label98",
+   "label": 98,
+   "mean_brightness": 73.16437911987305,
+   "object_area_ratio": 0.2107410430908203
+  },
+  {
+   "name": "food101_0672_label98",
+   "label": 98,
+   "mean_brightness": 159.661376953125,
+   "object_area_ratio": 0.41370582580566406
+  },
+  {
+   "name": "food101_0673_label6",
+   "label": 6,
+   "mean_brightness": 99.59669502617801,
+   "object_area_ratio": 0.10846746155104713
+  },
+  {
+   "name": "food101_0674_label92",
+   "label": 92,
+   "mean_brightness": 187.50401306152344,
+   "object_area_ratio": 0.2186126708984375
+  },
+  {
+   "name": "food101_0675_label51",
+   "label": 51,
+   "mean_brightness": 173.88453674316406,
+   "object_area_ratio": 0.2815265655517578
+  },
+  {
+   "name": "food101_0676_label74",
+   "label": 74,
+   "mean_brightness": 95.60940926535088,
+   "object_area_ratio": 0.4046366730628655
+  },
+  {
+   "name": "food101_0677_label92",
+   "label": 92,
+   "mean_brightness": 200.35376358032227,
+   "object_area_ratio": 0.09351348876953125
+  },
+  {
+   "name": "food101_0678_label87",
+   "label": 87,
+   "mean_brightness": 125.48200988769531,
+   "object_area_ratio": 0.18004608154296875
+  },
+  {
+   "name": "food101_0679_label6",
+   "label": 6,
+   "mean_brightness": 155.4447364807129,
+   "object_area_ratio": 0.2700634002685547
+  },
+  {
+   "name": "food101_0680_label74",
+   "label": 74,
+   "mean_brightness": 203.0068001472513,
+   "object_area_ratio": 0.26513160585732987
+  },
+  {
+   "name": "food101_0681_label87",
+   "label": 87,
+   "mean_brightness": 190.9499626159668,
+   "object_area_ratio": 0.27658843994140625
+  },
+  {
+   "name": "food101_0682_label98",
+   "label": 98,
+   "mean_brightness": 116.40168418684554,
+   "object_area_ratio": 0.1798894592604712
+  },
+  {
+   "name": "food101_0683_label87",
+   "label": 87,
+   "mean_brightness": 153.3386344909668,
+   "object_area_ratio": 0.3302650451660156
+  },
+  {
+   "name": "food101_0684_label87",
+   "label": 87,
+   "mean_brightness": 146.0570411682129,
+   "object_area_ratio": 0.1347637176513672
+  },
+  {
+   "name": "food101_0685_label92",
+   "label": 92,
+   "mean_brightness": 167.5778579711914,
+   "object_area_ratio": 0.06907081604003906
+  },
+  {
+   "name": "food101_0686_label82",
+   "label": 82,
+   "mean_brightness": 193.6955909729004,
+   "object_area_ratio": 0.4427070617675781
+  },
+  {
+   "name": "food101_0687_label87",
+   "label": 87,
+   "mean_brightness": 203.00899869109946,
+   "object_area_ratio": 0.24971112156413613
+  },
+  {
+   "name": "food101_0688_label92",
+   "label": 92,
+   "mean_brightness": 131.45258076985678,
+   "object_area_ratio": 0.31526947021484375
+  },
+  {
+   "name": "food101_0689_label51",
+   "label": 51,
+   "mean_brightness": 129.09152221679688,
+   "object_area_ratio": 0.5016365051269531
+  },
+  {
+   "name": "food101_0690_label39",
+   "label": 39,
+   "mean_brightness": 142.78793334960938,
+   "object_area_ratio": 0.11171340942382812
+  },
+  {
+   "name": "food101_0691_label92",
+   "label": 92,
+   "mean_brightness": 148.2242660522461,
+   "object_area_ratio": 0.6225852966308594
+  },
+  {
+   "name": "food101_0692_label82",
+   "label": 82,
+   "mean_brightness": 206.0552749633789,
+   "object_area_ratio": 0.308135986328125
+  },
+  {
+   "name": "food101_0693_label98",
+   "label": 98,
+   "mean_brightness": 165.21698379516602,
+   "object_area_ratio": 0.19477462768554688
+  },
+  {
+   "name": "food101_0694_label92",
+   "label": 92,
+   "mean_brightness": 119.14339701334636,
+   "object_area_ratio": 0.1771062215169271
+  },
+  {
+   "name": "food101_0695_label51",
+   "label": 51,
+   "mean_brightness": 82.91131210327148,
+   "object_area_ratio": 0.44254302978515625
+  },
+  {
+   "name": "food101_0696_label39",
+   "label": 39,
+   "mean_brightness": 171.0428721110026,
+   "object_area_ratio": 0.1332117716471354
+  },
+  {
+   "name": "food101_0697_label51",
+   "label": 51,
+   "mean_brightness": 121.08177185058594,
+   "object_area_ratio": 0.2500896453857422
+  },
+  {
+   "name": "food101_0698_label98",
+   "label": 98,
+   "mean_brightness": 193.10269165039062,
+   "object_area_ratio": 0.2464447021484375
+  },
+  {
+   "name": "food101_0699_label87",
+   "label": 87,
+   "mean_brightness": 113.66486410830619,
+   "object_area_ratio": 0.17497327972312704
+  },
+  {
+   "name": "food101_0700_label6",
+   "label": 6,
+   "mean_brightness": 112.57368189626963,
+   "object_area_ratio": 0.31221367801047123
+  },
+  {
+   "name": "food101_0701_label39",
+   "label": 39,
+   "mean_brightness": 127.65326436360677,
+   "object_area_ratio": 0.2915191650390625
+  },
+  {
+   "name": "food101_0702_label6",
+   "label": 6,
+   "mean_brightness": 162.1030158996582,
+   "object_area_ratio": 0.2845611572265625
+  },
+  {
+   "name": "food101_0703_label82",
+   "label": 82,
+   "mean_brightness": 174.49557876586914,
+   "object_area_ratio": 0.24379539489746094
+  },
+  {
+   "name": "food101_0704_label87",
+   "label": 87,
+   "mean_brightness": 140.02970123291016,
+   "object_area_ratio": 0.262420654296875
+  },
+  {
+   "name": "food101_0705_label92",
+   "label": 92,
+   "mean_brightness": 90.66834259033203,
+   "object_area_ratio": 0.16688156127929688
+  },
+  {
+   "name": "food101_0706_label92",
+   "label": 92,
+   "mean_brightness": 144.49146270751953,
+   "object_area_ratio": 0.41217994689941406
+  },
+  {
+   "name": "food101_0707_label74",
+   "label": 74,
+   "mean_brightness": 191.57302856445312,
+   "object_area_ratio": 0.4097900390625
+  },
+  {
+   "name": "food101_0708_label92",
+   "label": 92,
+   "mean_brightness": 195.7884292602539,
+   "object_area_ratio": 0.21970558166503906
+  },
+  {
+   "name": "food101_0709_label87",
+   "label": 87,
+   "mean_brightness": 144.26427027925533,
+   "object_area_ratio": 0.23306391289893616
+  },
+  {
+   "name": "food101_0710_label6",
+   "label": 6,
+   "mean_brightness": 144.6584930419922,
+   "object_area_ratio": 0.3226064046223958
+  },
+  {
+   "name": "food101_0711_label98",
+   "label": 98,
+   "mean_brightness": 155.61791610717773,
+   "object_area_ratio": 0.34750938415527344
+  },
+  {
+   "name": "food101_0712_label6",
+   "label": 6,
+   "mean_brightness": 135.75524139404297,
+   "object_area_ratio": 0.3438606262207031
+  },
+  {
+   "name": "food101_0713_label82",
+   "label": 82,
+   "mean_brightness": 156.5527000427246,
+   "object_area_ratio": 0.1885204315185547
+  },
+  {
+   "name": "food101_0714_label87",
+   "label": 87,
+   "mean_brightness": 125.06991958618164,
+   "object_area_ratio": 0.34490966796875
+  },
+  {
+   "name": "food101_0715_label6",
+   "label": 6,
+   "mean_brightness": 121.41955017301038,
+   "object_area_ratio": 0.4548044171712803
+  },
+  {
+   "name": "food101_0716_label51",
+   "label": 51,
+   "mean_brightness": 97.00595092773438,
+   "object_area_ratio": 0.4891777038574219
+  },
+  {
+   "name": "food101_0717_label98",
+   "label": 98,
+   "mean_brightness": 101.14842987060547,
+   "object_area_ratio": 0.15834617614746094
+  },
+  {
+   "name": "food101_0718_label66",
+   "label": 66,
+   "mean_brightness": 179.5134162902832,
+   "object_area_ratio": 0.3935871124267578
+  },
+  {
+   "name": "food101_0719_label87",
+   "label": 87,
+   "mean_brightness": 172.50333786010742,
+   "object_area_ratio": 0.21546554565429688
+  },
+  {
+   "name": "food101_0720_label82",
+   "label": 82,
+   "mean_brightness": 112.78831100463867,
+   "object_area_ratio": 0.2962226867675781
+  },
+  {
+   "name": "food101_0721_label66",
+   "label": 66,
+   "mean_brightness": 114.20152791341145,
+   "object_area_ratio": 0.15976715087890625
+  },
+  {
+   "name": "food101_0722_label39",
+   "label": 39,
+   "mean_brightness": 127.69807052612305,
+   "object_area_ratio": 0.27855873107910156
+  },
+  {
+   "name": "food101_0723_label6",
+   "label": 6,
+   "mean_brightness": 84.20073231820595,
+   "object_area_ratio": 0.25028612659235666
+  },
+  {
+   "name": "food101_0724_label87",
+   "label": 87,
+   "mean_brightness": 160.25994873046875,
+   "object_area_ratio": 0.3612060546875
+  },
+  {
+   "name": "food101_0725_label51",
+   "label": 51,
+   "mean_brightness": 159.99231338500977,
+   "object_area_ratio": 0.17397308349609375
+  },
+  {
+   "name": "food101_0726_label39",
+   "label": 39,
+   "mean_brightness": 148.6493711052053,
+   "object_area_ratio": 0.1377468612536657
+  },
+  {
+   "name": "food101_0727_label82",
+   "label": 82,
+   "mean_brightness": 141.87516403198242,
+   "object_area_ratio": 0.4273567199707031
+  },
+  {
+   "name": "food101_0728_label82",
+   "label": 82,
+   "mean_brightness": 165.9746962941754,
+   "object_area_ratio": 0.4811462082787958
+  },
+  {
+   "name": "food101_0729_label87",
+   "label": 87,
+   "mean_brightness": 184.11550903320312,
+   "object_area_ratio": 0.16114425659179688
+  },
+  {
+   "name": "food101_0730_label96",
+   "label": 96,
+   "mean_brightness": 172.94143676757812,
+   "object_area_ratio": 0.10359764099121094
+  },
+  {
+   "name": "food101_0731_label98",
+   "label": 98,
+   "mean_brightness": 148.0041961669922,
+   "object_area_ratio": 0.25397682189941406
+  },
+  {
+   "name": "food101_0732_label87",
+   "label": 87,
+   "mean_brightness": 142.86152267456055,
+   "object_area_ratio": 0.37813758850097656
+  },
+  {
+   "name": "food101_0733_label92",
+   "label": 92,
+   "mean_brightness": 173.93405532836914,
+   "object_area_ratio": 0.38279151916503906
+  },
+  {
+   "name": "food101_0734_label96",
+   "label": 96,
+   "mean_brightness": 121.21269607543945,
+   "object_area_ratio": 0.376495361328125
+  },
+  {
+   "name": "food101_0735_label98",
+   "label": 98,
+   "mean_brightness": 194.84043884277344,
+   "object_area_ratio": 0.32879638671875
+  },
+  {
+   "name": "food101_0736_label74",
+   "label": 74,
+   "mean_brightness": 142.18535232543945,
+   "object_area_ratio": 0.20257568359375
+  },
+  {
+   "name": "food101_0737_label51",
+   "label": 51,
+   "mean_brightness": 153.82892227172852,
+   "object_area_ratio": 0.2860107421875
+  },
+  {
+   "name": "food101_0738_label92",
+   "label": 92,
+   "mean_brightness": 160.55551641246683,
+   "object_area_ratio": 0.6195058645557029
+  },
+  {
+   "name": "food101_0739_label92",
+   "label": 92,
+   "mean_brightness": 154.0262451171875,
+   "object_area_ratio": 0.5142262776692709
+  },
+  {
+   "name": "food101_0740_label87",
+   "label": 87,
+   "mean_brightness": 152.92083358764648,
+   "object_area_ratio": 0.38138580322265625
+  },
+  {
+   "name": "food101_0741_label98",
+   "label": 98,
+   "mean_brightness": 106.00239562988281,
+   "object_area_ratio": 0.5230922698974609
+  },
+  {
+   "name": "food101_0742_label98",
+   "label": 98,
+   "mean_brightness": 159.1052589416504,
+   "object_area_ratio": 0.27382659912109375
+  },
+  {
+   "name": "food101_0743_label92",
+   "label": 92,
+   "mean_brightness": 122.53119659423828,
+   "object_area_ratio": 0.1307373046875
+  },
+  {
+   "name": "food101_0744_label82",
+   "label": 82,
+   "mean_brightness": 152.08165740966797,
+   "object_area_ratio": 0.11067962646484375
+  },
+  {
+   "name": "food101_0745_label74",
+   "label": 74,
+   "mean_brightness": 100.18586349487305,
+   "object_area_ratio": 0.3314647674560547
+  },
+  {
+   "name": "food101_0746_label6",
+   "label": 6,
+   "mean_brightness": 57.210418701171875,
+   "object_area_ratio": 0.23054885864257812
+  },
+  {
+   "name": "food101_0747_label98",
+   "label": 98,
+   "mean_brightness": 112.03972625732422,
+   "object_area_ratio": 0.09205436706542969
+  },
+  {
+   "name": "food101_0748_label92",
+   "label": 92,
+   "mean_brightness": 194.44808197021484,
+   "object_area_ratio": 0.391754150390625
+  },
+  {
+   "name": "food101_0749_label51",
+   "label": 51,
+   "mean_brightness": 61.558223724365234,
+   "object_area_ratio": 0.1571178436279297
+  },
+  {
+   "name": "food101_0750_label6",
+   "label": 6,
+   "mean_brightness": 123.69677734375,
+   "object_area_ratio": 0.4527587890625
+  },
+  {
+   "name": "food101_0751_label82",
+   "label": 82,
+   "mean_brightness": 147.11176300048828,
+   "object_area_ratio": 0.20714569091796875
+  },
+  {
+   "name": "food101_0752_label92",
+   "label": 92,
+   "mean_brightness": 133.7849998474121,
+   "object_area_ratio": 0.20201492309570312
+  },
+  {
+   "name": "food101_0753_label51",
+   "label": 51,
+   "mean_brightness": 119.73365275065105,
+   "object_area_ratio": 0.18466695149739584
+  },
+  {
+   "name": "food101_0754_label6",
+   "label": 6,
+   "mean_brightness": 163.9474983215332,
+   "object_area_ratio": 0.3020286560058594
+  },
+  {
+   "name": "food101_0755_label87",
+   "label": 87,
+   "mean_brightness": 176.02862930297852,
+   "object_area_ratio": 0.2870979309082031
+  },
+  {
+   "name": "food101_0756_label87",
+   "label": 87,
+   "mean_brightness": 178.0276702254399,
+   "object_area_ratio": 0.22820346865835778
+  },
+  {
+   "name": "food101_0757_label6",
+   "label": 6,
+   "mean_brightness": 150.458984375,
+   "object_area_ratio": 0.06990242004394531
+  },
+  {
+   "name": "food101_0758_label74",
+   "label": 74,
+   "mean_brightness": 135.45443901341622,
+   "object_area_ratio": 0.21675852830497383
+  },
+  {
+   "name": "food101_0759_label87",
+   "label": 87,
+   "mean_brightness": 157.71348190307617,
+   "object_area_ratio": 0.08622360229492188
+  },
+  {
+   "name": "food101_0760_label98",
+   "label": 98,
+   "mean_brightness": 131.0803985595703,
+   "object_area_ratio": 0.9960975646972656
+  },
+  {
+   "name": "food101_0761_label96",
+   "label": 96,
+   "mean_brightness": 146.48220443725586,
+   "object_area_ratio": 0.45163536071777344
+  },
+  {
+   "name": "food101_0762_label51",
+   "label": 51,
+   "mean_brightness": 74.58666816546763,
+   "object_area_ratio": 0.5014730403177458
+  },
+  {
+   "name": "food101_0763_label87",
+   "label": 87,
+   "mean_brightness": 169.20128631591797,
+   "object_area_ratio": 0.36715126037597656
+  },
+  {
+   "name": "food101_0764_label96",
+   "label": 96,
+   "mean_brightness": 157.3772964477539,
+   "object_area_ratio": 0.35883522033691406
+  },
+  {
+   "name": "food101_0765_label6",
+   "label": 6,
+   "mean_brightness": 153.55402628580728,
+   "object_area_ratio": 0.14844512939453125
+  },
+  {
+   "name": "food101_0766_label74",
+   "label": 74,
+   "mean_brightness": 136.3917999267578,
+   "object_area_ratio": 0.061618804931640625
+  },
+  {
+   "name": "food101_0767_label6",
+   "label": 6,
+   "mean_brightness": 169.18006896972656,
+   "object_area_ratio": 0.2803020477294922
+  },
+  {
+   "name": "food101_0768_label39",
+   "label": 39,
+   "mean_brightness": 134.69353485107422,
+   "object_area_ratio": 0.17646408081054688
+  },
+  {
+   "name": "food101_0769_label96",
+   "label": 96,
+   "mean_brightness": 171.15002822875977,
+   "object_area_ratio": 0.39958763122558594
+  },
+  {
+   "name": "food101_0770_label51",
+   "label": 51,
+   "mean_brightness": 160.53903579711914,
+   "object_area_ratio": 0.17905616760253906
+  },
+  {
+   "name": "food101_0771_label98",
+   "label": 98,
+   "mean_brightness": 131.7452049255371,
+   "object_area_ratio": 0.4081535339355469
+  },
+  {
+   "name": "food101_0772_label74",
+   "label": 74,
+   "mean_brightness": 141.79345703125,
+   "object_area_ratio": 0.21142196655273438
+  },
+  {
+   "name": "food101_0773_label39",
+   "label": 39,
+   "mean_brightness": 189.49310684204102,
+   "object_area_ratio": 0.3655242919921875
+  },
+  {
+   "name": "food101_0774_label74",
+   "label": 74,
+   "mean_brightness": 132.83259963989258,
+   "object_area_ratio": 0.33675575256347656
+  },
+  {
+   "name": "food101_0775_label6",
+   "label": 6,
+   "mean_brightness": 191.66405487060547,
+   "object_area_ratio": 0.26795005798339844
+  },
+  {
+   "name": "food101_0776_label6",
+   "label": 6,
+   "mean_brightness": 117.55916595458984,
+   "object_area_ratio": 0.214202880859375
+  },
+  {
+   "name": "food101_0777_label39",
+   "label": 39,
+   "mean_brightness": 135.62609354654947,
+   "object_area_ratio": 0.29816945393880206
+  },
+  {
+   "name": "food101_0778_label6",
+   "label": 6,
+   "mean_brightness": 187.08998107910156,
+   "object_area_ratio": 0.12085469563802083
+  },
+  {
+   "name": "food101_0779_label98",
+   "label": 98,
+   "mean_brightness": 149.21995713975696,
+   "object_area_ratio": 0.22594197591145834
+  },
+  {
+   "name": "food101_0780_label51",
+   "label": 51,
+   "mean_brightness": 112.83672587076823,
+   "object_area_ratio": 0.15654500325520834
+  },
+  {
+   "name": "food101_0781_label51",
+   "label": 51,
+   "mean_brightness": 128.7550277709961,
+   "object_area_ratio": 0.1494903564453125
+  },
+  {
+   "name": "food101_0782_label87",
+   "label": 87,
+   "mean_brightness": 141.35777282714844,
+   "object_area_ratio": 0.2666645050048828
+  },
+  {
+   "name": "food101_0783_label87",
+   "label": 87,
+   "mean_brightness": 170.2959747314453,
+   "object_area_ratio": 0.2882709503173828
+  },
+  {
+   "name": "food101_0784_label92",
+   "label": 92,
+   "mean_brightness": 187.71198654174805,
+   "object_area_ratio": 0.1431121826171875
+  },
+  {
+   "name": "food101_0785_label74",
+   "label": 74,
+   "mean_brightness": 126.5718131414956,
+   "object_area_ratio": 0.09995303335777127
+  },
+  {
+   "name": "food101_0786_label96",
+   "label": 96,
+   "mean_brightness": 93.68171672077922,
+   "object_area_ratio": 0.14265929383116882
+  },
+  {
+   "name": "food101_0787_label92",
+   "label": 92,
+   "mean_brightness": 148.62398529052734,
+   "object_area_ratio": 0.20267105102539062
+  },
+  {
+   "name": "food101_0788_label96",
+   "label": 96,
+   "mean_brightness": 196.14805221557617,
+   "object_area_ratio": 0.04970359802246094
+  },
+  {
+   "name": "food101_0789_label74",
+   "label": 74,
+   "mean_brightness": 139.51412200927734,
+   "object_area_ratio": 0.055347442626953125
+  },
+  {
+   "name": "food101_0790_label82",
+   "label": 82,
+   "mean_brightness": 203.8154411315918,
+   "object_area_ratio": 0.3109550476074219
+  },
+  {
+   "name": "food101_0791_label92",
+   "label": 92,
+   "mean_brightness": 113.73060679810209,
+   "object_area_ratio": 0.3637950957133508
+  },
+  {
+   "name": "food101_0792_label51",
+   "label": 51,
+   "mean_brightness": 145.00047810872397,
+   "object_area_ratio": 0.42267100016276044
+  },
+  {
+   "name": "food101_0793_label39",
+   "label": 39,
+   "mean_brightness": 154.50218831806282,
+   "object_area_ratio": 0.2167840927683246
+  },
+  {
+   "name": "food101_0794_label6",
+   "label": 6,
+   "mean_brightness": 114.68941879272461,
+   "object_area_ratio": 0.3681163787841797
+  },
+  {
+   "name": "food101_0795_label6",
+   "label": 6,
+   "mean_brightness": 171.71932220458984,
+   "object_area_ratio": 0.14017677307128906
+  },
+  {
+   "name": "food101_0796_label39",
+   "label": 39,
+   "mean_brightness": 170.9599405924479,
+   "object_area_ratio": 0.20665486653645834
+  },
+  {
+   "name": "food101_0797_label87",
+   "label": 87,
+   "mean_brightness": 165.81127166748047,
+   "object_area_ratio": 0.16449737548828125
+  },
+  {
+   "name": "food101_0798_label6",
+   "label": 6,
+   "mean_brightness": 106.88186645507812,
+   "object_area_ratio": 0.16168212890625
+  },
+  {
+   "name": "food101_0799_label98",
+   "label": 98,
+   "mean_brightness": 128.9151153564453,
+   "object_area_ratio": 0.31993865966796875
+  },
+  {
+   "name": "food101_0800_label51",
+   "label": 51,
+   "mean_brightness": 139.24857330322266,
+   "object_area_ratio": 0.42130088806152344
+  },
+  {
+   "name": "food101_0801_label51",
+   "label": 51,
+   "mean_brightness": 132.83461380004883,
+   "object_area_ratio": 0.8616542816162109
+  },
+  {
+   "name": "food101_0802_label66",
+   "label": 66,
+   "mean_brightness": 158.89521655701753,
+   "object_area_ratio": 0.508940401133041
+  },
+  {
+   "name": "food101_0803_label66",
+   "label": 66,
+   "mean_brightness": 195.89692179361978,
+   "object_area_ratio": 0.18840789794921875
+  },
+  {
+   "name": "food101_0804_label98",
+   "label": 98,
+   "mean_brightness": 129.0081901550293,
+   "object_area_ratio": 0.2335033416748047
+  },
+  {
+   "name": "food101_0805_label39",
+   "label": 39,
+   "mean_brightness": 149.11454264322916,
+   "object_area_ratio": 0.2998758951822917
+  },
+  {
+   "name": "food101_0806_label66",
+   "label": 66,
+   "mean_brightness": 138.18439865112305,
+   "object_area_ratio": 0.22360801696777344
+  },
+  {
+   "name": "food101_0807_label92",
+   "label": 92,
+   "mean_brightness": 155.05463027954102,
+   "object_area_ratio": 0.2506980895996094
+  },
+  {
+   "name": "food101_0808_label92",
+   "label": 92,
+   "mean_brightness": 132.67761739095053,
+   "object_area_ratio": 0.3875325520833333
+  },
+  {
+   "name": "food101_0809_label51",
+   "label": 51,
+   "mean_brightness": 132.9432716369629,
+   "object_area_ratio": 0.2648944854736328
+  },
+  {
+   "name": "food101_0810_label74",
+   "label": 74,
+   "mean_brightness": 131.99676865183247,
+   "object_area_ratio": 0.3566268201897906
+  },
+  {
+   "name": "food101_0811_label6",
+   "label": 6,
+   "mean_brightness": 135.4222526550293,
+   "object_area_ratio": 0.37775230407714844
+  },
+  {
+   "name": "food101_0812_label74",
+   "label": 74,
+   "mean_brightness": 167.91183491625816,
+   "object_area_ratio": 0.3838369332107843
+  },
+  {
+   "name": "food101_0813_label82",
+   "label": 82,
+   "mean_brightness": 96.79568142361111,
+   "object_area_ratio": 0.5218545751633987
+  },
+  {
+   "name": "food101_0814_label87",
+   "label": 87,
+   "mean_brightness": 142.1314239501953,
+   "object_area_ratio": 0.3778076171875
+  },
+  {
+   "name": "food101_0815_label74",
+   "label": 74,
+   "mean_brightness": 191.3438835144043,
+   "object_area_ratio": 0.15937232971191406
+  },
+  {
+   "name": "food101_0816_label87",
+   "label": 87,
+   "mean_brightness": 148.86432266235352,
+   "object_area_ratio": 0.44879722595214844
+  },
+  {
+   "name": "food101_0817_label92",
+   "label": 92,
+   "mean_brightness": 142.74772135416666,
+   "object_area_ratio": 0.1871770222981771
+  },
+  {
+   "name": "food101_0818_label92",
+   "label": 92,
+   "mean_brightness": 156.66355895996094,
+   "object_area_ratio": 0.1348896026611328
+  },
+  {
+   "name": "food101_0819_label6",
+   "label": 6,
+   "mean_brightness": 136.75167846679688,
+   "object_area_ratio": 0.47836875915527344
+  },
+  {
+   "name": "food101_0820_label6",
+   "label": 6,
+   "mean_brightness": 138.76747613413838,
+   "object_area_ratio": 0.12902608926240208
+  },
+  {
+   "name": "food101_0821_label98",
+   "label": 98,
+   "mean_brightness": 199.89564514160156,
+   "object_area_ratio": 0.1265869140625
+  },
+  {
+   "name": "food101_0822_label96",
+   "label": 96,
+   "mean_brightness": 161.13230895996094,
+   "object_area_ratio": 0.17324320475260416
+  },
+  {
+   "name": "food101_0823_label98",
+   "label": 98,
+   "mean_brightness": 162.1290512084961,
+   "object_area_ratio": 0.3188362121582031
+  },
+  {
+   "name": "food101_0824_label6",
+   "label": 6,
+   "mean_brightness": 114.83671569824219,
+   "object_area_ratio": 0.35263824462890625
+  },
+  {
+   "name": "food101_0825_label92",
+   "label": 92,
+   "mean_brightness": 128.93421173095703,
+   "object_area_ratio": 0.34208106994628906
+  },
+  {
+   "name": "food101_0826_label51",
+   "label": 51,
+   "mean_brightness": 128.85208129882812,
+   "object_area_ratio": 0.11087799072265625
+  },
+  {
+   "name": "food101_0827_label87",
+   "label": 87,
+   "mean_brightness": 163.75489831349208,
+   "object_area_ratio": 0.39652054398148145
+  },
+  {
+   "name": "food101_0828_label6",
+   "label": 6,
+   "mean_brightness": 89.30676189746733,
+   "object_area_ratio": 0.49611928104575165
+  },
+  {
+   "name": "food101_0829_label74",
+   "label": 74,
+   "mean_brightness": 132.90875625610352,
+   "object_area_ratio": 0.14160728454589844
+  },
+  {
+   "name": "food101_0830_label92",
+   "label": 92,
+   "mean_brightness": 139.52313232421875,
+   "object_area_ratio": 0.5387217203776041
+  },
+  {
+   "name": "food101_0831_label6",
+   "label": 6,
+   "mean_brightness": 144.02153019611438,
+   "object_area_ratio": 0.13152950879765396
+  },
+  {
+   "name": "food101_0832_label87",
+   "label": 87,
+   "mean_brightness": 96.52585220336914,
+   "object_area_ratio": 0.2259502410888672
+  },
+  {
+   "name": "food101_0833_label6",
+   "label": 6,
+   "mean_brightness": 131.65398661295572,
+   "object_area_ratio": 0.2329432169596354
+  },
+  {
+   "name": "food101_0834_label98",
+   "label": 98,
+   "mean_brightness": 173.2068634033203,
+   "object_area_ratio": 0.24921607971191406
+  },
+  {
+   "name": "food101_0835_label39",
+   "label": 39,
+   "mean_brightness": 146.04755147298178,
+   "object_area_ratio": 0.3097585042317708
+  },
+  {
+   "name": "food101_0836_label6",
+   "label": 6,
+   "mean_brightness": 149.92005481020942,
+   "object_area_ratio": 0.18499468259162305
+  },
+  {
+   "name": "food101_0837_label92",
+   "label": 92,
+   "mean_brightness": 147.8000742594401,
+   "object_area_ratio": 0.2491785685221354
+  },
+  {
+   "name": "food101_0838_label92",
+   "label": 92,
+   "mean_brightness": 93.50150044759114,
+   "object_area_ratio": 0.3000895182291667
+  },
+  {
+   "name": "food101_0839_label92",
+   "label": 92,
+   "mean_brightness": 133.28583908081055,
+   "object_area_ratio": 0.4635334014892578
+  },
+  {
+   "name": "food101_0840_label82",
+   "label": 82,
+   "mean_brightness": 180.55206298828125,
+   "object_area_ratio": 0.3564929962158203
+  },
+  {
+   "name": "food101_0841_label96",
+   "label": 96,
+   "mean_brightness": 182.54784393310547,
+   "object_area_ratio": 0.11391639709472656
+  },
+  {
+   "name": "food101_0842_label51",
+   "label": 51,
+   "mean_brightness": 89.43752297794117,
+   "object_area_ratio": 0.3148667279411765
+  },
+  {
+   "name": "food101_0843_label74",
+   "label": 74,
+   "mean_brightness": 115.22515869140625,
+   "object_area_ratio": 0.33421897888183594
+  },
+  {
+   "name": "food101_0844_label74",
+   "label": 74,
+   "mean_brightness": 120.08835891812865,
+   "object_area_ratio": 0.10521461531432749
+  },
+  {
+   "name": "food101_0845_label66",
+   "label": 66,
+   "mean_brightness": 132.81346893310547,
+   "object_area_ratio": 0.08395004272460938
+  },
+  {
+   "name": "food101_0846_label74",
+   "label": 74,
+   "mean_brightness": 139.52740987141928,
+   "object_area_ratio": 0.40422821044921875
+  },
+  {
+   "name": "food101_0847_label6",
+   "label": 6,
+   "mean_brightness": 108.3765869140625,
+   "object_area_ratio": 0.16117477416992188
+  },
+  {
+   "name": "food101_0848_label82",
+   "label": 82,
+   "mean_brightness": 156.16674423217773,
+   "object_area_ratio": 0.2365894317626953
+  },
+  {
+   "name": "food101_0849_label51",
+   "label": 51,
+   "mean_brightness": 123.24979782104492,
+   "object_area_ratio": 0.41417884826660156
+  },
+  {
+   "name": "food101_0850_label74",
+   "label": 74,
+   "mean_brightness": 155.06932067871094,
+   "object_area_ratio": 0.1339569091796875
+  },
+  {
+   "name": "food101_0851_label87",
+   "label": 87,
+   "mean_brightness": 84.13533020019531,
+   "object_area_ratio": 0.18863932291666666
+  },
+  {
+   "name": "food101_0852_label39",
+   "label": 39,
+   "mean_brightness": 157.14079793294272,
+   "object_area_ratio": 0.35821787516276044
+  },
+  {
+   "name": "food101_0853_label74",
+   "label": 74,
+   "mean_brightness": 140.81320571899414,
+   "object_area_ratio": 0.22403907775878906
+  },
+  {
+   "name": "food101_0854_label39",
+   "label": 39,
+   "mean_brightness": 77.15735626220703,
+   "object_area_ratio": 0.1751708984375
+  },
+  {
+   "name": "food101_0855_label39",
+   "label": 39,
+   "mean_brightness": 138.70947647094727,
+   "object_area_ratio": 0.23097991943359375
+  },
+  {
+   "name": "food101_0856_label74",
+   "label": 74,
+   "mean_brightness": 189.71107864379883,
+   "object_area_ratio": 0.1713409423828125
+  },
+  {
+   "name": "food101_0857_label87",
+   "label": 87,
+   "mean_brightness": 155.0298080444336,
+   "object_area_ratio": 0.1799602508544922
+  },
+  {
+   "name": "food101_0858_label6",
+   "label": 6,
+   "mean_brightness": 146.70390701293945,
+   "object_area_ratio": 0.16041183471679688
+  },
+  {
+   "name": "food101_0859_label51",
+   "label": 51,
+   "mean_brightness": 139.9449462890625,
+   "object_area_ratio": 0.2284221649169922
+  },
+  {
+   "name": "food101_0860_label66",
+   "label": 66,
+   "mean_brightness": 95.58292007446289,
+   "object_area_ratio": 0.2694225311279297
+  },
+  {
+   "name": "food101_0861_label51",
+   "label": 51,
+   "mean_brightness": 74.70734024047852,
+   "object_area_ratio": 0.2519512176513672
+  },
+  {
+   "name": "food101_0862_label96",
+   "label": 96,
+   "mean_brightness": 156.02294540405273,
+   "object_area_ratio": 0.34749603271484375
+  },
+  {
+   "name": "food101_0863_label87",
+   "label": 87,
+   "mean_brightness": 127.89000447591145,
+   "object_area_ratio": 0.40327707926432294
+  },
+  {
+   "name": "food101_0864_label92",
+   "label": 92,
+   "mean_brightness": 147.35954328492167,
+   "object_area_ratio": 0.2210677423302872
+  },
+  {
+   "name": "food101_0865_label98",
+   "label": 98,
+   "mean_brightness": 204.90639877319336,
+   "object_area_ratio": 0.14919662475585938
+  },
+  {
+   "name": "food101_0866_label39",
+   "label": 39,
+   "mean_brightness": 131.80902481079102,
+   "object_area_ratio": 0.05592536926269531
+  },
+  {
+   "name": "food101_0867_label66",
+   "label": 66,
+   "mean_brightness": 161.6409454345703,
+   "object_area_ratio": 0.3176441192626953
+  },
+  {
+   "name": "food101_0868_label87",
+   "label": 87,
+   "mean_brightness": 147.95253372192383,
+   "object_area_ratio": 0.2548503875732422
+  },
+  {
+   "name": "food101_0869_label96",
+   "label": 96,
+   "mean_brightness": 130.69105346040575,
+   "object_area_ratio": 0.29830916639397903
+  },
+  {
+   "name": "food101_0870_label96",
+   "label": 96,
+   "mean_brightness": 86.8142318725586,
+   "object_area_ratio": 0.33158302307128906
+  },
+  {
+   "name": "food101_0871_label39",
+   "label": 39,
+   "mean_brightness": 177.74967447916666,
+   "object_area_ratio": 0.12778472900390625
+  },
+  {
+   "name": "food101_0872_label66",
+   "label": 66,
+   "mean_brightness": 142.84252548217773,
+   "object_area_ratio": 0.2804584503173828
+  },
+  {
+   "name": "food101_0873_label74",
+   "label": 74,
+   "mean_brightness": 179.07146453857422,
+   "object_area_ratio": 0.3179645538330078
+  },
+  {
+   "name": "food101_0874_label6",
+   "label": 6,
+   "mean_brightness": 182.13960647583008,
+   "object_area_ratio": 0.04245758056640625
+  },
+  {
+   "name": "food101_0875_label82",
+   "label": 82,
+   "mean_brightness": 143.1149444580078,
+   "object_area_ratio": 0.3026479085286458
+  },
+  {
+   "name": "food101_0876_label82",
+   "label": 82,
+   "mean_brightness": 197.6237449645996,
+   "object_area_ratio": 0.14720916748046875
+  },
+  {
+   "name": "food101_0877_label87",
+   "label": 87,
+   "mean_brightness": 111.79533386230469,
+   "object_area_ratio": 0.06936454772949219
+  },
+  {
+   "name": "food101_0878_label74",
+   "label": 74,
+   "mean_brightness": 127.1463623046875,
+   "object_area_ratio": 0.39777882893880206
+  },
+  {
+   "name": "food101_0879_label6",
+   "label": 6,
+   "mean_brightness": 168.8459129333496,
+   "object_area_ratio": 0.2735481262207031
+  },
+  {
+   "name": "food101_0880_label39",
+   "label": 39,
+   "mean_brightness": 112.6366081237793,
+   "object_area_ratio": 0.35711669921875
+  },
+  {
+   "name": "food101_0881_label6",
+   "label": 6,
+   "mean_brightness": 135.8870506286621,
+   "object_area_ratio": 0.3339653015136719
+  },
+  {
+   "name": "food101_0882_label96",
+   "label": 96,
+   "mean_brightness": 140.94624304646598,
+   "object_area_ratio": 0.43135430301047123
+  },
+  {
+   "name": "food101_0883_label66",
+   "label": 66,
+   "mean_brightness": 117.47409057617188,
+   "object_area_ratio": 0.16381454467773438
+  },
+  {
+   "name": "food101_0884_label51",
+   "label": 51,
+   "mean_brightness": 43.30219268798828,
+   "object_area_ratio": 0.38204193115234375
+  },
+  {
+   "name": "food101_0885_label51",
+   "label": 51,
+   "mean_brightness": 153.68719482421875,
+   "object_area_ratio": 0.18276468912760416
+  },
+  {
+   "name": "food101_0886_label87",
+   "label": 87,
+   "mean_brightness": 186.0920665715479,
+   "object_area_ratio": 0.11610218889198218
+  },
+  {
+   "name": "food101_0887_label87",
+   "label": 87,
+   "mean_brightness": 156.9165477807971,
+   "object_area_ratio": 0.29612771739130433
+  },
+  {
+   "name": "food101_0888_label6",
+   "label": 6,
+   "mean_brightness": 155.87690353393555,
+   "object_area_ratio": 0.45354461669921875
+  },
+  {
+   "name": "food101_0889_label98",
+   "label": 98,
+   "mean_brightness": 156.11101150512695,
+   "object_area_ratio": 0.2357463836669922
+  },
+  {
+   "name": "food101_0890_label82",
+   "label": 82,
+   "mean_brightness": 114.46736145019531,
+   "object_area_ratio": 0.14765167236328125
+  },
+  {
+   "name": "food101_0891_label66",
+   "label": 66,
+   "mean_brightness": 139.40850067138672,
+   "object_area_ratio": 0.39507484436035156
+  },
+  {
+   "name": "food101_0892_label6",
+   "label": 6,
+   "mean_brightness": 127.323974609375,
+   "object_area_ratio": 0.3386573791503906
+  },
+  {
+   "name": "food101_0893_label98",
+   "label": 98,
+   "mean_brightness": 181.59904098510742,
+   "object_area_ratio": 0.29476356506347656
+  },
+  {
+   "name": "food101_0894_label51",
+   "label": 51,
+   "mean_brightness": 75.17190056446336,
+   "object_area_ratio": 0.23962082787958114
+  },
+  {
+   "name": "food101_0895_label82",
+   "label": 82,
+   "mean_brightness": 159.27853775024414,
+   "object_area_ratio": 0.056621551513671875
+  },
+  {
+   "name": "food101_0896_label51",
+   "label": 51,
+   "mean_brightness": 119.5345458984375,
+   "object_area_ratio": 0.19597816467285156
+  },
+  {
+   "name": "food101_0897_label92",
+   "label": 92,
+   "mean_brightness": 151.06263732910156,
+   "object_area_ratio": 0.2846183776855469
+  },
+  {
+   "name": "food101_0898_label92",
+   "label": 92,
+   "mean_brightness": 118.39328511555989,
+   "object_area_ratio": 0.10208892822265625
+  },
+  {
+   "name": "food101_0899_label51",
+   "label": 51,
+   "mean_brightness": 116.28525161743164,
+   "object_area_ratio": 0.2186107635498047
+  },
+  {
+   "name": "food101_0900_label66",
+   "label": 66,
+   "mean_brightness": 110.6768086751302,
+   "object_area_ratio": 0.29072316487630206
+  },
+  {
+   "name": "food101_0901_label98",
+   "label": 98,
+   "mean_brightness": 105.85669708251953,
+   "object_area_ratio": 0.3461418151855469
+  },
+  {
+   "name": "food101_0902_label82",
+   "label": 82,
+   "mean_brightness": 160.58077239990234,
+   "object_area_ratio": 0.41004180908203125
+  },
+  {
+   "name": "food101_0903_label74",
+   "label": 74,
+   "mean_brightness": 127.7880859375,
+   "object_area_ratio": 0.2628345489501953
+  },
+  {
+   "name": "food101_0904_label51",
+   "label": 51,
+   "mean_brightness": 95.91415405273438,
+   "object_area_ratio": 0.2886810302734375
+  },
+  {
+   "name": "food101_0905_label82",
+   "label": 82,
+   "mean_brightness": 136.6446075439453,
+   "object_area_ratio": 0.3260701497395833
+  },
+  {
+   "name": "food101_0906_label82",
+   "label": 82,
+   "mean_brightness": 154.4713524623691,
+   "object_area_ratio": 0.46915136207460734
+  },
+  {
+   "name": "food101_0907_label51",
+   "label": 51,
+   "mean_brightness": 170.46789169311523,
+   "object_area_ratio": 0.10588455200195312
+  },
+  {
+   "name": "food101_0908_label82",
+   "label": 82,
+   "mean_brightness": 132.14598592122397,
+   "object_area_ratio": 0.46997324625651044
+  },
+  {
+   "name": "food101_0909_label82",
+   "label": 82,
+   "mean_brightness": 143.96408081054688,
+   "object_area_ratio": 0.1556065877278646
+  },
+  {
+   "name": "food101_0910_label66",
+   "label": 66,
+   "mean_brightness": 109.16264724731445,
+   "object_area_ratio": 0.06785202026367188
+  },
+  {
+   "name": "food101_0911_label6",
+   "label": 6,
+   "mean_brightness": 116.1181640625,
+   "object_area_ratio": 0.5177586873372396
+  },
+  {
+   "name": "food101_0912_label87",
+   "label": 87,
+   "mean_brightness": 144.7676239013672,
+   "object_area_ratio": 0.3764305114746094
+  },
+  {
+   "name": "food101_0913_label51",
+   "label": 51,
+   "mean_brightness": 123.25552368164062,
+   "object_area_ratio": 0.2479076385498047
+  },
+  {
+   "name": "food101_0914_label82",
+   "label": 82,
+   "mean_brightness": 110.55094909667969,
+   "object_area_ratio": 0.0387420654296875
+  },
+  {
+   "name": "food101_0915_label39",
+   "label": 39,
+   "mean_brightness": 150.4452781677246,
+   "object_area_ratio": 0.4479827880859375
+  },
+  {
+   "name": "food101_0916_label6",
+   "label": 6,
+   "mean_brightness": 130.2712287902832,
+   "object_area_ratio": 0.2694835662841797
+  },
+  {
+   "name": "food101_0917_label66",
+   "label": 66,
+   "mean_brightness": 112.53562591642229,
+   "object_area_ratio": 0.5180821572580645
+  },
+  {
+   "name": "food101_0918_label92",
+   "label": 92,
+   "mean_brightness": 121.44142150878906,
+   "object_area_ratio": 0.03949737548828125
+  },
+  {
+   "name": "food101_0919_label39",
+   "label": 39,
+   "mean_brightness": 169.5218849182129,
+   "object_area_ratio": 0.4477806091308594
+  },
+  {
+   "name": "food101_0920_label39",
+   "label": 39,
+   "mean_brightness": 159.84705660635964,
+   "object_area_ratio": 0.11043151498538012
+  },
+  {
+   "name": "food101_0921_label82",
+   "label": 82,
+   "mean_brightness": 143.43780517578125,
+   "object_area_ratio": 0.4435386657714844
+  },
+  {
+   "name": "food101_0922_label66",
+   "label": 66,
+   "mean_brightness": 95.5677604675293,
+   "object_area_ratio": 0.10713768005371094
+  },
+  {
+   "name": "food101_0923_label87",
+   "label": 87,
+   "mean_brightness": 175.04497528076172,
+   "object_area_ratio": 0.23345947265625
+  },
+  {
+   "name": "food101_0924_label96",
+   "label": 96,
+   "mean_brightness": 169.5117301940918,
+   "object_area_ratio": 0.15513229370117188
+  },
+  {
+   "name": "food101_0925_label51",
+   "label": 51,
+   "mean_brightness": 111.52804565429688,
+   "object_area_ratio": 0.36186981201171875
+  },
+  {
+   "name": "food101_0926_label51",
+   "label": 51,
+   "mean_brightness": 166.47242105693718,
+   "object_area_ratio": 0.22616625081806283
+  },
+  {
+   "name": "food101_0927_label87",
+   "label": 87,
+   "mean_brightness": 173.57465533088236,
+   "object_area_ratio": 0.27581858915441176
+  },
+  {
+   "name": "food101_0928_label82",
+   "label": 82,
+   "mean_brightness": 192.63905334472656,
+   "object_area_ratio": 0.3496685028076172
+  },
+  {
+   "name": "food101_0929_label98",
+   "label": 98,
+   "mean_brightness": 149.16827011108398,
+   "object_area_ratio": 0.26991844177246094
+  },
+  {
+   "name": "food101_0930_label87",
+   "label": 87,
+   "mean_brightness": 100.44124984741211,
+   "object_area_ratio": 0.22135353088378906
+  },
+  {
+   "name": "food101_0931_label82",
+   "label": 82,
+   "mean_brightness": 168.1867446899414,
+   "object_area_ratio": 0.526031494140625
+  },
+  {
+   "name": "food101_0932_label87",
+   "label": 87,
+   "mean_brightness": 170.2389373779297,
+   "object_area_ratio": 0.28856849670410156
+  },
+  {
+   "name": "food101_0933_label82",
+   "label": 82,
+   "mean_brightness": 161.77566867404514,
+   "object_area_ratio": 0.2798936631944444
+  },
+  {
+   "name": "food101_0934_label6",
+   "label": 6,
+   "mean_brightness": 116.6306660970052,
+   "object_area_ratio": 0.3953653971354167
+  },
+  {
+   "name": "food101_0935_label39",
+   "label": 39,
+   "mean_brightness": 132.031005859375,
+   "object_area_ratio": 0.16145833333333334
+  },
+  {
+   "name": "food101_0936_label51",
+   "label": 51,
+   "mean_brightness": 167.94981002807617,
+   "object_area_ratio": 0.4109764099121094
+  },
+  {
+   "name": "food101_0937_label39",
+   "label": 39,
+   "mean_brightness": 159.04270935058594,
+   "object_area_ratio": 0.4215068817138672
+  },
+  {
+   "name": "food101_0938_label6",
+   "label": 6,
+   "mean_brightness": 155.97991434733072,
+   "object_area_ratio": 0.2657012939453125
+  },
+  {
+   "name": "food101_0939_label74",
+   "label": 74,
+   "mean_brightness": 198.49517854221205,
+   "object_area_ratio": 0.2810122504908377
+  },
+  {
+   "name": "food101_0940_label98",
+   "label": 98,
+   "mean_brightness": 107.73608016967773,
+   "object_area_ratio": 0.4733238220214844
+  },
+  {
+   "name": "food101_0941_label39",
+   "label": 39,
+   "mean_brightness": 189.64748098423755,
+   "object_area_ratio": 0.13450501741202345
+  },
+  {
+   "name": "food101_0942_label87",
+   "label": 87,
+   "mean_brightness": 116.87964884440105,
+   "object_area_ratio": 0.10482533772786458
+  },
+  {
+   "name": "food101_0943_label98",
+   "label": 98,
+   "mean_brightness": 143.46134567260742,
+   "object_area_ratio": 0.2512550354003906
+  },
+  {
+   "name": "food101_0944_label39",
+   "label": 39,
+   "mean_brightness": 183.4929586038961,
+   "object_area_ratio": 0.3098975243506494
+  },
+  {
+   "name": "food101_0945_label82",
+   "label": 82,
+   "mean_brightness": 115.36804390380313,
+   "object_area_ratio": 0.16676497832774048
+  },
+  {
+   "name": "food101_0946_label39",
+   "label": 39,
+   "mean_brightness": 198.5410919189453,
+   "object_area_ratio": 0.06841850280761719
+  },
+  {
+   "name": "food101_0947_label82",
+   "label": 82,
+   "mean_brightness": 137.3603515625,
+   "object_area_ratio": 0.45595550537109375
+  },
+  {
+   "name": "food101_0948_label92",
+   "label": 92,
+   "mean_brightness": 154.54620361328125,
+   "object_area_ratio": 0.1554082234700521
+  },
+  {
+   "name": "food101_0949_label92",
+   "label": 92,
+   "mean_brightness": 42.55386861165365,
+   "object_area_ratio": 0.26114654541015625
+  },
+  {
+   "name": "food101_0950_label66",
+   "label": 66,
+   "mean_brightness": 120.66546630859375,
+   "object_area_ratio": 0.3917490641276042
+  },
+  {
+   "name": "food101_0951_label96",
+   "label": 96,
+   "mean_brightness": 121.63414001464844,
+   "object_area_ratio": 0.28164418538411456
+  },
+  {
+   "name": "food101_0952_label6",
+   "label": 6,
+   "mean_brightness": 136.45881271362305,
+   "object_area_ratio": 0.20633697509765625
+  },
+  {
+   "name": "food101_0953_label82",
+   "label": 82,
+   "mean_brightness": 128.60520935058594,
+   "object_area_ratio": 0.28507423400878906
+  },
+  {
+   "name": "food101_0954_label66",
+   "label": 66,
+   "mean_brightness": 86.60741424560547,
+   "object_area_ratio": 0.20172882080078125
+  },
+  {
+   "name": "food101_0955_label98",
+   "label": 98,
+   "mean_brightness": 145.08219528198242,
+   "object_area_ratio": 0.9960975646972656
+  },
+  {
+   "name": "food101_0956_label96",
+   "label": 96,
+   "mean_brightness": 139.03587849934897,
+   "object_area_ratio": 0.1929957071940104
+  },
+  {
+   "name": "food101_0957_label92",
+   "label": 92,
+   "mean_brightness": 111.27629470825195,
+   "object_area_ratio": 0.17082977294921875
+  },
+  {
+   "name": "food101_0958_label82",
+   "label": 82,
+   "mean_brightness": 151.98424784342447,
+   "object_area_ratio": 0.14494832356770834
+  },
+  {
+   "name": "food101_0959_label98",
+   "label": 98,
+   "mean_brightness": 127.18984603881836,
+   "object_area_ratio": 0.35436248779296875
+  },
+  {
+   "name": "food101_0960_label6",
+   "label": 6,
+   "mean_brightness": 143.79925537109375,
+   "object_area_ratio": 0.2302703857421875
+  },
+  {
+   "name": "food101_0961_label6",
+   "label": 6,
+   "mean_brightness": 145.1729393005371,
+   "object_area_ratio": 0.41521453857421875
+  },
+  {
+   "name": "food101_0962_label39",
+   "label": 39,
+   "mean_brightness": 145.56614303588867,
+   "object_area_ratio": 0.0955963134765625
+  },
+  {
+   "name": "food101_0963_label87",
+   "label": 87,
+   "mean_brightness": 109.9609375,
+   "object_area_ratio": 0.28921561955574915
+  },
+  {
+   "name": "food101_0964_label98",
+   "label": 98,
+   "mean_brightness": 133.52622604370117,
+   "object_area_ratio": 0.2478485107421875
+  },
+  {
+   "name": "food101_0965_label87",
+   "label": 87,
+   "mean_brightness": 172.10589599609375,
+   "object_area_ratio": 0.16416549682617188
+  },
+  {
+   "name": "food101_0966_label87",
+   "label": 87,
+   "mean_brightness": 147.43083953857422,
+   "object_area_ratio": 0.41426849365234375
+  },
+  {
+   "name": "food101_0967_label87",
+   "label": 87,
+   "mean_brightness": 183.11957550048828,
+   "object_area_ratio": 0.2699546813964844
+  },
+  {
+   "name": "food101_0968_label98",
+   "label": 98,
+   "mean_brightness": 113.92539978027344,
+   "object_area_ratio": 0.22243499755859375
+  },
+  {
+   "name": "food101_0969_label82",
+   "label": 82,
+   "mean_brightness": 204.8126335144043,
+   "object_area_ratio": 0.20084381103515625
+  },
+  {
+   "name": "food101_0970_label39",
+   "label": 39,
+   "mean_brightness": 200.48847198486328,
+   "object_area_ratio": 0.2997856140136719
+  },
+  {
+   "name": "food101_0971_label39",
+   "label": 39,
+   "mean_brightness": 135.19757461547852,
+   "object_area_ratio": 0.26326560974121094
+  },
+  {
+   "name": "food101_0972_label51",
+   "label": 51,
+   "mean_brightness": 155.45672988891602,
+   "object_area_ratio": 0.4612846374511719
+  },
+  {
+   "name": "food101_0973_label6",
+   "label": 6,
+   "mean_brightness": 97.24713134765625,
+   "object_area_ratio": 0.3172435760498047
+  },
+  {
+   "name": "food101_0974_label6",
+   "label": 6,
+   "mean_brightness": 93.54692077636719,
+   "object_area_ratio": 0.46296437581380206
+  },
+  {
+   "name": "food101_0975_label87",
+   "label": 87,
+   "mean_brightness": 131.32265090942383,
+   "object_area_ratio": 0.21966171264648438
+  },
+  {
+   "name": "food101_0976_label92",
+   "label": 92,
+   "mean_brightness": 113.08835347493489,
+   "object_area_ratio": 0.4856211344401042
+  },
+  {
+   "name": "food101_0977_label87",
+   "label": 87,
+   "mean_brightness": 132.5269889831543,
+   "object_area_ratio": 0.286529541015625
+  },
+  {
+   "name": "food101_0978_label92",
+   "label": 92,
+   "mean_brightness": 159.75780868530273,
+   "object_area_ratio": 0.28485107421875
+  },
+  {
+   "name": "food101_0979_label98",
+   "label": 98,
+   "mean_brightness": 108.95872989617264,
+   "object_area_ratio": 0.16777470989413681
+  },
+  {
+   "name": "food101_0980_label51",
+   "label": 51,
+   "mean_brightness": 181.56488418579102,
+   "object_area_ratio": 0.2774085998535156
+  },
+  {
+   "name": "food101_0981_label92",
+   "label": 92,
+   "mean_brightness": 87.15576553344727,
+   "object_area_ratio": 0.3478736877441406
+  },
+  {
+   "name": "food101_0982_label82",
+   "label": 82,
+   "mean_brightness": 154.05297088623047,
+   "object_area_ratio": 0.2693500518798828
+  },
+  {
+   "name": "food101_0983_label6",
+   "label": 6,
+   "mean_brightness": 161.70203399658203,
+   "object_area_ratio": 0.16512489318847656
+  },
+  {
+   "name": "food101_0984_label82",
+   "label": 82,
+   "mean_brightness": 198.91435904777487,
+   "object_area_ratio": 0.235873077552356
+  },
+  {
+   "name": "food101_0985_label82",
+   "label": 82,
+   "mean_brightness": 205.21251678466797,
+   "object_area_ratio": 0.21393203735351562
+  },
+  {
+   "name": "food101_0986_label82",
+   "label": 82,
+   "mean_brightness": 179.05149459838867,
+   "object_area_ratio": 0.3146858215332031
+  },
+  {
+   "name": "food101_0987_label74",
+   "label": 74,
+   "mean_brightness": 123.8034961510264,
+   "object_area_ratio": 0.8140722369868035
+  },
+  {
+   "name": "food101_0988_label92",
+   "label": 92,
+   "mean_brightness": 85.94915069686411,
+   "object_area_ratio": 0.32551516223867594
+  },
+  {
+   "name": "food101_0989_label82",
+   "label": 82,
+   "mean_brightness": 146.48834609985352,
+   "object_area_ratio": 0.23674392700195312
+  },
+  {
+   "name": "food101_0990_label74",
+   "label": 74,
+   "mean_brightness": 102.52543664103403,
+   "object_area_ratio": 0.25317254990183247
+  },
+  {
+   "name": "food101_0991_label51",
+   "label": 51,
+   "mean_brightness": 110.92882567721932,
+   "object_area_ratio": 0.2619660778394256
+  },
+  {
+   "name": "food101_0992_label51",
+   "label": 51,
+   "mean_brightness": 173.91802597045898,
+   "object_area_ratio": 0.26427459716796875
+  },
+  {
+   "name": "food101_0993_label98",
+   "label": 98,
+   "mean_brightness": 170.98690661656892,
+   "object_area_ratio": 0.2767079820381232
+  },
+  {
+   "name": "food101_0994_label87",
+   "label": 87,
+   "mean_brightness": 143.03713989257812,
+   "object_area_ratio": 0.4200642903645833
+  },
+  {
+   "name": "food101_0995_label98",
+   "label": 98,
+   "mean_brightness": 113.85236740112305,
+   "object_area_ratio": 0.21210289001464844
+  },
+  {
+   "name": "food101_0996_label98",
+   "label": 98,
+   "mean_brightness": 92.89808654785156,
+   "object_area_ratio": 0.14998626708984375
+  },
+  {
+   "name": "food101_0997_label66",
+   "label": 66,
+   "mean_brightness": 205.22594706217447,
+   "object_area_ratio": 0.3047536214192708
+  },
+  {
+   "name": "food101_0998_label92",
+   "label": 92,
+   "mean_brightness": 146.37096405029297,
+   "object_area_ratio": 0.28997039794921875
+  },
+  {
+   "name": "food101_0999_label96",
+   "label": 96,
+   "mean_brightness": 151.7880516052246,
+   "object_area_ratio": 0.21109580993652344
+  }
+ ]
+}

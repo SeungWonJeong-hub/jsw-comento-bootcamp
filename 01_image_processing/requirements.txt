@@ -1,0 +1,8 @@
+opencv-python>=4.8
+numpy>=1.24
+datasets>=2.14
+
+# 피드백 반영분
+scipy>=1.11        # 분포 통계(왜도/첨도)로 이상치 임계값을 정하는 데 사용
+matplotlib>=3.8    # 히스토그램·상자그림 시각화
+torch>=2.0         # 학습 중 실시간 증강을 거는 Dataset / DataLoader
