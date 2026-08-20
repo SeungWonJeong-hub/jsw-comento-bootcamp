@@ -11,10 +11,18 @@
   - 평균 밝기가 너무 낮은(어두운) 이미지 제거
   - 주요 객체 크기가 너무 작은 이미지 제거
 
+[피드백 반영]
+  1. 임계값은 감이 아니라 분포에서 정한다. threshold_study.py 가 만든
+     thresholds.json 을 읽어 쓰고, 없으면 아래 기본값으로 돌아간다.
+  3. 증강은 여기서 저장하지 않는다. 학습 중 실시간으로 거는 쪽이 맞아서
+     dataset.py 로 옮겼다. 이 파일의 증강 함수는 결과를 눈으로 확인하는
+     비교 격자(참고용)에만 쓴다.
+
 데이터셋: https://huggingface.co/datasets/ethz/food101 (streaming 모드로 필요한 만큼만 수신)
 
 사용 예)
-    py -3 image_preprocessing.py --num-images 20 --num-samples 5
+    py -3 threshold_study.py --num-images 1000    # 먼저 임계값을 정하고
+    py -3 image_preprocessing.py --num-images 40 --num-samples 5
 """
 
 from __future__ import annotations
@@ -34,8 +42,11 @@ TARGET_SIZE = (224, 224)          # 크기 조정 목표 해상도
 BLUR_KERNEL = (5, 5)              # 가우시안 블러 커널
 BLUR_SIGMA = 0                    # 0 이면 커널 크기로부터 자동 계산
 
-DARK_MEAN_THRESHOLD = 40.0        # 평균 밝기(0~255) 하한. 미만이면 '너무 어두움'
-MIN_OBJECT_AREA_RATIO = 0.10      # 주요 객체가 전체 화면에서 차지해야 할 최소 면적 비율
+# 이상치 임계값의 기본값. threshold_study.py 를 돌리기 전에도 동작하도록 남겨 둔
+# 폴백일 뿐이고, 실제 실행에서는 thresholds.json 의 분포 기반 값이 우선한다.
+DEFAULT_DARK_MEAN = 40.0          # 평균 밝기(0~255) 하한. 미만이면 '너무 어두움'
+DEFAULT_MIN_AREA_RATIO = 0.10     # 주요 객체가 전체 화면에서 차지해야 할 최소 면적 비율
+THRESHOLD_PATH = Path("thresholds.json")
 
 ROTATE_DEGREES = 15.0             # 증강 - 회전 각도
 BRIGHTNESS_GAIN = 1.25            # 증강 - 색상(밝기) 변화 배율
@@ -43,6 +54,40 @@ SATURATION_GAIN = 1.40            # 증강 - 색상(채도) 변화 배율
 
 DATASET_ID = "ethz/food101"
 DATASET_SPLIT = "train"
+
+
+@dataclass
+class Thresholds:
+    """이상치 판정에 쓰는 두 커트라인과 그 출처."""
+    dark_mean: float
+    min_area_ratio: float
+    source: str
+
+    @property
+    def from_distribution(self) -> bool:
+        return self.source != "기본값"
+
+
+def load_thresholds(path: Path = THRESHOLD_PATH) -> Thresholds:
+    """분포 조사 결과가 있으면 그것을 쓰고, 없으면 기본값으로 돌아간다.
+
+    임계값을 코드 상수로 박아 두면 왜 그 값인지 추적할 수 없다. JSON 으로 빼면
+    산출 근거(표본 수, 채택 기준, 제외율)가 값과 같은 파일에 남는다.
+    """
+    if not path.exists():
+        return Thresholds(DEFAULT_DARK_MEAN, DEFAULT_MIN_AREA_RATIO, "기본값")
+
+    data = json.loads(path.read_text(encoding="utf-8"))
+    src = data.get("source", {})
+    study = data.get("study", {})
+    chosen = " / ".join(
+        f"{k}={study[k]['chosen']}" for k in sorted(study)) if study else "?"
+    return Thresholds(
+        dark_mean=float(data["dark_mean_threshold"]),
+        min_area_ratio=float(data["min_object_area_ratio"]),
+        source=(f"{path} ({src.get('dataset', '?')} {src.get('num_images', '?')}장 분포, "
+                f"{chosen})"),
+    )
 
 
 # ----------------------------------------------------------------------------
@@ -97,6 +142,10 @@ class QualityReport:
     object_area_ratio: float
     is_too_dark: bool
     has_tiny_object: bool
+    # 판정에 쓴 임계값도 같이 남긴다. 나중에 리포트만 보고도 어떤 기준으로
+    # 걸렀는지 알 수 있어야 재현이 된다.
+    dark_threshold: float
+    area_threshold: float
 
     @property
     def is_outlier(self) -> bool:
@@ -106,10 +155,11 @@ class QualityReport:
     def reason(self) -> str:
         reasons = []
         if self.is_too_dark:
-            reasons.append(f"too_dark(mean={self.mean_brightness:.1f}<{DARK_MEAN_THRESHOLD})")
+            reasons.append(
+                f"too_dark(mean={self.mean_brightness:.1f}<{self.dark_threshold:.2f})")
         if self.has_tiny_object:
             reasons.append(
-                f"tiny_object(ratio={self.object_area_ratio:.3f}<{MIN_OBJECT_AREA_RATIO})"
+                f"tiny_object(ratio={self.object_area_ratio:.3f}<{self.area_threshold:.4f})"
             )
         return ", ".join(reasons) if reasons else "ok"
 
@@ -151,15 +201,20 @@ def measure_object_area_ratio(image: np.ndarray) -> float:
     return float(largest / (image.shape[0] * image.shape[1]))
 
 
-def inspect(name: str, image: np.ndarray) -> QualityReport:
+def inspect(name: str, image: np.ndarray,
+            thresholds: Thresholds | None = None) -> QualityReport:
+    """이미지 1장을 검사해 이상치 여부를 판정한다."""
+    thresholds = thresholds or load_thresholds()
     mean_brightness = measure_mean_brightness(image)
     area_ratio = measure_object_area_ratio(image)
     return QualityReport(
         name=name,
         mean_brightness=mean_brightness,
         object_area_ratio=area_ratio,
-        is_too_dark=mean_brightness < DARK_MEAN_THRESHOLD,
-        has_tiny_object=area_ratio < MIN_OBJECT_AREA_RATIO,
+        is_too_dark=mean_brightness < thresholds.dark_mean,
+        has_tiny_object=area_ratio < thresholds.min_area_ratio,
+        dark_threshold=thresholds.dark_mean,
+        area_threshold=thresholds.min_area_ratio,
     )
 
 
@@ -210,6 +265,9 @@ def preprocess(image: np.ndarray) -> dict[str, np.ndarray]:
 
     순서: 크기 조정 -> 블러(노이즈 제거) -> 그레이스케일 -> 정규화
     블러를 크기 조정 뒤에 두는 이유: 커널 크기가 항상 동일한 화소 비율로 동작하게 하기 위함.
+
+    05~07 의 증강 결과는 문서용 예시다. 실제 학습에서는 dataset.py 가 __getitem__
+    마다 난수를 새로 뽑아 만들므로, 여기서 나온 고정 결과가 학습에 쓰이지 않는다.
     """
     resized = resize_image(image)
     blurred = denoise(resized)
@@ -267,7 +325,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--out-dir", type=Path, default=Path("preprocessed_samples"),
                         help="제출 항목: 전처리를 마친 이미지 저장 경로")
     parser.add_argument("--preview-dir", type=Path, default=Path("outputs/preview"),
-                        help="참고용: 단계별 비교 격자와 학습 입력 텐서 저장 경로")
+                        help="참고용: 단계별 비교 격자 저장 경로")
     parser.add_argument("--offline", action="store_true", help="캐시된 원본만 사용")
     return parser.parse_args()
 
@@ -291,7 +349,14 @@ def main() -> None:
     print(f"[info] 원본 이미지 {len(images)}장 확보")
 
     # --- 2) 이상치 탐지 & 필터링 -----------------------------------------
-    reports = [inspect(name, img) for name, img in images]
+    thresholds = load_thresholds()
+    print(f"[info] 임계값 출처: {thresholds.source}")
+    print(f"       밝기 하한 {thresholds.dark_mean:.2f} / "
+          f"면적비 하한 {thresholds.min_area_ratio:.4f}")
+    if not thresholds.from_distribution:
+        print("       (분포 조사 전 기본값입니다. threshold_study.py 를 먼저 돌려 주세요)")
+
+    reports = [inspect(name, img, thresholds) for name, img in images]
     kept = [(name, img) for (name, img), r in zip(images, reports) if not r.is_outlier]
     dropped = [r for r in reports if r.is_outlier]
 
@@ -315,9 +380,11 @@ def main() -> None:
         processed_path = args.out_dir / f"{name}.png"
         cv2.imwrite(str(processed_path), np.clip(norm * 255.0, 0, 255).astype(np.uint8))
 
-        # 참고용: 단계별 비교 격자(증강 포함)와 실제 학습 입력이 되는 정규화 텐서
+        # 참고용: 단계별 비교 격자. 증강 칸은 '이런 변형이 걸린다'를 보이는 예시일
+        # 뿐이고, 학습에 들어가는 텐서는 dataset.py 가 매 에폭 새로 만든다.
+        # 정규화 텐서를 .npy 로 미리 저장하던 코드는 지웠다. 학습 입력을 디스크에
+        # 쌓아 두는 것이 바로 피드백에서 지적된 낭비다.
         cv2.imwrite(str(args.preview_dir / f"{name}_stages.png"), build_contact_sheet(stages))
-        np.save(args.preview_dir / f"{name}_normalized.npy", norm)
 
         saved.append(processed_path.name)
         print(
@@ -332,8 +399,9 @@ def main() -> None:
             {
                 "config": {
                     "target_size": list(TARGET_SIZE),
-                    "dark_mean_threshold": DARK_MEAN_THRESHOLD,
-                    "min_object_area_ratio": MIN_OBJECT_AREA_RATIO,
+                    "dark_mean_threshold": thresholds.dark_mean,
+                    "min_object_area_ratio": thresholds.min_area_ratio,
+                    "threshold_source": thresholds.source,
                 },
                 "total": len(reports),
                 "kept": len(kept),
