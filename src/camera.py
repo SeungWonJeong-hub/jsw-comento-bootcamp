@@ -156,13 +156,14 @@ class Pose:
     def from_spe3r_label(cls, label: dict, scalar_first: bool = True) -> "Pose":
         """SPE3R labels.json 의 한 항목에서 동체 -> 카메라 자세를 만든다.
 
-        규약은 문서가 아니라 실측으로 확정했다. 메시를 투영해 만든 실루엣과
-        데이터셋의 정답 마스크를 IoU 로 비교한 결과(tools/verify_pose_convention.py):
+        규약은 문서가 아니라 실측으로 확정했다. 메시 표면 40만 점을 투영해
+        z-buffer 로 채운 실루엣과 데이터셋의 정답 마스크를 IoU 로 비교한
+        결과다 (100 뷰 평균, tools/verify_pose_convention.py):
 
-            scalar_first=True,  전치 없음   IoU 0.785   <- 채택
-            scalar_first=True,  전치        IoU 0.301
-            scalar_first=False, 전치        IoU 0.255
-            scalar_first=False, 전치 없음   IoU 0.240
+            scalar_first=True,  전치 없음   IoU 0.8282   <- 채택
+            scalar_first=True,  전치        IoU 0.3572
+            scalar_first=False, 전치 없음   IoU 0.2564
+            scalar_first=False, 전치        IoU 0.2126
 
         즉 q_vbs2tango_true 를 스칼라 우선으로 읽어 만든 행렬이 그대로
         동체 -> 카메라 회전이다.

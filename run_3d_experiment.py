@@ -627,7 +627,8 @@ def main() -> int:
     with open(os.path.join(OUT, "metrics.json"), "w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2, ensure_ascii=False)
 
-    log(f"\n완료 -> {OUT}")
+    # 저장소에 남는 로그이므로 실행한 사람의 로컬 경로를 적지 않는다.
+    log(f"\n완료 -> {os.path.relpath(OUT, ROOT).replace(os.sep, '/')}/")
     return 0
 
 
