@@ -13,7 +13,8 @@ plt.rcParams["axes.unicode_minus"] = False
 plt.rcParams["figure.dpi"] = 130
 plt.rcParams["savefig.bbox"] = "tight"
 
-__all__ = ["figure_overview", "figure_tradeoff", "figure_cloud"]
+__all__ = ["figure_overview", "figure_tradeoff", "figure_cloud",
+           "figure_fusion"]
 
 
 def figure_overview(elev, gsd, view, rec, scored, path):
@@ -108,4 +109,34 @@ def figure_cloud(truth_points, cloud, path):
     draw(ax[1], cloud, None,
          f"복원 포인트 클라우드 ({len(cloud):,}점)", max(1, len(cloud) // 60000))
     fig.suptitle("색은 고도 [m]", fontsize=11)
+    fig.savefig(path); plt.close(fig)
+
+
+def figure_fusion(truth, fused, per_angle, fused_score, gsd, path):
+    """수렴각별 결과와 융합 결과를 나란히 놓는다.
+
+    정밀한 각도는 좁게, 넓은 각도는 성기게 덮는다. 표로 적으면 그 상보성이
+    눈에 안 들어오므로, 어디가 비었는지를 그림으로 보인다.
+    """
+    lo, hi = np.nanpercentile(truth, [2, 98])
+    n = len(per_angle)
+    fig, ax = plt.subplots(1, n + 2, figsize=(3.1 * (n + 2), 3.4))
+
+    t = ax[0].imshow(truth, cmap="terrain", vmin=lo, vmax=hi)
+    ax[0].set_title("정답 고도\n(레이저 측정)")
+    fig.colorbar(t, ax=ax[0], fraction=0.046, label="[m]")
+
+    for k, (conv, grid, sc) in enumerate(per_angle, start=1):
+        ax[k].imshow(grid, cmap="terrain", vmin=lo, vmax=hi)
+        ax[k].set_title(f"수렴각 {conv:.0f}도\n덮은 셀 {sc['coverage']*100:.0f}% · "
+                        f"오차 {sc['median_abs']:.0f} m")
+
+    f = ax[n + 1].imshow(fused, cmap="terrain", vmin=lo, vmax=hi)
+    ax[n + 1].set_title(f"융합\n덮은 셀 {fused_score['coverage']*100:.0f}% · "
+                        f"오차 {fused_score['median_abs']:.0f} m")
+    fig.colorbar(f, ax=ax[n + 1], fraction=0.046, label="[m]")
+
+    for a in ax:
+        a.set_xticks([]); a.set_yticks([])
+    fig.suptitle("수렴각마다 덮는 곳이 다르다 — 합치면 둘 다 얻는다", fontsize=13)
     fig.savefig(path); plt.close(fig)

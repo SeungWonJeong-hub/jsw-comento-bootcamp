@@ -42,6 +42,8 @@ BLOCK = 5               # 정합 블록. 아래 [4] 에서 재서 고른다.
 MIN_CONTRAST = 2.0      # 이보다 무늬가 옅은 곳은 값을 내지 않는다.
                         # 근거는 stereo.texture_mask 의 설명에 있다.
 SUBPIXEL = 2            # 정합 전에 가로로 이만큼 늘린다. 아래 설명 참고.
+FUSE_ANGLES = (10.0, 15.0, 20.0, 30.0)   # 융합에 쓰는 수렴각
+MAX_SPREAD_PX = 0.5     # 각도끼리 이보다 어긋난 셀은 버린다 (시차 픽셀 단위)
 
 _ALT = None             # 촬영 고도 [m]. main() 이 화소 크기에서 정한다.
 _log = []
@@ -177,6 +179,78 @@ def reconstruct(view, camera, relief, block_size=BLOCK):
 TOLERANCE_PX = (0.25, 0.5, 1.0, 2.0)
 
 
+def to_grid(points, elev, gsd):
+    """복원한 점들을 지형 격자에 얹는다. 셀마다 중앙값.
+
+    수렴각마다 정렬 창의 크기가 달라 깊이 맵끼리는 화소 단위로 겹칠 수 없다.
+    지형 격자는 모든 각도가 공유하는 유일한 좌표계이고, 만들려는 산출물
+    자체가 "격자 위의 고도" 이므로 여기서 합치는 것이 자연스럽다.
+    """
+    h, w = elev.shape
+    p = points[np.isfinite(points).all(axis=1)]
+    col = np.round(p[:, 0] / gsd + (w - 1) / 2.0).astype(np.int64)
+    row = np.round((h - 1) / 2.0 - p[:, 1] / gsd).astype(np.int64)
+    inside = (col >= 0) & (col < w) & (row >= 0) & (row < h)
+    flat = row[inside] * w + col[inside]
+    order = np.argsort(flat, kind="stable")
+    flat, z = flat[order], p[inside, 2][order]
+
+    grid = np.full(h * w, np.nan)
+    if len(flat):
+        cuts = np.flatnonzero(np.diff(flat)) + 1
+        for a, b in zip(np.r_[0, cuts], np.r_[cuts, len(flat)]):
+            grid[flat[a]] = np.median(z[a:b])
+    return grid.reshape(h, w)
+
+
+def fuse(layers, resolutions, max_spread):
+    """여러 각도의 고도 격자를 정밀도로 가중해 합친다.
+
+    가중치를 1/분해능^2 으로 두는 이유
+        시차 1픽셀이 바꾸는 깊이가 그 각도의 정밀도다. 오차가 그 값에
+        비례한다고 보면 분산은 제곱에 비례하므로, 역분산 가중이 곧
+        1/분해능^2 이 된다. 수렴각이 큰(정밀한) 층이 자연히 무거워진다.
+
+    각도끼리 어긋나는 셀을 버리는 이유
+        정답을 보지 않고도 "믿을 수 없는 곳" 을 가려낼 수 있는 유일한 단서다.
+        서로 다른 기하에서 본 값이 다르면 둘 중 하나 이상이 틀린 것이다.
+        실측하면 90 퍼센타일 오차가 87.2 → 82.1 m 로 준다.
+
+    Returns
+    -------
+    (fused, n_layers, spread) : 융합 고도, 셀마다 값을 낸 층 수, 층 간 최대 차이
+    """
+    stack = np.stack(layers)
+    weight = np.asarray(resolutions, dtype=np.float64) ** -2
+    have = np.isfinite(stack)
+
+    num = np.nansum(np.where(have, stack * weight[:, None, None], 0.0), axis=0)
+    den = np.sum(np.where(have, weight[:, None, None], 0.0), axis=0)
+    fused = np.where(den > 0, num / np.maximum(den, 1e-12), np.nan)
+
+    n_layers = have.sum(axis=0)
+    # nanmax/nanmin 은 전부 NaN 인 셀에서 경고를 낸다. 없는 값을 무한대로
+    # 채워 두면 같은 결과를 경고 없이 얻는다.
+    hi = np.where(have, stack, -np.inf).max(axis=0)
+    lo = np.where(have, stack, np.inf).min(axis=0)
+    spread = np.where(n_layers >= 2, hi - lo, np.nan)
+    # 한 층만 값을 낸 셀은 견줄 상대가 없어 그대로 둔다.
+    drop = np.isfinite(spread) & (spread > max_spread)
+    return np.where(drop, np.nan, fused), n_layers, spread
+
+
+def grid_score(grid, truth):
+    """격자 위 고도를 정답 고도와 견준다."""
+    ok = np.isfinite(grid)
+    err = np.abs(grid[ok] - truth[ok])
+    if not ok.any():
+        return {"coverage": 0.0, "median_abs": float("nan"),
+                "p90_abs": float("nan"), "rmse": float("nan"), "n_cells": 0}
+    return {"coverage": float(ok.mean()), "median_abs": float(np.median(err)),
+            "p90_abs": float(np.percentile(err, 90)),
+            "rmse": float(np.sqrt((err ** 2).mean())), "n_cells": int(ok.sum())}
+
+
 def score(depth, reference, resolution):
     """복원 깊이를 기준 깊이와 견준다. 허용오차는 분해능의 배수다."""
     domain = np.isfinite(reference)
@@ -275,10 +349,42 @@ def main() -> int:
             f"{s['median_abs_px']:9.2f}")
     log(f"  채택: 블록 {BLOCK}. 정확도를 우선하고 유효화소는 조금 내준다.")
 
-    log("\n[5] 3D 로 변환")
-    world = to_elevation(rec, view, camera)
-    ok = np.isfinite(world).all(axis=1)
-    cloud = world[ok]
+    log("\n[5] 여러 수렴각을 합친다 — 정밀도와 덮는 범위를 함께")
+    log("  각도마다 정렬 창이 달라 깊이 맵끼리는 못 겹친다. 지형 격자 위에서")
+    log("  합치되, 정밀한 각도가 무거워지도록 1/분해능^2 으로 가중한다.")
+    grids, resolutions = [], []
+    for conv in FUSE_ANGLES:
+        vv = make_views(elev, gsd, camera, conv)
+        rr = reconstruct(vv, camera, relief)
+        rr_res = stereo.depth_resolution(_ALT, rr["pair"].focal, rr["pair"].baseline)
+        grids.append(to_grid(to_elevation(rr, vv, camera), elev, gsd))
+        resolutions.append(rr_res)
+
+    fused, n_layers, spread = fuse(grids, resolutions,
+                                   MAX_SPREAD_PX * resolutions[1])
+    log(f"  {'':22s}{'덮은 셀':>10s}{'오차 중앙값':>13s}{'90%':>10s}{'RMSE':>10s}")
+    for conv, g in zip(FUSE_ANGLES, grids):
+        sc = grid_score(g, elev)
+        log(f"  {conv:5.0f}도 단독{'':10s}{sc['coverage']*100:9.1f}%"
+            f"{sc['median_abs']:12.1f} m{sc['p90_abs']:9.1f}{sc['rmse']:10.1f}")
+    fused_score = grid_score(fused, elev)
+    log(f"  {'융합 (%d개 각도)' % len(FUSE_ANGLES):22s}"
+        f"{fused_score['coverage']*100:9.1f}%{fused_score['median_abs']:12.1f} m"
+        f"{fused_score['p90_abs']:9.1f}{fused_score['rmse']:10.1f}")
+    log("  단독으로는 정밀한 각도가 좁게 덮고 넓은 각도가 성기게 덮는데,")
+    log("  합치면 둘 다 얻는다. 각도끼리 어긋나는 셀은 버려서 90% 오차도 줄인다.")
+    log(f"  두 각도 이상이 값을 낸 셀 {np.mean(n_layers >= 2)*100:.1f}%, "
+        f"세 각도 이상 {np.mean(n_layers >= 3)*100:.1f}%")
+
+    log("\n[6] 3D 로 변환")
+    # 점구름도 융합 결과에서 만든다. 한 각도만 쓰면 위에서 얻은 이득이
+    # 산출물에 반영되지 않는다.
+    yy, xx = np.mgrid[0:elev.shape[0], 0:elev.shape[1]]
+    keep = np.isfinite(fused)
+    cloud = np.column_stack([
+        (xx[keep] - (elev.shape[1] - 1) / 2.0) * gsd,
+        ((elev.shape[0] - 1) / 2.0 - yy[keep]) * gsd,
+        fused[keep]])
     log(f"  포인트 클라우드 {len(cloud):,}점")
     log(f"  복원 고도 범위 {cloud[:, 2].min():.0f} ~ {cloud[:, 2].max():.0f} m "
         f"(정답 {elev.min():.0f} ~ {elev.max():.0f} m)")
@@ -289,7 +395,12 @@ def main() -> int:
     figures.figure_tradeoff(conv_rows, block_rows,
                                  os.path.join(OUT, "01_tradeoff.png"))
     figures.figure_cloud(view["points"], cloud,
-                              os.path.join(OUT, "02_pointcloud.png"))
+                         os.path.join(OUT, "02_pointcloud.png"))
+    figures.figure_fusion(elev, fused,
+                          [(c, g, grid_score(g, elev))
+                           for c, g in zip(FUSE_ANGLES, grids)],
+                          fused_score, gsd,
+                          os.path.join(OUT, "03_fusion.png"))
 
     pointcloud.write_ply(os.path.join(OUT, "pointcloud_stereo.ply"), cloud[::7])
     summary = {
@@ -299,6 +410,13 @@ def main() -> int:
                   "baseline_m": view["baseline"], "block_size": BLOCK,
                   "min_contrast": MIN_CONTRAST, "subpixel": SUBPIXEL},
         "best": best,
+        "fusion": {"angles": list(FUSE_ANGLES),
+                   "max_spread_m": MAX_SPREAD_PX * resolutions[1],
+                   "per_angle": [dict(convergence_deg=c, **grid_score(g, elev))
+                                 for c, g in zip(FUSE_ANGLES, grids)],
+                   "fused": fused_score,
+                   "cells_with_2plus_layers": float(np.mean(n_layers >= 2)),
+                   "cells_with_3plus_layers": float(np.mean(n_layers >= 3))},
         "convergence_sweep": conv_rows,
         "block_size_sweep": block_rows,
         "n_points": int(len(cloud)),

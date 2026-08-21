@@ -435,3 +435,62 @@ def test_render_rejects_terrain_above_the_camera():
     pose = terrain.look_at((0.0, 0.0, 2500.0), (0.0, 0.0, 0.0))
     with pytest.raises(ValueError, match="카메라 고도"):
         terrain.render_heightfield(elev, gsd, terrain.shade(elev, gsd), cam, pose)
+
+
+# --------------------------------------------------------------------------
+# 8. 여러 각도 융합
+# --------------------------------------------------------------------------
+
+def _run_module():
+    import importlib
+    return importlib.import_module("run_3d_experiment")
+
+
+def test_grid_binning_puts_points_in_the_right_cell():
+    """지형 격자에 얹을 때 셀 위치가 어긋나면 안 된다."""
+    M = _run_module()
+    elev = np.zeros((5, 5))
+    gsd = 10.0
+    # 격자 가운데(0,0)와 오른쪽 위 모서리에 점을 하나씩
+    pts = np.array([[0.0, 0.0, 7.0], [20.0, 20.0, 3.0]])
+    grid = M.to_grid(pts, elev, gsd)
+    assert grid[2, 2] == pytest.approx(7.0)
+    assert grid[0, 4] == pytest.approx(3.0)
+    assert np.isnan(grid).sum() == 23
+
+
+def test_fusion_weights_the_precise_layer_more():
+    """정밀한 층(분해능이 작은 층)이 더 무겁게 반영돼야 한다."""
+    M = _run_module()
+    coarse = np.full((4, 4), 100.0)      # 분해능 400 m
+    fine = np.full((4, 4), 200.0)        # 분해능 100 m -> 16배 무겁다
+    fused, n, spread = M.fuse([coarse, fine], [400.0, 100.0], max_spread=1e9)
+    expected = (100.0 / 400.0 ** 2 + 200.0 / 100.0 ** 2) /                (1 / 400.0 ** 2 + 1 / 100.0 ** 2)
+    assert fused[0, 0] == pytest.approx(expected)
+    assert (n == 2).all()
+    assert spread[0, 0] == pytest.approx(100.0)
+
+
+def test_fusion_drops_cells_where_the_layers_disagree():
+    """각도끼리 어긋나는 셀은 버려야 한다.
+
+    정답을 보지 않고 "믿을 수 없는 곳" 을 가려낼 수 있는 단서다. 서로 다른
+    기하에서 본 값이 다르면 둘 중 하나 이상이 틀린 것이다.
+    """
+    M = _run_module()
+    a = np.array([[10.0, 10.0]])
+    b = np.array([[10.5, 90.0]])         # 오른쪽 셀에서 크게 어긋난다
+    fused, _, _ = M.fuse([a, b], [100.0, 100.0], max_spread=5.0)
+    assert np.isfinite(fused[0, 0])
+    assert np.isnan(fused[0, 1])
+
+
+def test_fusion_keeps_a_cell_only_one_layer_saw():
+    """한 층만 본 셀은 견줄 상대가 없으므로 그대로 둔다."""
+    M = _run_module()
+    a = np.array([[np.nan, 5.0]])
+    b = np.array([[7.0, np.nan]])
+    fused, n, spread = M.fuse([a, b], [100.0, 100.0], max_spread=0.001)
+    assert fused[0, 0] == pytest.approx(7.0)
+    assert fused[0, 1] == pytest.approx(5.0)
+    assert (n == 1).all() and np.isnan(spread).all()
