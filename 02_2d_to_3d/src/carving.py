@@ -192,70 +192,18 @@ def render_depth(points_body: np.ndarray, pose, camera,
     """복원한 3D 점을 한 시점으로 되쏘아 깊이 맵을 만든다 (3D -> 2D 역변환).
 
     과제의 '깊이 맵 생성'을 실루엣 복원 결과로부터 얻는 경로다.
-    같은 픽셀에 여러 점이 겹치면 가장 가까운 것(z 최소)을 남긴다 (z-buffer).
 
-    Returns
-    -------
-    (H, W) float64. 물체가 없는 픽셀은 NaN.
+    z-buffer 자체는 pointcloud.zbuffer_depth 가 한다. 예전에는 여기에 같은
+    로직을 한 벌 더 두고 있었는데, 두 벌이 이미 갈라져 있었다. splat > 0 일 때
+    이쪽은 점 중심이 화면 밖이면 먼저 버린 뒤 번지게 해서, 번진 자리가 화면
+    안이어도 칠하지 않았다. 같은 알고리즘을 두 곳에 두면 한쪽만 고쳐지는 사고가
+    난다(이 저장소에서 좌표 규약으로 이미 한 번 겪었다). 위임한다.
     """
+    from .pointcloud import transform_points, zbuffer_depth
+
     points_body = np.asarray(points_body, dtype=np.float64)
     if points_body.ndim != 2 or points_body.shape[1] != 3:
         raise ValueError(f"(N, 3) 배열이 필요합니다: {points_body.shape}")
 
-    p_cam = points_body @ pose.R.T + pose.t
-    z = p_cam[:, 2]
-    ok = z > 1e-9
-    if not np.any(ok):
-        return np.full(camera.shape, np.nan)
-
-    u = camera.fx * p_cam[ok, 0] / z[ok] + camera.cx
-    v = camera.fy * p_cam[ok, 1] / z[ok] + camera.cy
-    zz = z[ok]
-
-    ui = np.round(u).astype(np.int64)
-    vi = np.round(v).astype(np.int64)
-    inside = (ui >= 0) & (ui < camera.width) & (vi >= 0) & (vi < camera.height)
-    ui, vi, zz = ui[inside], vi[inside], zz[inside]
-
-    depth = np.full(camera.shape, np.inf)
-    # 같은 픽셀에 여러 점이 오므로 최소값 누적을 쓴다.
-    # splat > 0 이면 점 하나를 주변 화소까지 번지게 한다. 복셀 중심을 투영하면
-    # 표면이 성기게 찍혀 화면에 구멍이 생기는데, 이를 메우기 위한 것이다.
-    offsets = [(dy, dx)
-               for dy in range(-splat, splat + 1)
-               for dx in range(-splat, splat + 1)]
-    for dy, dx in offsets:
-        yy = vi + dy
-        xx = ui + dx
-        good = (yy >= 0) & (yy < camera.height) & (xx >= 0) & (xx < camera.width)
-        np.minimum.at(depth, (yy[good], xx[good]), zz[good])
-    depth[~np.isfinite(depth)] = np.nan
-
-    if fill_holes:
-        depth = _close_pinholes(depth)
-    return depth
-
-
-def _close_pinholes(depth: np.ndarray) -> np.ndarray:
-    """복셀 투영이 성기어 생긴 한두 픽셀짜리 구멍을 이웃 중앙값으로 메운다."""
-    import cv2
-
-    valid = np.isfinite(depth).astype(np.uint8)
-    if valid.sum() == 0:
-        return depth
-
-    kernel = np.ones((3, 3), np.uint8)
-    closed = cv2.morphologyEx(valid, cv2.MORPH_CLOSE, kernel)
-    holes = (closed > 0) & (valid == 0)
-    if not np.any(holes):
-        return depth
-
-    filled = depth.copy()
-    substitute = np.where(np.isfinite(depth), depth, 0.0).astype(np.float32)
-    weight = valid.astype(np.float32)
-    num = cv2.blur(substitute, (3, 3))
-    den = cv2.blur(weight, (3, 3))
-    with np.errstate(invalid="ignore", divide="ignore"):
-        avg = num / den
-    filled[holes] = avg[holes]
-    return filled
+    p_cam = transform_points(points_body, pose.R, pose.t)
+    return zbuffer_depth(p_cam, camera, splat=splat, fill_holes=fill_holes)
