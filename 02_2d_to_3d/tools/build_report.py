@@ -259,6 +259,7 @@ def build(prs, s):
     cov_fuse = cov["multiview_stereo_fusion"]
     cov_both = cov["stereo_plus_carving"]
     carve = s["silhouette_carving"]
+    cdm = s["carved_depth_map"]
     gap_ratio = bex["median_abs"] / best["median_abs"]
     ch_ratio = ch["target_to_pred"] / ch["pred_to_target"]
 
@@ -359,12 +360,14 @@ def build(prs, s):
         (("A + B", f"{cov_both['n_points']:,}",
           f"{cov_both['surface_coverage']*100:.1f}%"), "key"),
     ])
-    add_panel(sl, 6.96, 5.02, 5.65, 1.86, "약점이 상보적입니다", [
-        k(f"A 는 정확합니다 — 깊이 오차 중앙값 {best['median_abs']*100:.1f} cm"),
-        b("대신 단일 시점이라 뒷면을 원리적으로 못 봅니다."),
+    add_panel(sl, 6.96, 5.02, 5.65, 1.86, "같은 시점에서 두 깊이 맵을 비교하면", [
+        k(f"A 오차 중앙값 {best['median_abs']*100:.1f} cm · 유효화소 "
+          f"{best['valid_ratio']*100:.0f}%   (영상 2장)"),
+        k(f"B 오차 중앙값 {cdm['median_abs']*100:.1f} cm · 유효화소 "
+          f"{cdm['valid_ratio']*100:.0f}%   (마스크 20장)"),
         gap(),
-        k("B 는 전방위입니다 — 무늬가 없어도 됩니다"),
-        b("대신 실루엣의 교집합이라 오목한 곳을 못 만듭니다."),
+        b("B 가 낫지만 입력이 열 배 많고 마스크는 정답입니다."),
+        b("어느 쪽이 낫다가 아니라 필요한 입력이 다른 두 경로입니다."),
     ])
     add_notes(sl, f"""
 2D 에서 3D 로의 변환 결과입니다. 네 장을 왼쪽부터 봐 주십시오.
