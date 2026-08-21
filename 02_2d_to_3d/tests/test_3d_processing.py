@@ -530,7 +530,11 @@ def test_spe3r_loads_with_expected_geometry():
 def test_spe3r_translation_has_no_stereo_baseline():
     """데이터셋에 좌우 베이스라인이 없다는 사실을 테스트로 못박는다.
 
-    이 성질 때문에 스테레오 삼각측량 대신 실루엣 기반 복원을 택했다.
+    이 성질이 본 실험의 출발점이다. 카메라 좌표계에는 베이스라인이 없으므로
+    상대 자세 (R_ij, t_ij) 에서 유효 베이스라인을 끌어내야 한다. 그 경로가
+    실제로 성립하는지는 test_stereo.py 의 test_target_rotation_creates_
+    lateral_baseline 과 test_spe3r_pair_relative_pose_is_consistent_with_mesh
+    가 확인한다.
     """
     from src.spe3r import SPE3RModel
 

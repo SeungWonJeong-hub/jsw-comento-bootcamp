@@ -302,8 +302,11 @@ def reconstruct(pair: "RectifiedPair", left, right, mask=None,
     Parameters
     ----------
     depth_range : (lo, hi) 밖의 깊이를 버린다. 타겟 크기를 알면 물리적으로
-        불가능한 값을 걸러낼 수 있다. 정답 깊이가 아니라 물체 치수에서 나오는
-        정보이므로 평가에 정보를 흘리지 않는다.
+        불가능한 값을 걸러낼 수 있다. 호출부(run_3d_experiment.py)는
+        [d0 - R, d0 + R] 을 쓰는데, 창의 **폭** 2R 은 타겟 치수에서 오지만
+        창의 **중심** d0 는 데이터셋의 정답 거리다. 화소 단위 정답 깊이를
+        쓰는 것은 아니지만 정답 자세에 의존하는 것은 맞다. 실제 상대항법이면
+        추정 거리를 넣어야 한다. README 7절 한계에 함께 적었다.
     postfilter : filter_disparity() 로 이상치를 제거할지 여부.
 
     Returns

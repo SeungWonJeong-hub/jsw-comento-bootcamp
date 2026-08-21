@@ -93,11 +93,23 @@ def run_synthetic():
     z_stereo = np.where(mask, stereo.disparity_to_depth(disparity, cam.fx,
                                                        SYNTH_BASELINE), np.nan)
 
-    z_bright = depth_mod.brightness_depth(left["image"], mask=mask)
-    z_bright, a, b = depth_mod.align_scale_shift(z_bright, gt, mask=mask)
+    # 대조군 채점 화소를 두 가지로 나눈다. 스테레오는 정합에 실패한 화소를
+    # NaN 으로 버리므로, 대조군을 실루엣 전체에서 채점하면 두 방법이 서로 다른
+    # 화소에서 채점된다. common 이 방법 비교, full 이 커버리지 포함 비교다.
+    # 아핀 정렬도 집합마다 따로 맞춰 대조군에게 매번 가장 유리한 조건을 준다.
+    common = mask & np.isfinite(z_stereo)
 
+    def bright_on(domain):
+        z = depth_mod.brightness_depth(left["image"], mask=domain)
+        aligned, a, b = depth_mod.align_scale_shift(z, gt, mask=domain)
+        m = metrics.depth_metrics(aligned, gt, mask=domain)
+        return {**m, "within_5cm": within(aligned, gt, domain),
+                "span_m": span(aligned, domain),
+                "affine_scale": a, "affine_shift": b}, aligned
+
+    m_common, _ = bright_on(common)
+    m_full, z_bright = bright_on(mask)
     m_s = metrics.depth_metrics(z_stereo, gt, mask=mask)
-    m_b = metrics.depth_metrics(z_bright, gt, mask=mask)
 
     points = cam.unproject(z_stereo, mask=mask)
     result = {
@@ -108,9 +120,7 @@ def run_synthetic():
         "gt_span_m": span(gt, mask),
         "stereo": {**m_s, "within_5cm": within(z_stereo, gt, mask),
                    "span_m": span(z_stereo, mask), "n_points": int(len(points))},
-        "example_code": {**m_b, "within_5cm": within(z_bright, gt, mask),
-                         "span_m": span(z_bright, mask),
-                         "affine_scale": a, "affine_shift": b},
+        "example_code": {"common": m_common, "full": m_full},
     }
     return result, {"cam": cam, "left": left, "right": right,
                     "disparity": disparity, "z_stereo": z_stereo,
@@ -225,20 +235,39 @@ def run_spe3r(model, mesh_points):
 
 
 def run_example_code(model, best):
-    """과제 예시 코드를 같은 정렬 좌표계에서 돌려 동일 기준으로 비교한다."""
+    """과제 예시 코드를 같은 정렬 좌표계에서 돌려 동일 기준으로 비교한다.
+
+    채점 화소를 두 가지로 나눠 보고한다. 스테레오는 정합에 실패한 화소를
+    NaN 으로 버리므로(유효화소 59.2%), 대조군을 실루엣 전체에서 채점하면
+    두 방법이 서로 다른 화소에서 채점되는 셈이 된다. 스테레오만 어려운
+    화소를 빼고 채점받는 비교는 성립하지 않는다.
+
+        common : 스테레오가 값을 낸 화소에서만 채점 — 같은 화소, 같은 기준
+        full   : 실루엣 전체에서 채점 — 대조군은 모든 화소에 값을 내므로
+                 커버리지까지 포함한 비교
+
+    아핀 정렬도 채점 집합마다 따로 맞춘다. 각 집합에서 대조군에게 가능한
+    가장 유리한 스케일·오프셋을 준 뒤에도 지는지를 봐야 하기 때문이다.
+    """
     pair, out, ref, mask = best["_pair"], best["_out"], best["_ref"], best["_mask"]
     left_rect = pair.unrotate(out["left"]) if not pair.horizontal else out["left"]
+    common = mask & np.isfinite(out["depth"])
 
-    z = depth_mod.brightness_depth(left_rect, mask=mask)
-    aligned, a, b = depth_mod.align_scale_shift(z, ref, mask=mask)
-    m = metrics.depth_metrics(aligned, ref, mask=mask)
+    def score(domain):
+        z = depth_mod.brightness_depth(left_rect, mask=domain)
+        aligned, a, b = depth_mod.align_scale_shift(z, ref, mask=domain)
+        m = metrics.depth_metrics(aligned, ref, mask=domain)
+        return {**m, "within_5cm": within(aligned, ref, domain),
+                "span_m": span(aligned, domain),
+                "affine_scale": a, "affine_shift": b}, aligned
+
+    m_common, aligned_common = score(common)
+    m_full, aligned_full = score(mask)
 
     grid = baseline.image_to_points_3d(cv2.cvtColor(left_rect, cv2.COLOR_GRAY2BGR))
     cloud = baseline.points_3d_to_cloud(grid, mask)
-    return {**m, "within_5cm": within(aligned, ref, mask),
-            "span_m": span(aligned, mask),
-            "affine_scale": a, "affine_shift": b,
-            "n_points": int(len(cloud))}, aligned, cloud
+    return ({"common": m_common, "full": {**m_full, "n_points": int(len(cloud))}},
+            aligned_full, cloud)
 
 
 # ---------------------------------------------------------------------------
@@ -417,8 +446,8 @@ def figure_synthetic(art, res, path):
     fig.colorbar(s, ax=ax[4], fraction=0.046)
     e = ax[5].imshow(art["z_bright"][cy, cx], cmap="viridis", vmin=lo, vmax=hi)
     ax[5].set_title(f"과제 예시 코드 (최적 정렬)\n오차 중앙값 "
-                    f"{res['example_code']['median_abs']*100:.1f} cm · 깊이 폭 "
-                    f"{res['example_code']['span_m']:.3f} m")
+                    f"{res['example_code']['full']['median_abs']*100:.1f} cm · 깊이 폭 "
+                    f"{res['example_code']['full']['span_m']:.3f} m")
     fig.colorbar(e, ax=ax[5], fraction=0.046)
 
     for a in ax.ravel():
@@ -542,17 +571,22 @@ def main() -> int:
 
     log("\n[1] 합성 장면 검증 (정답 깊이 오차 0)")
     synth, art = run_synthetic()
-    s, e = synth["stereo"], synth["example_code"]
+    s = synth["stereo"]
+    e_c, e_f = synth["example_code"]["common"], synth["example_code"]["full"]
     log(f"  베이스라인 {SYNTH_BASELINE} m · 기대 시차 "
         f"{synth['expected_disparity_px']:.1f} px · 깊이 분해능 "
         f"{synth['depth_resolution_m_per_px']*100:.1f} cm/px")
-    log(f"  {'':22s}{'RMSE':>9s}{'중앙값':>10s}{'<5cm':>9s}{'깊이폭':>9s}")
-    log(f"  {'스테레오':22s}{s['rmse']:9.4f}{s['median_abs']:10.4f}"
-        f"{s['within_5cm']*100:8.1f}%{s['span_m']:9.3f}")
-    log(f"  {'과제 예시 (최적정렬)':22s}{e['rmse']:9.4f}{e['median_abs']:10.4f}"
-        f"{e['within_5cm']*100:8.1f}%{e['span_m']:9.3f}")
-    log(f"  정답 깊이폭 {synth['gt_span_m']:.3f} m  →  중앙값 오차 "
-        f"{e['median_abs']/s['median_abs']:.1f}배 개선")
+    log(f"  채점 화소 — 스테레오가 값을 낸 {e_c['n_valid']:,}개 / "
+        f"실루엣 {s['n_domain']:,}개 ({s['valid_ratio']*100:.1f}%)")
+    log(f"  {'':28s}{'RMSE':>9s}{'중앙값':>10s}{'<5cm':>9s}{'깊이폭':>9s}{'n':>8s}")
+    log(f"  {'[같은 화소] 스테레오':28s}{s['rmse']:9.4f}{s['median_abs']:10.4f}"
+        f"{s['within_5cm']*100:8.1f}%{s['span_m']:9.3f}{s['n_valid']:8,d}")
+    log(f"  {'[같은 화소] 과제 예시':28s}{e_c['rmse']:9.4f}{e_c['median_abs']:10.4f}"
+        f"{e_c['within_5cm']*100:8.1f}%{e_c['span_m']:9.3f}{e_c['n_valid']:8,d}")
+    log(f"  {'[실루엣 전체] 과제 예시':28s}{e_f['rmse']:9.4f}{e_f['median_abs']:10.4f}"
+        f"{e_f['within_5cm']*100:8.1f}%{e_f['span_m']:9.3f}{e_f['n_valid']:8,d}")
+    log(f"  정답 깊이폭 {synth['gt_span_m']:.3f} m  →  같은 화소에서 중앙값 오차 "
+        f"{e_c['median_abs']/s['median_abs']:.1f}배 개선")
 
     log("\n[2] SPE3R 실제 데이터")
     model = SPE3RModel(DATA, MODEL_NAME)
@@ -568,11 +602,20 @@ def main() -> int:
 
     ex, ex_depth, ex_cloud = run_example_code(model, best)
     log(f"\n  최적 쌍 img{best['i']+1:06d}/img{best['j']+1:06d}")
-    log(f"  {'':22s}{'RMSE':>9s}{'중앙값':>10s}{'<5cm':>9s}")
-    log(f"  {'스테레오':22s}{best['rmse']:9.4f}{best['median_abs']:10.4f}"
-        f"{best['within_5cm']*100:8.1f}%")
-    log(f"  {'과제 예시 (최적정렬)':22s}{ex['rmse']:9.4f}{ex['median_abs']:10.4f}"
-        f"{ex['within_5cm']*100:8.1f}%")
+    log(f"  채점 화소 — 스테레오가 값을 낸 {ex['common']['n_valid']:,}개 / "
+        f"실루엣 {int(best['_mask'].sum()):,}개 ({best['valid_ratio']*100:.1f}%)")
+    log(f"  {'':28s}{'RMSE':>9s}{'중앙값':>10s}{'<5cm':>9s}{'n':>8s}")
+    log(f"  {'[같은 화소] 스테레오':28s}{best['rmse']:9.4f}"
+        f"{best['median_abs']:10.4f}{best['within_5cm']*100:8.1f}%"
+        f"{ex['common']['n_valid']:8,d}")
+    log(f"  {'[같은 화소] 과제 예시':28s}{ex['common']['rmse']:9.4f}"
+        f"{ex['common']['median_abs']:10.4f}"
+        f"{ex['common']['within_5cm']*100:8.1f}%{ex['common']['n_valid']:8,d}")
+    log(f"  {'[실루엣 전체] 과제 예시':28s}{ex['full']['rmse']:9.4f}"
+        f"{ex['full']['median_abs']:10.4f}"
+        f"{ex['full']['within_5cm']*100:8.1f}%{ex['full']['n_valid']:8,d}")
+    log("  스테레오는 정합 실패 화소를 NaN 으로 버린다. 방법 비교는 같은 화소에서")
+    log("  채점한 앞의 두 줄이고, 셋째 줄은 커버리지까지 포함한 비교다.")
 
     pair = best["_pair"]
     stereo_body = pair.to_body(best["_out"]["points"], model.pose(best["i"]))

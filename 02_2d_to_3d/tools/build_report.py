@@ -204,10 +204,14 @@ def gap():
 
 def build(prs, s):
     syn = s["synthetic_validation"]
-    ss, se = syn["stereo"], syn["example_code"]
+    ss = syn["stereo"]
     sur = s["spe3r_pair_survey"]
     best = s["best_pair"]
-    bex = s["best_pair_example_code"]
+    # 대조군은 스테레오가 값을 낸 화소에서만 채점한 'common' 을 쓴다. 실루엣
+    # 전체에서 채점한 'full' 과 나란히 놓으면 두 방법이 서로 다른 화소에서
+    # 채점되기 때문이다. 발표 표는 같은 화소 비교만 싣는다.
+    se = syn["example_code"]["common"]
+    bex = s["best_pair_example_code"]["common"]
 
     # ---------------- 1. 방법 ----------------
     sl = new_slide(
@@ -258,6 +262,7 @@ def build(prs, s):
     add_panel(sl, 0.72, 4.78, 5.86, 2.07, "같은 영상, 두 가지 방법", [
         b("왼쪽·오른쪽 영상을 만들고 두 방법으로 깊이를 구했습니다."),
         b("과제 예시 코드에는 정답에 맞춘 최적 정렬까지 해 줬습니다."),
+        b(f"스테레오가 값을 낸 {ss['valid_ratio']*100:.0f}% 화소에서 둘 다 채점했습니다."),
     ])
     add_matrix(sl, 0.98, 5.70, [1.55, 1.25, 1.30, 1.05], [
         (("", "깊이 폭", "오차 중앙값", "5cm 이내"), "head"),
@@ -299,8 +304,9 @@ Unit Test 는 65개입니다. 출력 크기와 자료형만 보면 수식이 틀
     sl = new_slide(
         prs, 3, "03 / 결과와 한계",
         f"실제 위성 영상에서 깊이 오차 중앙값 {best['median_abs']*100:.1f} cm",
-        "기준 깊이 = 동봉 메시 40만 점을 z-buffer 로 투영 · "
-        "대조군에는 정답에 맞춘 최적 정렬을 적용해 유리한 조건을 부여")
+        "기준 깊이 = 동봉 메시 40만 점을 z-buffer 로 투영 · 대조군에는 정답에 맞춘 "
+        f"최적 정렬을 적용해 유리한 조건을 부여 · 스테레오가 값을 낸 "
+        f"{best['valid_ratio']*100:.0f}% 화소에서 둘 다 채점")
     add_image(sl, os.path.join(OUT, "03_spe3r_stereo.png"), 0.72, 1.78, 11.89, 2.55)
     add_card(sl, 0.72, 4.56, 6.62, 2.29)
     add_text(sl, 0.98, 4.75, 6.10, 0.24, [("결과", SANS_SB, 10.5, INK)])
@@ -333,6 +339,11 @@ Unit Test 는 65개입니다. 출력 크기와 자료형만 보면 수식이 틀
 
 수치로는 오차 중앙값 {best['median_abs']*100:.1f} 센티미터, 5센티미터 이내가 {best['within_5cm']*100:.1f} 퍼센트입니다.
 예시 코드는 {bex['median_abs']*100:.1f} 센티미터, {bex['within_5cm']*100:.1f} 퍼센트입니다.
+
+채점 화소를 맞춘 점을 짚어 두겠습니다. 스테레오는 정합에 실패한 화소를 버리므로,
+대조군을 실루엣 전체에서 채점하면 두 방법이 서로 다른 화소에서 채점됩니다. 그래서
+스테레오가 값을 낸 {best['valid_ratio']*100:.0f} 퍼센트 화소에서 대조군도 다시 채점했고, 표의 숫자가
+그것입니다. 실루엣 전체 기준 수치는 metrics.json 의 full 항목에 함께 남겨 두었습니다.
 
 이 깊이 맵을 역투영하면 오른쪽 아래 포인트 클라우드가 나옵니다. {s['best_pair_points']:,}점이고
 정답 메시 대비 Chamfer 거리는 {s['best_pair_chamfer_pred_to_gt']:.4f} 입니다.

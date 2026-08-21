@@ -1,7 +1,7 @@
 ============================= test session starts =============================
 platform win32 -- Python 3.11.9, pytest-9.1.1, pluggy-1.6.0 -- C:\Users\seung\AppData\Local\Programs\Python\Python311\python.exe
 cachedir: .pytest_cache
-rootdir: C:\Users\seung\dev\jsw-comento-bootcamp
+rootdir: C:\Users\seung\dev\jsw-comento-bootcamp\02_2d_to_3d
 plugins: anyio-4.14.2
 collecting ... collected 65 items
 
@@ -71,4 +71,4 @@ tests/test_stereo.py::test_unlit_surfaces_break_matching PASSED          [ 96%]
 tests/test_stereo.py::test_find_pairs_returns_lateral_dominant_pairs PASSED [ 98%]
 tests/test_stereo.py::test_spe3r_pair_relative_pose_is_consistent_with_mesh PASSED [100%]
 
-============================= 65 passed in 8.68s ==============================
+============================= 65 passed in 10.15s =============================
