@@ -289,6 +289,13 @@ def render_heightfield(elev, gsd, intensity, camera, pose: Pose, iters: int = 12
         고정점 반복으로 푼다. 기복이 촬영 거리보다 훨씬 작으면 몇 번에
         수렴한다.
 
+    수렴하지 않는 광선
+        지형 격자 밖으로 나간 광선은 고도 표본이 가장자리 값으로 고정되어
+        값이 진동한다. 실측하면 그런 광선이 약 10% 있었고, 수렴하지 않은 채
+        깊이를 내놓아 최악 300 m 까지 틀렸다. 마지막 갱신 폭이 화소 크기의
+        1/100 을 넘으면 값을 내지 않는다 - "모른다" 를 틀린 값으로 채우는
+        것보다 비워 두는 편이 낫다.
+
     한계
         가림(occlusion)을 다루지 않는다. 광선이 앞쪽 봉우리를 지나쳐 뒤쪽
         지면에 닿아도 그대로 받는다. 시선이 지면에 거의 수직이고 경사가
@@ -306,19 +313,25 @@ def render_heightfield(elev, gsd, intensity, camera, pose: Pose, iters: int = 12
     dirs = camera.pixel_rays().reshape(-1, 3) @ pose.R   # 화소별 시선 (지형 좌표계)
     dirs /= np.linalg.norm(dirs, axis=1, keepdims=True)
 
-    forward = dirs[:, 2]
-    usable = forward < -1e-6                        # 아래를 향하는 광선만
-    t = np.full(len(dirs), np.nan)
-    z_guess = np.full(usable.sum(), float(np.nanmean(elev)))
+    usable = dirs[:, 2] < -1e-6                     # 아래를 향하는 광선만
     d = dirs[usable]
+    z_guess = np.full(usable.sum(), float(np.nanmean(elev)))
+    step = np.full(usable.sum(), np.inf)
     for _ in range(iters):
         tt = (z_guess - centre[2]) / d[:, 2]
         P = centre + tt[:, None] * d
         col = P[:, 0] / gsd + (w - 1) / 2.0
         row = (h - 1) / 2.0 - P[:, 1] / gsd
-        z_guess = map_coordinates(elev, [row, col], order=1, mode="nearest")
-        inside = (col >= 0) & (col <= w - 1) & (row >= 0) & (row <= h - 1)
-    t[usable] = tt
+        z_new = map_coordinates(elev, [row, col], order=1, mode="nearest")
+        step = np.abs(z_new - z_guess)
+        z_guess = z_new
+    # 반복이 끝난 뒤 한 번 더 갱신한다. 그러지 않으면 t 가 마지막 고도 표본보다
+    # 한 걸음 뒤처져, 수렴했는데도 잔차가 남는다.
+    tt = (z_guess - centre[2]) / d[:, 2]
+
+    t = np.full(len(dirs), np.nan)
+    settled = step < gsd / 100.0
+    t[np.flatnonzero(usable)[settled]] = tt[settled]
 
     P = centre + t[:, None] * dirs
     col = P[:, 0] / gsd + (w - 1) / 2.0
