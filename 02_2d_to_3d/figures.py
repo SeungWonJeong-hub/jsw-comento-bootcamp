@@ -222,11 +222,10 @@ def figure_synthetic(art, res, path):
          (f"과제 예시 코드 (최적 정렬)\n깊이 폭 "
           f"{res['example_code']['full']['span_m']:.3f} m",
           art["z_bright"][cy, cx], "viridis", lo, hi)],
-        path.replace(".png", "_slide.png"),
-        "합성 장면 — 같은 색 범위에서 나란히 놓으면 차이가 보인다")
+        path.replace(".png", "_slide.png"))
 
 
-def figure_depth_triptych(panels, path, suptitle):
+def figure_depth_triptych(panels, path):
     """발표 슬라이드용 3패널 비교 그림.
 
     상세 그림은 6패널이라 슬라이드에서 하나하나가 너무 작아진다. 논증에 실제로
@@ -236,15 +235,19 @@ def figure_depth_triptych(panels, path, suptitle):
 
     panels : (제목, 배열, 색상표, vmin, vmax) 3개
     """
-    fig, ax = plt.subplots(1, 3, figsize=(10.8, 3.9))
+    # 가로로 길게 잡는다. 슬라이드의 그림 자리가 가로로 넓어서, 세로로 긴
+    # 그림을 넣으면 높이에 걸려 카드의 절반만 차고 작아 보인다. suptitle 은
+    # 빼고 슬라이드 부제에 맡긴다 - 같은 말을 두 번 적을 자리가 아니다.
+    fig, ax = plt.subplots(1, 3, figsize=(13.6, 3.5))
     for a, (title, arr, cmap, lo, hi) in zip(ax, panels):
         im = a.imshow(arr, cmap=cmap, vmin=lo, vmax=hi)
-        a.set_title(title, fontsize=12.5)
-        fig.colorbar(im, ax=a, fraction=0.046)
+        a.set_title(title, fontsize=13)
+        cb = fig.colorbar(im, ax=a, fraction=0.040, pad=0.02)
+        cb.ax.tick_params(labelsize=10)
         a.set_xticks([]); a.set_yticks([]); a.grid(False)
-    fig.suptitle(suptitle, fontsize=13.5)
-    fig.tight_layout()
-    fig.savefig(path); plt.close(fig)
+    fig.tight_layout(pad=0.4)
+    fig.savefig(path, bbox_inches="tight", pad_inches=0.05)
+    plt.close(fig)
 
 
 def figure_survey(results, path):
@@ -325,8 +328,7 @@ def figure_spe3r(best, example_depth, path):
          (f"과제 예시 코드 (밝기, 최적 정렬)\n오차 중앙값 "
           f"{best['_example_median']*100:.1f} cm",
           np.where(m, example_depth[cy, cx], np.nan), "viridis", lo, hi)],
-        path.replace(".png", "_slide.png"),
-        f"SPE3R aqua img{best['i']+1:06d}/img{best['j']+1:06d} — 같은 색 범위로 비교")
+        path.replace(".png", "_slide.png"))
 
 
 def _scatter3d(ax, pts, color, title, lim, size=0.5, title_size=18):
@@ -348,7 +350,7 @@ def figure_pointclouds(mesh_points, stereo_body, example_cloud, path):
         return ((c[0] - h, c[0] + h), (c[2] - h, c[2] + h), (-c[1] - h, -c[1] + h))
 
     lim = limits(mesh_points)
-    fig = plt.figure(figsize=(11.4, 3.0))
+    fig = plt.figure(figsize=(9.8, 3.3))
     a1 = fig.add_subplot(1, 3, 1, projection="3d")
     _scatter3d(a1, mesh_points, "#1f77b4", "정답\n(메시 표면)", lim, 0.3)
     a2 = fig.add_subplot(1, 3, 2, projection="3d")

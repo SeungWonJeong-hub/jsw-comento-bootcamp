@@ -395,7 +395,7 @@ outputs/                    결과 그림 6장(상세 4 + 발표용 3패널 2), 
                             metrics.json 에는 본 결과 외에 filter_ablation,
                             disparity_range_ablation, silhouette_carving 이
                             함께 들어간다 (5-2 / 8-1 / 10절의 근거)
-report/                     발표자료 (PPT 3장)
+report/                     발표자료 (PPT 4장)
 ```
 
 ## 10. 자세 규약은 어떻게 확정했는가

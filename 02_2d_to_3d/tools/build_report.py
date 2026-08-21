@@ -42,7 +42,7 @@ SANS = "Pretendard"
 SANS_SB = "Pretendard SemiBold"
 SANS_MD = "Pretendard Medium"
 
-TOTAL_PAGES = 3
+TOTAL_PAGES = 4
 
 
 def test_count() -> int:
@@ -59,11 +59,21 @@ def test_count() -> int:
     return int(hit.group(1)) if hit else 0
 
 
-def set_font(run, name, size, color, bold=False):
+def set_font(run, name, size, color, bold=False, tracking=None):
+    """글꼴을 지정한다. tracking 은 자간 [pt], 음수면 좁힌다.
+
+    디자인 규격(DESIGN-vercel.md)의 Don't 에 "large heading 의 음수 자간을
+    풀지 말 것" 이 있다. 표에 따르면 48px 제목이 -2.4px, 32px 제목이 -1.28px 로
+    둘 다 글자 크기의 -4% 다. 같은 비율을 그대로 적용한다.
+    """
     run.font.name = name
     run.font.size = Pt(size)
     run.font.bold = bold
     run.font.color.rgb = color
+    if tracking:
+        # python-pptx 에 자간 API 가 없어 rPr 의 spc 속성을 직접 쓴다.
+        # 단위는 1/100 pt 다.
+        run._r.get_or_add_rPr().set("spc", str(int(round(tracking * 100))))
     # 한글이 기본 글꼴로 떨어지지 않도록 동아시아 글꼴도 지정한다.
     rPr = run._r.get_or_add_rPr()
     ns = "{http://schemas.openxmlformats.org/drawingml/2006/main}"
@@ -71,7 +81,7 @@ def set_font(run, name, size, color, bold=False):
         rPr.append(rPr.makeelement(ns + tag, {"typeface": name}))
 
 
-def style_paragraph(para, name, size, color):
+def style_paragraph(para, name, size, color, tracking=None):
     """문단과 그 안의 런에 모두 글꼴을 지정한다.
 
     런에만 지정하면 텍스트가 빈 문단은 기본 크기(18pt)로 높이를 잡아
@@ -81,11 +91,12 @@ def style_paragraph(para, name, size, color):
     para.font.size = Pt(size)
     para.font.color.rgb = color
     run = para.add_run()
-    set_font(run, name, size, color)
+    set_font(run, name, size, color, tracking=tracking)
     return run
 
 
-def add_text(slide, x, y, w, h, lines, align=PP_ALIGN.LEFT, spacing=1.35):
+def add_text(slide, x, y, w, h, lines, align=PP_ALIGN.LEFT, spacing=1.35,
+             tracking=None):
     box = slide.shapes.add_textbox(Inches(x), Inches(y), Inches(w), Inches(h))
     tf = box.text_frame
     tf.word_wrap = True
@@ -95,7 +106,7 @@ def add_text(slide, x, y, w, h, lines, align=PP_ALIGN.LEFT, spacing=1.35):
         para = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
         para.alignment = align
         para.line_spacing = spacing
-        style_paragraph(para, name, size, color).text = text
+        style_paragraph(para, name, size, color, tracking).text = text
     return box
 
 
@@ -188,7 +199,9 @@ def new_slide(prs, page, eyebrow, title, subtitle):
     bg.shadow.inherit = False
 
     add_text(slide, 0.72, 0.46, 11.89, 0.24, [(eyebrow, MONO, 8.5, MUTED)])
-    add_text(slide, 0.72, 0.74, 11.89, 0.52, [(title, SANS_SB, 27, INK)], spacing=1.0)
+    # 규격의 display 트래킹: 글자 크기의 -4%
+    add_text(slide, 0.72, 0.74, 11.89, 0.52, [(title, SANS_SB, 27, INK)],
+             spacing=1.0, tracking=-27 * 0.04)
     add_text(slide, 0.72, 1.28, 11.89, 0.26, [(subtitle, SANS, 10.5, BODY)])
     add_text(slide, 11.4, 6.92, 1.21, 0.24,
              [(f"{page:02d} / {TOTAL_PAGES:02d}", MONO, 8.5, FAINT)],
@@ -217,33 +230,47 @@ def gap():
 
 # ---------------------------------------------------------------------------
 
+
 def build(prs, s):
+    """4 페이지. 과제 결과물 형식(업무.pdf p.16)에 맞춰 자리를 나눈다.
+
+        1. 방법          - 베이스라인이 없는 데이터에서 왜 스테레오가 되는가
+        2. Unit Test     - 코드 및 실행 결과 문서화 (p.16 요구)
+        3. 2D -> 3D 변환 - 변환 결과 이미지 첨부 (p.16 요구)
+        4. 개선점        - 요청내용 3번 "개선점을 도출"
+
+    1 번을 뺄까 했지만 남긴다. 카메라 병진이 항상 (0, 0, Z) 인 데이터에서 왜
+    삼각측량이 성립하는지를 먼저 깔지 않으면 나머지 세 장이 읽히지 않는다.
+    """
     syn = s["synthetic_validation"]
     ss = syn["stereo"]
     sur = s["spe3r_pair_survey"]
     best = s["best_pair"]
+    ch = s["best_pair_chamfer"]
+    tc = test_count()
     # 대조군은 스테레오가 값을 낸 화소에서만 채점한 'common' 을 쓴다. 실루엣
     # 전체에서 채점한 'full' 과 나란히 놓으면 두 방법이 서로 다른 화소에서
-    # 채점되기 때문이다. 발표 표는 같은 화소 비교만 싣는다.
-    tc = test_count()
+    # 채점되기 때문이다.
     se = syn["example_code"]["common"]
     bex = s["best_pair_example_code"]["common"]
+    narrow = s["disparity_range_ablation"][0]
+    gap_ratio = bex["median_abs"] / best["median_abs"]
+    ch_ratio = ch["target_to_pred"] / ch["pred_to_target"]
 
     # ---------------- 1. 방법 ----------------
     sl = new_slide(
         prs, 1, "01 / 방법",
         "카메라가 고정이어도 타겟이 돌면 스테레오가 된다",
         "SPE3R aqua · 위성 근접 영상 1,000장 · 256×256 · Stanford SLAB · CC BY-NC-SA 4.0")
-    add_image(sl, os.path.join(OUT, "00_concept.png"), 0.72, 1.78, 11.89, 2.75)
-    add_panel(sl, 0.72, 4.78, 5.86, 2.07, "왜 시점이 두 개 필요한가", [
+    add_image(sl, os.path.join(OUT, "00_concept.png"), 0.72, 1.70, 11.89, 3.16)
+    add_panel(sl, 0.72, 5.02, 5.86, 1.86, "왜 시점이 두 개 필요한가", [
         b("영상 한 장은 깊이를 잃습니다. 한 시선 위의 모든 점이"),
         b("같은 화소에 맺히기 때문입니다."),
         gap(),
         k("SPE3R은 카메라가 제자리에 고정돼 있습니다."),
         k("대신 타겟이 매 프레임 무작위로 회전합니다."),
-        b("이 회전이 카메라를 궤도에 올린 것과 같은 효과를 냅니다."),
     ])
-    add_panel(sl, 6.96, 4.78, 5.65, 2.07, "파이프라인 5단계", [
+    add_panel(sl, 6.96, 5.02, 5.65, 1.86, "파이프라인 5단계", [
         b("① 쌍 선별 — 회전 8° 이내, 옆으로 움직인 쌍만"),
         b("② 정렬 — cv2.stereoRectify 로 에피폴라선을 가로로"),
         b("③ 시차 — cv2.StereoSGBM 으로 가로 이동량 d 탐색"),
@@ -251,137 +278,159 @@ def build(prs, s):
         k("⑤ 포인트 클라우드 — X = (u−cx)·Z/f,  Y = (v−cy)·Z/f"),
     ])
     add_notes(sl, f"""
-이번 과제는 위성 근접 영상에서 깊이 맵을 만들고 3D 포인트 클라우드로 바꾸는 것입니다.
+영상 한 장으로는 깊이를 알 수 없습니다. 한 시선 위의 점이 전부 같은 화소에 맺히기
+때문입니다. 그래서 시점이 두 개 필요합니다.
 
-영상 한 장으로는 깊이를 알 수 없습니다. 한 시선 위에 있는 점들이 전부 같은 화소에
-맺히기 때문입니다. 그래서 시점이 두 개 필요합니다.
+그런데 이 데이터셋은 카메라가 제자리에 고정돼 있습니다. 포즈 라벨 1,000개를 재보니
+병진이 항상 0, 0, Z 입니다. 옆으로 1밀리미터도 움직이지 않습니다. 교과서대로면
+여기서 삼각측량은 불가능합니다.
 
-그런데 쓴 데이터셋은 카메라가 제자리에 고정돼 있습니다. 왼쪽 그림처럼 병진이 항상
-(0, 0, Z)라서, 카메라 좌표계만 보면 베이스라인이 없습니다.
+삼각측량에 필요한 것은 카메라의 절대 운동이 아니라 카메라와 타겟 사이의 상대
+운동입니다. 이 데이터셋은 타겟이 매 프레임 무작위로 회전하므로, 타겟을 고정으로 놓고
+보면 카메라가 궤도를 돈 것과 같습니다. 두 뷰의 상대 자세를 계산하면 베이스라인이
+드러납니다. 회전 {best['rotation_deg']:.2f}도, 거리 {best['distance_m']:.2f}미터인 쌍에서 유효 베이스라인
+{best['baseline_m']:.3f}미터를 얻었습니다.
 
-대신 타겟이 매 프레임 무작위로 회전합니다. 가운데 그림처럼 타겟을 기준으로 보면
-카메라가 궤도를 돈 것과 같습니다. 두 뷰의 상대 자세를 계산하면 회전 {best['rotation_deg']:.2f}도짜리
-쌍에서 베이스라인 {best['baseline_m']:.3f} 미터가 나옵니다.
-
-이걸 평행 정렬하면 오른쪽처럼 표준 삼각측량 공식 Z = f 곱하기 B 나누기 d 를
-그대로 쓸 수 있습니다. 시차 1픽셀이 깊이 {best['depth_resolution_m_per_px']*100:.1f} 센티미터에 해당합니다.
+이것을 cv2.stereoRectify 에 넣으면 평행 정렬된 쌍이 되어 표준 SGBM 을 그대로 쓸 수
+있습니다. 시차 1픽셀이 깊이 {best['depth_resolution_m_per_px']*100:.1f}센티미터에 해당합니다.
 """)
 
-    # ---------------- 2. 검증 ----------------
+    # ---------------- 2. Unit Test ----------------
     sl = new_slide(
-        prs, 2, "02 / 검증",
-        f"정답 깊이 폭 {syn['gt_span_m']:.2f} m 를 {ss['span_m']:.2f} m 로 복원",
-        "구와 직육면체로 위성을 세우고 광선 교차를 해석적으로 풀면 정답 깊이에 "
-        "오차가 없다 · 남는 오차는 전부 정합에서 온다")
+        prs, 2, "02 / Unit Test",
+        "출력 크기와 자료형만 보면 수식이 틀려도 통과합니다",
+        f"pytest {tc}개 · 손으로 풀 수 있는 조건을 만들어 수치까지 대조 · "
+        "실행 결과는 outputs/pytest_report.txt 에 저장")
     add_image(sl, os.path.join(OUT, "01_synthetic_validation_slide.png"),
-              0.72, 1.78, 11.89, 2.75)
-    add_panel(sl, 0.72, 4.78, 5.86, 2.07, "같은 영상, 두 가지 방법", [
-        b("왼쪽·오른쪽 영상을 만들고 두 방법으로 깊이를 구했습니다."),
-        b("과제 예시 코드에는 정답에 맞춘 최적 정렬까지 해 줬습니다."),
-        b(f"스테레오가 값을 낸 {ss['valid_ratio']*100:.0f}% 화소에서 둘 다 채점했습니다."),
-    ])
-    add_matrix(sl, 0.98, 5.70, [1.55, 1.25, 1.30, 1.05], [
-        (("", "깊이 폭", "오차 중앙값", "5cm 이내"), "head"),
-        (("정답", f"{syn['gt_span_m']:.3f} m", "—", "—"), "body"),
-        (("스테레오", f"{ss['span_m']:.3f} m", f"{ss['median_abs']*100:.1f} cm",
-          f"{ss['within_5cm']*100:.1f}%"), "key"),
-        (("과제 예시", f"{se['span_m']:.3f} m", f"{se['median_abs']*100:.1f} cm",
-          f"{se['within_5cm']*100:.1f}%"), "body"),
-    ])
-    add_panel(sl, 6.96, 4.78, 5.65, 2.07,
-              f"Unit Test {test_count()}개로 수식을 검증", [
-        b("출력 크기와 자료형만 보면 수식이 틀려도 통과합니다."),
-        b("손으로 풀 수 있는 조건을 만들어 수치까지 확인했습니다."),
+              0.72, 1.70, 11.89, 3.16)
+    add_panel(sl, 0.72, 5.02, 5.86, 1.86, "정답 깊이에 오차가 없는 조건을 만든다", [
+        b("구와 직육면체로 위성을 세우면 광선과 도형의 교차를"),
+        b("손으로 풀 수 있습니다. 정답에 렌더링 오차가 0 이므로"),
+        b("남는 오차는 전부 정합 알고리즘에서 온 것입니다."),
         gap(),
-        k("해석해 — Z = f·B/d 를 1e-12 까지 대조"),
-        k("불변식 — B와 d를 함께 2배 하면 Z 는 그대로"),
-        k("실패 특성화 — 같은 거리라도 반사율이 다르면 4배 다른 깊이"),
+        k(f"정답 깊이 폭 {syn['gt_span_m']:.3f} m → 스테레오 {ss['span_m']:.3f} m "
+          f"/ 과제 예시 {se['span_m']:.3f} m"),
+    ])
+    add_panel(sl, 6.96, 5.02, 5.65, 1.86, f"{tc}개를 다섯 갈래로", [
+        b("해석해 — Z = f·B/d 를 1e-12 까지 대조"),
+        b("불변식 — B와 d를 함께 2배 하면 Z 는 그대로"),
+        b("실패 특성화 — 같은 거리라도 반사율이 다르면 4배 다른 깊이"),
         b("경계 조건 — 시차 0(무한원점), None 입력, 크기 불일치"),
+        k("회귀 — 실제로 찾은 버그를 다시 나지 않게 고정"),
     ])
     add_notes(sl, f"""
-실제 데이터에 적용하기 전에, 정답을 아는 조건에서 파이프라인이 맞는지 먼저 확인했습니다.
+과제 예시의 테스트는 출력 크기와 자료형만 확인합니다. 그것만으로는 수식이 틀려도
+통과합니다. 그래서 손으로 풀 수 있는 조건을 만들어 수치까지 대조했습니다.
 
-구와 직육면체로 위성을 세우면 광선과 도형의 교차를 손으로 풀 수 있습니다. 그래서
-정답 깊이에 렌더링 오차가 전혀 없고, 남는 오차는 전부 정합 알고리즘에서 온 것입니다.
+구와 직육면체로 위성을 세우면 광선과 도형의 교차를 해석적으로 풀 수 있습니다.
+정답 깊이에 렌더링 오차가 전혀 없으니, 남는 오차는 전부 정합 알고리즘에서 온
+것입니다.
 
-오른쪽 세 장을 비교해 주십시오. 네 번째가 정답 깊이인데, 태양전지판 왼쪽 끝과
-오른쪽 끝이 {syn['gt_span_m']:.2f} 미터 차이 납니다. 다섯 번째 스테레오 복원이 그 차이를
-{ss['span_m']:.2f} 미터로 되살립니다. 마지막 과제 예시 코드는 {se['span_m']:.3f} 미터,
-사실상 평면 하나입니다.
+그림 세 장을 같은 색 범위로 놓았습니다. 왼쪽이 정답 깊이인데 태양전지판 양 끝이
+{syn['gt_span_m']:.2f}미터 차이 납니다. 가운데 스테레오가 그 차이를 {ss['span_m']:.2f}미터로 되살립니다.
+오른쪽 과제 예시 코드는 {se['span_m']:.3f}미터, 사실상 평면 하나입니다.
 
-오차 중앙값은 {ss['median_abs']*100:.1f} 센티미터 대 {se['median_abs']*100:.1f} 센티미터,
-5센티미터 안에 든 화소는 {ss['within_5cm']*100:.1f} 퍼센트 대 {se['within_5cm']*100:.1f} 퍼센트입니다.
-예시 코드에는 정답에 맞춘 최적 정렬까지 해 준 결과입니다.
-
-Unit Test 는 {tc}개입니다. 출력 크기와 자료형만 보면 수식이 틀려도 통과하기 때문에,
-손으로 풀 수 있는 조건을 만들어 수치까지 대조했습니다.
+테스트는 네 갈래로 시작했습니다. 해석해 대조, 불변식, 실패 특성화, 경계 조건입니다.
+여기에 회귀 갈래를 하나 더 붙였습니다. 파이프라인을 검토하면서 실제로 버그를 여러 건
+찾았고 전부 테스트가 없던 영역에서 나왔기 때문입니다. 고친 뒤에는 수정을 일부러
+되돌려 해당 테스트가 실제로 실패하는지까지 확인했습니다.
 """)
 
-    # ---------------- 3. 결과와 한계 ----------------
+    # ---------------- 3. 2D -> 3D 변환 결과 ----------------
     sl = new_slide(
-        prs, 3, "03 / 결과와 한계",
+        prs, 3, "03 / 2D → 3D 변환 결과",
         f"실제 위성 영상에서 깊이 오차 중앙값 {best['median_abs']*100:.1f} cm",
-        "기준 깊이 = 동봉 메시 40만 점을 z-buffer 로 투영 · 대조군에는 정답에 맞춘 "
-        f"최적 정렬을 적용해 유리한 조건을 부여 · 스테레오가 값을 낸 "
-        f"{best['valid_ratio']*100:.0f}% 화소에서 둘 다 채점")
-    add_image(sl, os.path.join(OUT, "03_spe3r_stereo_slide.png"), 0.72, 1.78, 11.89, 2.55)
-    add_card(sl, 0.72, 4.56, 6.62, 2.29)
-    add_text(sl, 0.98, 4.75, 6.10, 0.24, [("결과", SANS_SB, 10.5, INK)])
-    add_matrix(sl, 0.98, 5.05, [1.55, 1.40, 1.40, 1.15], [
+        f"깊이 맵을 역투영해 {s['best_pair_points']:,}점의 포인트 클라우드로 · 대조군에는 "
+        f"정답에 맞춘 최적 정렬을 적용하고 같은 {bex['n_valid']:,}개 화소에서 채점")
+    add_image(sl, os.path.join(OUT, "04_pointclouds.png"), 0.72, 1.70, 11.89, 3.16)
+    add_card(sl, 0.72, 5.02, 5.86, 1.86)
+    add_text(sl, 0.98, 5.21, 5.34, 0.24, [("깊이 정확도", SANS_SB, 10.5, INK)])
+    add_matrix(sl, 0.98, 5.51, [1.45, 1.30, 1.30, 1.05], [
         (("", "RMSE", "오차 중앙값", "5cm 이내"), "head"),
         (("스테레오", f"{best['rmse']:.4f} m", f"{best['median_abs']*100:.1f} cm",
           f"{best['within_5cm']*100:.1f}%"), "key"),
         (("과제 예시", f"{bex['rmse']:.4f} m", f"{bex['median_abs']*100:.1f} cm",
           f"{bex['within_5cm']*100:.1f}%"), "body"),
     ])
-    add_text(sl, 0.98, 5.85, 6.10, 0.92, [
-        k(f"포인트 클라우드 {s['best_pair_points']:,}점 · 메시 대비 Chamfer "
-          f"{s['best_pair_chamfer']['pred_to_target']:.4f}  →"),
+    add_panel(sl, 6.96, 5.02, 5.65, 1.86, "세 축이 전부 미터입니다", [
+        b("과제 예시 코드는 X, Y 가 픽셀 인덱스이고 Z 가 밝기라"),
+        b("단위가 서로 다릅니다. 맨 오른쪽이 그것입니다."),
         gap(),
-        b(f"세로 쌍 unrotate 누락 버그를 찾아 고쳐 쓸 만한 쌍이 3 → "
-          f"{sur['pairs_within_10cm']}개 (후보 20쌍 중 10쌍이 세로였습니다)"),
-        b(f"한계 — 유효화소 {best['valid_ratio']*100:.0f}%, 단일 시점이라 뒷면은 복원 불가"
-          f"(Chamfer GT→pred {s['best_pair_chamfer']['target_to_pred']:.3f}),"),
-        b(f"정답 자세를 그대로 사용, 깊이 분해능 하한 "
-          f"{best['depth_resolution_m_per_px']*100:.1f} cm/px (dZ = Z²/fB)"),
-    ], spacing=1.3)
-    add_image(sl, os.path.join(OUT, "04_pointclouds.png"), 7.58, 4.56, 5.03, 2.29)
+        k(f"Chamfer  pred→GT {ch['pred_to_target']:.4f}  ·  "
+          f"GT→pred {ch['target_to_pred']:.4f}"),
+        b("뒤쪽이 큰 것이 단일 시점이라 뒷면이 빈다는 한계의 크기입니다."),
+    ])
     add_notes(sl, f"""
-실제 SPE3R 위성 영상 결과입니다.
+과제가 요구한 마지막 단계, 2D 에서 3D 로의 변환 결과입니다.
 
-왼쪽 두 장이 정렬된 스테레오 쌍입니다. 배경에 지구가 보이고, 타겟이 {best['rotation_deg']:.2f}도
-돌아간 두 시점입니다. 세 번째가 찾아낸 시차이고, 네 번째가 동봉된 메시로 만든 기준 깊이입니다.
+깊이 맵의 각 화소를 카메라 광선을 따라 Z 만큼 밀어내면 3D 점이 됩니다. X 는 u 빼기
+cx 곱하기 Z 나누기 f 이고 Y 도 같은 식입니다. 세 축이 전부 미터입니다. 과제 예시
+코드는 X, Y 가 픽셀 인덱스이고 Z 가 0에서 255 밝기값이라 세 축의 단위가 서로 다릅니다.
+맨 오른쪽이 그것이고 납작한 판으로 나옵니다.
 
-네 번째와 다섯 번째를 비교해 주십시오. 기준 깊이는 위쪽 태양전지판이 노랗고 아래
-본체로 갈수록 파래지는 그라데이션인데, 스테레오 복원이 그 구조를 그대로 잡아냅니다.
-반면 맨 오른쪽 과제 예시 코드는 거의 균일한 초록입니다. 깊이 정보가 없다는 뜻입니다.
+왼쪽이 정답 메시, 가운데가 스테레오 복원 {s['best_pair_points']:,}점입니다.
 
-수치로는 오차 중앙값 {best['median_abs']*100:.1f} 센티미터, 5센티미터 이내가 {best['within_5cm']*100:.1f} 퍼센트입니다.
-예시 코드는 {bex['median_abs']*100:.1f} 센티미터, {bex['within_5cm']*100:.1f} 퍼센트입니다.
+수치는 오차 중앙값 {best['median_abs']*100:.1f}센티미터, 5센티미터 이내가 {best['within_5cm']*100:.1f}퍼센트입니다.
+예시 코드는 {bex['median_abs']*100:.1f}센티미터, {bex['within_5cm']*100:.1f}퍼센트입니다. 격차가 {gap_ratio:.1f}배입니다.
 
 채점 화소를 맞춘 점을 짚어 두겠습니다. 스테레오는 정합에 실패한 화소를 버리므로,
 대조군을 실루엣 전체에서 채점하면 두 방법이 서로 다른 화소에서 채점됩니다. 그래서
-스테레오가 값을 낸 {best['valid_ratio']*100:.0f} 퍼센트 화소에서 대조군도 다시 채점했고, 표의 숫자가
-그것입니다. 실루엣 전체 기준 수치는 metrics.json 의 full 항목에 함께 남겨 두었습니다.
+스테레오가 값을 낸 {best['valid_ratio']*100:.0f}퍼센트 화소에서 대조군도 다시 채점했고, 표의 숫자가
+그것입니다.
 
-이 깊이 맵을 역투영하면 오른쪽 아래 포인트 클라우드가 나옵니다. {s['best_pair_points']:,}점이고
-정답 메시 대비 Chamfer 는 pred→GT {s['best_pair_chamfer']['pred_to_target']:.4f},
-GT→pred {s['best_pair_chamfer']['target_to_pred']:.4f} 입니다. 양방향을 함께 보는 이유는 한쪽만으로는
-무엇이 틀렸는지 구분되지 않기 때문입니다. pred→GT 가 작다는 것은 복원한 점이 전부 표면
-근처에 있다는 뜻이고, GT→pred 가 그 3.7배라는 것은 정답 표면의 상당 부분이 복원되지
-않았다는 뜻입니다. 단일 시점이라 뒷면이 비어 있는 것이 숫자로 드러난 것입니다.
+Chamfer 는 양방향으로 봐 주십시오. pred 에서 GT 가 {ch['pred_to_target']:.4f}로 작다는 것은 복원한
+점이 전부 표면 근처에 있다는 뜻이고, GT 에서 pred 가 그 {ch_ratio:.1f}배라는 것은 정답 표면의
+상당 부분이 복원되지 않았다는 뜻입니다. 단일 시점이라 뒷면이 비어 있는 것이 숫자로
+드러난 것입니다.
+""")
 
-한 가지 더 말씀드리면, 세로 스테레오 경로에 버그가 있었습니다. 베이스라인이 세로면 영상을
-90도 돌려 매칭하는데 되돌리지 않고 반환하고 있었습니다. 후보 20쌍 중 10쌍이 세로라 절반을
-못 쓰고 있었습니다. 영상이 정사각이라 크기가 같아 예외도 나지 않았고, 그 경로를 검증하는
-테스트도 없었습니다. 고친 뒤 쓸 만한 쌍이 4개가 됐고 되살아난 쌍의 유효화소 77퍼센트가
-전체에서 가장 높습니다. 회귀 테스트를 붙이고, 수정을 되돌려 실제로 실패하는지까지
-확인했습니다.
+    # ---------------- 4. 개선점 ----------------
+    sl = new_slide(
+        prs, 4, "04 / 개선점",
+        f"유효화소 {best['valid_ratio']*100:.0f}% — 나머지는 답을 내지 못한 것입니다",
+        "재 본 것만 적습니다 · 수치는 outputs/metrics.json 에 그대로 남습니다")
+    add_image(sl, os.path.join(OUT, "02_pair_survey.png"), 0.72, 1.70, 11.89, 3.16)
+    add_card(sl, 0.72, 5.02, 5.86, 1.86)
+    add_text(sl, 0.98, 5.21, 5.34, 0.24,
+             [("시차 탐색 범위를 좁히면 (최적 쌍)", SANS_SB, 10.5, INK)])
+    add_matrix(sl, 0.98, 5.51, [1.55, 1.35, 1.35], [
+        (("", "현재", "좁힘"), "head"),
+        (("유효화소", f"{narrow['current']['valid_ratio']*100:.1f}%",
+          f"{narrow['narrowed']['valid_ratio']*100:.1f}%"), "key"),
+        (("5cm 이내", f"{narrow['current']['within_5cm']*100:.1f}%",
+          f"{narrow['narrowed']['within_5cm']*100:.1f}%"), "body"),
+    ])
+    add_panel(sl, 6.96, 5.02, 5.65, 1.86, "다만 공짜가 아닙니다", [
+        b("다른 쌍에서는 커버리지만 오르고 정확도가 떨어집니다."),
+        b("탐색 후보가 줄면 uniquenessRatio 검사를 통과하기 쉬워져"),
+        b("원래는 기각됐을 애매한 대응이 살아남기 때문입니다."),
+        gap(),
+        k("트레이드오프라 채택하지 않고 측정값만 남겼습니다."),
+    ])
+    add_notes(sl, f"""
+개선점입니다. 재 본 것만 적었습니다.
 
-한계도 말씀드리겠습니다. 조건을 만족하는 쌍이 후보 20개 중 {sur['pairs_within_10cm']}개뿐이고,
-유효 화소는 {best['valid_ratio']*100:.0f} 퍼센트입니다. 단일 시점이라 타겟 뒷면은 원리적으로
-복원되지 않고, 자세는 데이터셋이 준 정답을 그대로 썼습니다. 실제 상대항법에서는
-자세도 추정해야 하고 그 오차가 삼각측량에 미치는 영향은 이번에 측정하지 않았습니다.
+가장 큰 약점은 유효화소 {best['valid_ratio']*100:.0f}퍼센트입니다. 나머지는 답을 내지 못한 것이지
+맞힌 것이 아닙니다. 앞 장의 정확도 수치는 전부 이 안에서 잰 값입니다.
+
+첫 번째 후보는 시차 탐색 범위입니다. 타겟의 경계 반지름을 알면 깊이가 어느 구간에
+있는지 알고, 따라서 시차도 그렇습니다. 최적 쌍에서 물리적으로 가능한 폭은 24픽셀인데
+지금은 144픽셀을 훑고 있습니다. 좁혀 보니 유효화소가 {narrow['current']['valid_ratio']*100:.0f}에서 {narrow['narrowed']['valid_ratio']*100:.0f}퍼센트로
+올랐습니다.
+
+그런데 공짜가 아닙니다. 다른 쌍에서는 커버리지만 오르고 정확도가 떨어집니다. 탐색
+후보가 줄면 uniquenessRatio 검사를 통과하기 쉬워져서, 원래는 기각됐을 애매한 대응이
+살아남기 때문입니다. 트레이드오프라 기본값으로 채택하지 않고 측정값만 남겼습니다.
+
+두 번째는 다중 뷰 융합입니다. 지금은 한 쌍만 씁니다. 쓸 만한 쌍이 {sur['pairs_within_10cm']}개 있으니
+여러 쌍의 깊이를 합치면 한 쌍에서 비는 부분을 다른 쌍이 채웁니다. 지금 구조에서 가장
+싸게 얻을 수 있는 개선이라고 봅니다. 이건 아직 재 보지 않았습니다.
+
+위 그림은 쌍별 결과입니다. 베이스라인이 크다고 정확한 것이 아니고, 커버리지와
+정확도가 함께 가지도 않는다는 것이 보입니다.
+
+한계도 함께 말씀드리면, 자세는 데이터셋이 준 정답을 그대로 썼고, 위성은 한 종만
+실험했으며, 깊이 분해능 하한이 {best['depth_resolution_m_per_px']*100:.1f} 센티미터 퍼 픽셀입니다.
 """)
 
 
