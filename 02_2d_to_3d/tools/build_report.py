@@ -61,6 +61,22 @@ def test_count() -> int:
     return int(hit.group(1)) if hit else 0
 
 
+def josa(n, pair):
+    """숫자 뒤에 붙는 조사를 읽는 소리에 맞춘다 ("3을" / "5를").
+
+    수치를 f-string 으로 채우다 보니 값이 바뀌면 조사가 틀어진다. 한 자리
+    끝소리가 받침으로 끝나는 수(0 영, 1 일, 3 삼, 6 육, 7 칠, 8 팔)와 10(십)
+    뒤에는 앞쪽 조사를, 나머지(2 이, 4 사, 5 오, 9 구) 뒤에는 뒤쪽을 쓴다.
+    """
+    with_batchim, without = pair.split("/")
+    last = int(n) % 10
+    closed = last in (0, 1, 3, 6, 7, 8) or (int(n) % 100 == 10)
+    # '으로/로' 만 규칙이 다르다. ㄹ 받침(1 일, 7 칠, 8 팔) 뒤에는 '로' 를 쓴다.
+    if with_batchim == "으로" and last in (1, 7, 8):
+        closed = False
+    return f"{n}{with_batchim if closed else without}"
+
+
 def code_lines(name="test_relative_pose_maps_view_i_to_view_j"):
     """테스트 파일에서 함수 하나를 원문 그대로 읽어 온다.
 
@@ -342,6 +358,7 @@ def build(prs, s):
     fuse0 = cov_fuse["stages"][0]
     blocks = s["block_size_ablation"]
     blk_old = blocks[0]
+    spread = cov_fuse["view_spread"]
     blk_new = next(x for x in blocks
                    if x["best_pair"]["valid_ratio"] == best["valid_ratio"])
     gap_ratio = bex["median_abs"] / best["median_abs"]
@@ -455,67 +472,67 @@ def build(prs, s):
 """)
 
     # ---------------- 4. 개선점 ----------------
-    # 이 장은 그림을 넣지 않는다. 쌍별 산점도는 한 눈에 읽히지 않아 발표에서
-    # 설명이 그림을 따라가는 모양이 된다. 보여야 하는 것은 "설정 하나만 바꿔
-    # 가며 잰 표" 이므로 표를 크게 놓는 편이 낫다.
+    # 카드를 넷으로 나눠 놓으니 어디부터 읽어야 하는지가 안 보였다. 개선점은
+    # "무엇을 할 것인가" 의 목록이므로 순서가 있는 한 덩어리로 둔다. 왜
+    # 그런지는 슬라이드에 적지 않고 대본에서 말한다.
     sl = new_slide(
         prs, 4, "04 / 개선점",
-        "가짜 영상에서 고른 설정을, 실제 영상에서 다시 골랐습니다",
-        "재 본 것과 아직 안 해 본 것을 나눠서 적었습니다")
+        "무엇을 고쳤고, 무엇이 남았는가",
+        "효과가 큰 순서로 적었습니다 · 수치는 outputs/metrics.json 에 그대로 남습니다")
 
-    add_panel(sl, 0.72, 1.70, 7.35, 2.85, "무엇이 문제였나", [
-        t("두 사진에서 같은 지점을 찾을 때, 점 하나만 보면 어디가 어딘지"),
-        t("알 수 없어서 주변을 네모나게 오려 통째로 비교합니다."),
-        gap(),
-        t("그 네모의 크기를 3으로 두고 있었는데, 근거가 2장에서 보여 드린"),
-        t("가짜(합성) 영상이었습니다. 무늬가 많아 작은 네모로도 잘 찾아지고,"),
-        t("작을수록 경계가 선명해서 3이 제일 좋았습니다."),
-        gap(),
-        tk("그런데 실제 위성은 금속이라 무늬가 거의 없습니다. 작은 네모로는"),
-        tk("아예 못 찾습니다. 실제 영상으로 3부터 17까지 다시 재서 11로 바꿨습니다."),
-    ])
-    add_card(sl, 8.31, 1.70, 4.30, 2.85)
-    add_text(sl, 8.57, 1.89, 3.78, 0.24,
-             [("바꾼 뒤 (같은 사진, 같은 기준)", SANS_SB, 10.5, INK)])
-    add_matrix(sl, 8.57, 2.32, [1.70, 1.04, 1.04], [
-        (("", "전", "후"), "head"),
-        (("거리 오차", f"{blk_old['best_pair']['median_abs']*100:.2f} cm",
-          f"{blk_new['best_pair']['median_abs']*100:.2f} cm"), "key"),
-        (("5 cm 안", f"{blk_old['best_pair']['within_5cm']*100:.1f}%",
-          f"{blk_new['best_pair']['within_5cm']*100:.1f}%"), "key"),
-        (("값이 나온 픽셀", f"{blk_old['best_pair']['valid_ratio']*100:.1f}%",
-          f"{blk_new['best_pair']['valid_ratio']*100:.1f}%"), "key"),
-        (("쓸 수 있는 쌍", f"{blk_old['pairs_reconstructed']}쌍",
-          f"{blk_new['pairs_reconstructed']}쌍"), "body"),
-    ])
-    add_text(sl, 8.57, 3.72, 3.78, 0.60, [
-        ("하나를 내주고 얻은 것이 아니라", SANS, 11, BODY),
-        ("전부 같이 좋아졌습니다.", SANS_MD, 11, INK),
-    ])
+    bp_o, bp_n = blk_old["best_pair"], blk_new["best_pair"]
+    items = [
+        ("1", "두 사진을 비교할 때 오려 보는 네모의 크기",
+         f"가짜 영상에서 고른 값이 {blk_old['block_size']}이었습니다. "
+         f"실제 영상에서 다시 골라 {josa(blk_new['block_size'], '으로/로')} "
+         f"바꿨습니다.",
+         f"거리 오차 {bp_o['median_abs']*100:.2f} → {bp_n['median_abs']*100:.2f} cm  ·  "
+         f"5 cm 안 {bp_o['within_5cm']*100:.1f} → {bp_n['within_5cm']*100:.1f}%  ·  "
+         f"값이 나온 픽셀 {bp_o['valid_ratio']*100:.0f} → {bp_n['valid_ratio']*100:.0f}%  ·  "
+         f"쓸 수 있는 쌍 {blk_old['pairs_reconstructed']} → "
+         f"{blk_new['pairs_reconstructed']}쌍",
+         "적용함"),
+        ("2", "사진을 고를 때 보는 방향이 골고루 퍼지게 고르기",
+         f"지금은 조건에 맞는 사진을 전부 써서 보는 방향이 한쪽에 몰려 있습니다.",
+         f"구면 {spread['sphere_cells_total']}칸 중 {spread['sphere_cells_filled']}칸  ·  "
+         f"같은 장수로 더 넓게 덮을 수 있습니다.",
+         "다음 차례"),
+        ("3", "화면에서 위성이 차지하는 부분만 잘라 더 크게 보기",
+         "지금은 화면 대부분이 빈 우주입니다.",
+         "같은 계산량으로 더 조밀하게 볼 수 있습니다.",
+         "다음 차례"),
+        ("4", "밀린 거리를 찾는 범위 좁히기",
+         "타겟 크기를 알면 범위를 좁힐 수 있는데, 좁히면 정확도를 내줍니다.",
+         f"빈 곳은 줄지만 5 cm 안이 {narrow['current']['within_5cm']*100:.1f} → "
+         f"{narrow['narrowed']['within_5cm']*100:.1f}% 로 떨어집니다.",
+         "재 봤지만 안 씀"),
+    ]
 
-    add_panel(sl, 0.72, 4.72, 5.86, 2.10, "해 봤지만 쓰지 않은 것", [
-        t("밀린 거리를 찾는 범위도 좁혀 봤습니다. 빈 곳은 줄어드는데,"),
-        t(f"5 cm 안에 드는 비율이 {narrow['current']['within_5cm']*100:.1f}% 에서 "
-          f"{narrow['narrowed']['within_5cm']*100:.1f}% 로 떨어졌습니다."),
-        gap(),
-        tk("이번엔 하나를 얻고 하나를 내주는 쪽이라 그대로 두고,"),
-        tk("잰 값만 남겨 뒀습니다."),
-    ])
-    add_panel(sl, 6.75, 4.72, 5.86, 2.10, "아직 안 해 본 것", [
-        tk("① 사진을 고를 때 보는 방향이 골고루 퍼지게 고르기"),
-        t("　지금은 한쪽에 몰려 있어, 같은 장수로 더 넓게 덮을 수 있습니다."),
-        t("② 화면에서 위성이 차지하는 부분만 잘라 더 크게 보기"),
-        t("③ 자신 없는 값을 버리는 대신 '자신 없음' 으로 표시해 남기기"),
-    ])
+    add_card(sl, 0.72, 1.70, 11.89, 5.12)
+    y = 2.14
+    for num, head, why, res, tag in items:
+        add_text(sl, 0.98, y, 0.40, 0.28, [(num, SANS_SB, 15, FAINT)])
+        add_text(sl, 1.42, y, 8.60, 0.28, [(head, SANS_SB, 14, INK)],
+                 tracking=-14 * 0.02)
+        add_text(sl, 10.10, y + 0.04, 2.25, 0.24, [(tag, MONO, 9, MUTED)],
+                 align=PP_ALIGN.RIGHT)
+        add_text(sl, 1.42, y + 0.40, 10.93, 0.46,
+                 [(why, SANS, 11, BODY), (res, SANS_MD, 11, INK)], spacing=1.3)
+        y += 1.24
     add_notes(sl, f"""
-· 두 사진에서 같은 지점을 찾을 때 주변을 네모나게 오려 통째로 비교합니다. 그 크기가 3이었습니다.
-· 근거가 2장에서 보여 드린 가짜 영상이었습니다. 무늬가 많아 작은 네모가 유리한 조건입니다.
+· 개선점을 효과가 큰 순서로 넷 적었습니다.
+· 1번이 이번에 가장 크게 바꾼 것입니다. 두 사진에서 같은 지점을 찾을 때, 점 하나만 보면 어디가 어딘지 알 수 없어서 주변을 네모나게 오려 통째로 비교합니다.
+· 그 크기가 {josa(blk_old['block_size'], '이/가')}었는데, 근거가 2장에서 보여 드린 가짜 영상이었습니다. 무늬가 많아 작은 네모가 유리한 조건입니다.
 · 실제 위성은 금속이라 무늬가 없어 정반대입니다. 작은 네모로는 아예 못 찾습니다.
-· 사진 20쌍을 그대로 두고 크기만 3부터 17까지 바꿔 재서 11을 골랐습니다.
-· 오차 {blk_old['best_pair']['median_abs']*100:.2f}→{blk_new['best_pair']['median_abs']*100:.2f} cm, 5 cm 안 {blk_old['best_pair']['within_5cm']*100:.1f}→{blk_new['best_pair']['within_5cm']*100:.1f}%, 값이 나온 픽셀 {blk_old['best_pair']['valid_ratio']*100:.0f}→{blk_new['best_pair']['valid_ratio']*100:.0f}%, 쓸 수 있는 쌍 {blk_old['pairs_reconstructed']}→{blk_new['pairs_reconstructed']}쌍.
-· 보통은 하나를 얻으면 하나를 내주는데 전부 같이 좋아졌습니다. 더 키우면 정확도가 다시 나빠져 11은 가운데 값입니다.
-· 배운 건 11이라는 숫자가 아니라 순서입니다. 설정은 실제로 쓸 데이터에서 골라야 합니다.
-· 찾는 범위 좁히기는 정확도를 내주는 쪽이라 안 썼고, 보는 방향을 골고루 고르는 것은 아직 안 해 봤습니다.
+· 사진 {blk_old['candidates']}쌍을 그대로 두고 크기만 3부터 17까지 바꿔 재 보니 {josa(blk_new['block_size'], '이/가')} 가장 좋았습니다. 보통은 하나를 얻으면 하나를 내주는데 전부 같이 좋아졌습니다.
+· 더 키우면 정확도가 다시 나빠지니 {josa(blk_new['block_size'], '은/는')} 끝값이 아니라 가운데 값입니다.
+· 배운 건 숫자가 아니라 순서입니다. 가짜 데이터는 식이 맞는지 확인하는 데 쓰고, 설정은 실제로 쓸 데이터에서 골라야 합니다.
+· 2번을 다음 차례로 봅니다. 3장에서 사진을 {cov_fuse['pairs_used']}쌍 합쳐 {fuse0['surface_coverage']*100:.0f}% 를 덮었다고 말씀드렸는데, 시점 간 최대각은 {spread['max_angle_deg']:.0f}도로 넓어 보여도 구면 {spread['sphere_cells_total']}칸 중 {spread['sphere_cells_filled']}칸에만 있습니다.
+· 조건에 맞는 사진을 전부 쓰다 보니 그렇습니다. 빈 칸을 채우는 쪽으로 고르면 같은 장수로 더 넓게 덮을 수 있을 것으로 봅니다.
+· 3번은 지금 정렬한 화면의 대부분이 빈 우주라, 위성 부분만 잘라 쓰면 같은 계산량으로 더 조밀하게 볼 수 있다는 것입니다.
+· 4번은 재 봤지만 쓰지 않았습니다. 타겟 크기를 알면 밀린 거리의 범위를 좁힐 수 있는데, 좁히면 애매한 대응까지 통과해서 정확도가 떨어집니다. 이번엔 하나를 얻고 하나를 내주는 쪽이라 잰 값만 남겼습니다.
+· 이 밖에 자신 없는 값을 버리는 대신 '자신 없음' 으로 표시해 남기는 것도 남아 있습니다.
+· 한계도 말씀드리면, 위성의 자세는 데이터셋이 준 정답을 그대로 썼고 위성은 한 종류만 실험했습니다.
 """)
 
 
