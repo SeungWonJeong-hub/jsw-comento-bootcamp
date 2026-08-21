@@ -467,7 +467,7 @@ def test_unlit_surfaces_break_matching(wide_cam):
     lit_brightness, lit_span = run((0.42, 0.30, 0.86))
     dark_brightness, dark_span = run((-0.42, -0.30, -0.86))
 
-    # 측정값: 깊이 폭 0.915 m (정상 조명) -> 0.572 m (앞면 그늘), 약 62% 수준
+    # 측정값: 깊이 폭 0.888 m (정상 조명) -> 0.290 m (앞면 그늘), 약 33% 수준
     assert dark_brightness < 0.5 * lit_brightness   # 앞면이 그늘에 들어간다
     assert dark_span < 0.75 * lit_span              # 깊이 구조가 뭉개진다
 

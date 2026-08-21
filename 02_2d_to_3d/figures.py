@@ -380,12 +380,12 @@ def _scatter3d(ax, pts, color, title, lim, size=0.5, title_size=18):
     ax.set_box_aspect((1, 1, 1))
 
 
-def figure_pointclouds(mesh_points, stereo_body, carved_body, example_cloud, path,
+def figure_pointclouds(mesh_points, stereo_body, fusion_body, example_cloud, path,
                        coverage=None):
-    """정답 · 스테레오(단일 시점) · 카빙(전방위) · 과제 예시를 나란히 놓는다.
+    """정답 · 스테레오 1쌍 · 스테레오 다중쌍 융합 · 과제 예시를 나란히 놓는다.
 
-    스테레오만 보이면 "3D 복원했다" 로 읽히는데 실제로 덮은 것은 앞면뿐이다.
-    전방위 복원을 옆에 두어야 무엇이 빠졌는지 눈으로 보인다.
+    한 쌍만 보이면 "3D 복원했다" 로 읽히는데 실제로 덮은 것은 앞면뿐이다.
+    쌍을 늘린 결과를 옆에 두어야 무엇이 채워지고 무엇이 끝내 비는지 보인다.
     """
     def limits(p):
         c = (p.min(axis=0) + p.max(axis=0)) / 2
@@ -399,12 +399,12 @@ def figure_pointclouds(mesh_points, stereo_body, carved_body, example_cloud, pat
     _scatter3d(a1, mesh_points, "#1f77b4", "정답\n(메시 표면)", lim, 0.3)
     a2 = fig.add_subplot(1, 4, 2, projection="3d")
     _scatter3d(a2, stereo_body, "#d62728",
-               f"스테레오 (단일 시점)\n{len(stereo_body):,}점 · 표면 "
-               f"{cov.get('stereo', 0) * 100:.0f}%", lim)
+               f"스테레오 1쌍\n{len(stereo_body):,}점 · 표면 "
+               f"{cov.get('single', 0) * 100:.0f}%", lim)
     a3 = fig.add_subplot(1, 4, 3, projection="3d")
-    _scatter3d(a3, carved_body, "#2ca02c",
-               f"실루엣 카빙 (전방위)\n{len(carved_body):,}점 · 표면 "
-               f"{cov.get('carving', 0) * 100:.0f}%", lim, 0.4)
+    _scatter3d(a3, fusion_body, "#ff7f0e",
+               f"스테레오 {cov.get('pairs', 0)}쌍 융합\n{len(fusion_body):,}점 · 표면 "
+               f"{cov.get('fusion', 0) * 100:.0f}%", lim, 0.25)
     a4 = fig.add_subplot(1, 4, 4, projection="3d")
     norm, _, _ = pointcloud.normalize_scale(example_cloud)
     _scatter3d(a4, norm, "#7f7f7f", "과제 예시 코드\n(픽셀, 픽셀, 밝기)",

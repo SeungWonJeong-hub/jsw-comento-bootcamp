@@ -9,8 +9,7 @@
     baseline   : 과제 예시 코드 원문 재현
     pointcloud : 포인트 클라우드 변환, PLY 입출력, 메시 샘플링
     metrics    : Chamfer 거리, 깊이 오차 지표
-    carving    : 실루엣 기반 복원 (추가 실험, 발표 범위 밖)
 """
 
 __all__ = ["camera", "scene", "spe3r", "stereo", "depth", "baseline",
-           "pointcloud", "metrics", "carving"]
+           "pointcloud", "metrics"]

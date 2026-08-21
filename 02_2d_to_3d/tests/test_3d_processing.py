@@ -21,7 +21,7 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src import baseline, carving, depth, metrics, pointcloud, scene  # noqa: E402
+from src import baseline, depth, metrics, pointcloud, scene  # noqa: E402
 from src.camera import PinholeCamera, Pose, quaternion_to_rotation, rotation_angle_deg  # noqa: E402
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -157,146 +157,7 @@ def test_rotation_angle_between_identical_rotations_is_zero():
 
 
 # --------------------------------------------------------------------------
-# 3. 실루엣 기반 복원 (voxel space carving)
-# --------------------------------------------------------------------------
-
-def test_carving_recovers_sphere_radius(cam):
-    """구의 visual hull 은 구 자신이다. 반지름이 참값으로 수렴해야 한다."""
-    R_true = 0.35
-    sphere = [scene.Sphere((0, 0, 0), R_true)]
-    poses = scene.orbit_poses(30, distance=5.0, seed=1)
-    masks = [scene.render_mask(cam, p, sphere) for p in poses]
-
-    # 합성 장면의 실루엣은 해석적으로 정확하므로 여유를 주지 않는다.
-    result = carving.carve(cam, masks, poses, bounds=0.5, resolution=64,
-                           mask_margin=0)
-    pts = carving.surface_points(result["occupancy"], result["centers"])
-
-    assert len(pts) > 0
-    measured = float(np.linalg.norm(pts, axis=1).max())
-    # 유한 개의 시점으로 만든 hull 은 구를 살짝 감싸므로 위쪽으로 치우친다.
-    assert R_true - 2 * result["spacing"] <= measured <= R_true * 1.15
-
-
-def test_carving_shrinks_monotonically(cam):
-    """시점을 추가할수록 남는 복셀은 줄기만 해야 한다."""
-    prims = scene.default_satellite()
-    poses = scene.orbit_poses(12, distance=5.0, seed=2)
-    masks = [scene.render_mask(cam, p, prims) for p in poses]
-
-    result = carving.carve(cam, masks, poses, bounds=0.6, resolution=48)
-    history = result["history"]
-    assert len(history) == 12
-    assert all(b <= a for a, b in zip(history, history[1:]))
-
-
-def test_cropped_views_do_not_over_carve(cam):
-    """타겟이 화면 밖으로 잘리는 뷰가 있어도 참 형상을 깎아내면 안 된다.
-
-    화면 밖으로 투영된 복셀은 '관측되지 않음'이지 '물체 아님'이 아니다. 깎아
-    버리면 visual hull 의 포함 성질이 깨진다. SPE3R 은 1,000 뷰 중 552 뷰에서
-    실루엣이 화면 테두리에 닿으므로 실제로 걸리는 조건이다.
-    """
-    R_true = 0.30
-    sphere = [scene.Sphere((0, 0, 0), R_true)]
-    # 초점거리를 키워 구가 화면을 넘치게 만든다.
-    tight = PinholeCamera(64, 64, 700.0)
-    poses = scene.orbit_poses(32, distance=5.0, seed=0)
-    masks = [scene.render_mask(tight, p, sphere) for p in poses]
-    assert all(m[0].any() or m[-1].any() or m[:, 0].any() or m[:, -1].any()
-               for m in masks), "이 테스트는 모든 뷰가 잘린 상황을 전제로 한다"
-
-    res = carving.carve(tight, masks, poses, bounds=0.5, resolution=48,
-                        mask_margin=0)
-    pts = carving.surface_points(res["occupancy"], res["centers"])
-    assert len(pts) > 0
-    # 느슨해지는 것은 괜찮지만 참 형상보다 작아지면 안 된다.
-    assert float(np.linalg.norm(pts, axis=1).max()) >= R_true
-
-
-def test_visual_hull_contains_true_shape(cam):
-    """visual hull 은 실제 형상을 포함한다 (원리적으로 항상 참).
-
-    복원 결과가 실제보다 작아지면 알고리즘이 틀린 것이다.
-    """
-    R_true = 0.3
-    sphere = [scene.Sphere((0, 0, 0), R_true)]
-    poses = scene.orbit_poses(24, distance=5.0, seed=4)
-    masks = [scene.render_mask(cam, p, sphere) for p in poses]
-
-    result = carving.carve(cam, masks, poses, bounds=0.5, resolution=48)
-    occ = result["occupancy"]
-    centers = result["centers"]
-
-    # 참 표면보다 확실히 안쪽에 있는 점들은 모두 채워져 있어야 한다.
-    inner = np.linalg.norm(centers, axis=-1) < R_true - 2 * result["spacing"]
-    assert occ[inner].all()
-
-
-def test_undersized_silhouette_erodes_shape_as_views_grow(cam):
-    """실루엣이 참 투영보다 작으면 뷰를 늘릴수록 복원이 나빠진다.
-
-    visual hull 은 실루엣이 참 투영을 '포함'해야 성립한다. 부족분은 시점마다
-    다른 방향을 향하므로, 시점을 더할수록 물체가 사방에서 깎여 나간다.
-    실제 SPE3R 마스크가 메시 투영보다 약 1 픽셀 작아 이 현상이 관측되었고,
-    carve() 의 mask_margin 기본값을 1 로 둔 근거가 된다.
-    """
-    R_true = 0.35
-    sphere = [scene.Sphere((0, 0, 0), R_true)]
-
-    def radius_after(n_views, margin):
-        poses = scene.orbit_poses(n_views, distance=5.0, seed=6)
-        masks = [scene.render_mask(cam, p, sphere) for p in poses]
-        res = carving.carve(cam, masks, poses, bounds=0.5, resolution=64,
-                            mask_margin=margin)
-        pts = carving.surface_points(res["occupancy"], res["centers"])
-        return float(np.linalg.norm(pts, axis=1).max()) if len(pts) else 0.0
-
-    # 실루엣을 1 픽셀 줄이면 뷰가 늘수록 반지름이 작아진다.
-    shrunk_few = radius_after(4, margin=-1)
-    shrunk_many = radius_after(32, margin=-1)
-    assert shrunk_many < shrunk_few
-
-    # 정확한 실루엣이면 뷰를 늘려도 참값 아래로 무너지지 않는다.
-    exact_many = radius_after(32, margin=0)
-    assert exact_many > R_true - 2 * (1.0 / 63)
-    assert exact_many > shrunk_many
-
-
-def test_surface_points_excludes_interior():
-    """표면 추출은 속이 빈 껍질만 남겨야 한다."""
-    occ = np.zeros((9, 9, 9), dtype=bool)
-    occ[2:7, 2:7, 2:7] = True
-    centers = carving.make_voxel_grid(1.0, 9)[0]
-
-    surface = carving.surface_points(occ, centers)
-    assert len(surface) == 5 ** 3 - 3 ** 3   # 껍질만 = 125 - 27
-
-
-def test_carving_rejects_mismatched_view_counts(cam, front_pose):
-    masks = [np.ones(cam.shape, dtype=bool)]
-    with pytest.raises(ValueError, match="수가 다릅니다"):
-        carving.carve(cam, masks, [front_pose, front_pose], bounds=0.5, resolution=8)
-
-
-def test_carving_rejects_empty_views(cam):
-    with pytest.raises(ValueError, match="시점이 하나도 없습니다"):
-        carving.carve(cam, [], [], bounds=0.5, resolution=8)
-
-
-def test_render_depth_matches_carved_geometry(cam, front_pose):
-    """복원한 점을 되쏘아 만든 깊이 맵이 물체 앞면 거리와 맞아야 한다."""
-    R_true = 0.35
-    pts_body = np.array([[0.0, 0.0, -R_true]])   # 카메라를 향한 최근접점
-    d = carving.render_depth(pts_body, front_pose, cam, fill_holes=False)
-
-    finite = np.isfinite(d)
-    assert finite.sum() == 1
-    assert d[finite][0] == pytest.approx(5.0 - R_true, abs=1e-9)
-
-
-# --------------------------------------------------------------------------
-# 4. 포인트 클라우드 입출력과 배경 처리
+# 3. 포인트 클라우드 — 변환과 입출력
 # --------------------------------------------------------------------------
 
 def test_background_excluded_from_pointcloud(cam, front_pose):
@@ -344,7 +205,7 @@ def test_normalize_scale_maps_to_unit_ball():
 
 
 # --------------------------------------------------------------------------
-# 5. 평가 지표
+# 4. 평가 지표
 # --------------------------------------------------------------------------
 
 def test_chamfer_is_zero_for_identical_clouds():
@@ -400,7 +261,7 @@ def test_mask_iou_bounds():
 
 
 # --------------------------------------------------------------------------
-# 6. 대조군(과제 예시 코드)의 실패 특성화
+# 5. 대조군(과제 예시 코드)의 실패 특성화
 # --------------------------------------------------------------------------
 
 def test_example_code_runs_and_keeps_shape():
@@ -490,7 +351,7 @@ def test_align_scale_shift_is_exact_for_affine_input():
 
 
 # --------------------------------------------------------------------------
-# 7. 경계 조건과 예외 처리
+# 6. 경계 조건과 예외 처리
 # --------------------------------------------------------------------------
 
 def test_unproject_rejects_none():
@@ -543,7 +404,7 @@ def test_infinite_depth_never_reaches_pointcloud(cam):
 
 
 # --------------------------------------------------------------------------
-# 8. 실제 데이터 연동 (SPE3R)
+# 7. 실제 데이터 연동 (SPE3R)
 # --------------------------------------------------------------------------
 
 @needs_spe3r

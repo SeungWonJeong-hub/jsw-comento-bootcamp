@@ -1,4 +1,4 @@
-"""2차 업무 발표자료(PPT 3페이지) 생성기.
+"""2차 업무 발표자료(PPT 4페이지) 생성기.
 
 1차 업무 자료와 같은 디자인 규격을 따른다.
     배경 #FAFAFA · 카드 흰색 + #EBEBEB 0.75pt 테두리 · 모서리 반경 0.125in
@@ -7,9 +7,11 @@
 수치는 outputs/metrics.json 에서 직접 읽는다. 실험을 다시 돌리면 발표자료도
 자동으로 갱신되므로 본문과 결과가 어긋날 일이 없다.
 
+생성물(.pptx)은 저장소에 커밋하지 않는다. 필요할 때 이 스크립트로 만든다.
+
 사용법
     py -3 run_3d_experiment.py
-    py -3 tools/build_report.py
+    py -3 tools/build_report.py [출력_폴더]
 """
 
 from __future__ import annotations
@@ -257,10 +259,16 @@ def build(prs, s):
     cov = s["surface_coverage"]
     cov_one = cov["stereo_single_pair"]
     cov_fuse = cov["multiview_stereo_fusion"]
-    cov_both = cov["stereo_plus_carving"]
-    carve = s["silhouette_carving"]
-    cdm = s["carved_depth_map"]
-    ov = s["coverage_overlap_carving_vs_stereo"]
+    fuse0 = cov_fuse["stages"][0]
+    fuse1 = cov_fuse["stages"][1]
+    blocks = s["block_size_ablation"]
+    blk_old = blocks[0]
+    blk_new = next(b for b in blocks
+                   if b["best_pair"]["valid_ratio"] == best["valid_ratio"])
+    inc = cov_fuse["incremental"]
+    top2 = sorted(inc, key=lambda r: -r["gain"])[:2]
+    top2_share = sum(r["gain"] for r in top2) / inc[-1]["cumulative_coverage"]
+    spread = cov_fuse["view_spread"]
     gap_ratio = bex["median_abs"] / best["median_abs"]
     ch_ratio = ch["target_to_pred"] / ch["pred_to_target"]
 
@@ -346,54 +354,55 @@ def build(prs, s):
     # ---------------- 3. 2D -> 3D 변환 결과 ----------------
     sl = new_slide(
         prs, 3, "03 / 2D → 3D 변환 결과",
-        f"깊이 맵으로 표면의 {cov_one['surface_coverage']*100:.0f}%, "
-        f"실루엣으로 {carve['surface_coverage']*100:.0f}% 를 복원했습니다",
-        "깊이를 재는 것은 스테레오뿐입니다 · 카빙은 물체가 없는 공간을 지우는 방식이라 "
-        "거리를 재지 않습니다 · 표면 커버리지는 정답 메시 40만 점 기준")
+        f"깊이 오차 중앙값 {best['median_abs']*100:.2f} cm, "
+        f"표면 커버리지는 1쌍 {cov_one['surface_coverage']*100:.0f}% → "
+        f"{cov_fuse['pairs_used']}쌍 융합 {fuse0['surface_coverage']*100:.0f}%",
+        "왼쪽부터 정답 · 1쌍 · 다중쌍 융합 · 과제 예시 코드 · "
+        "표면 커버리지는 정답 메시 40만 점 기준")
     add_image(sl, os.path.join(OUT, "04_pointclouds.png"), 0.72, 1.70, 11.89, 3.16)
     add_card(sl, 0.72, 5.02, 5.86, 1.86)
     add_text(sl, 0.98, 5.21, 5.34, 0.24, [("표면 커버리지", SANS_SB, 10.5, INK)])
-    add_matrix(sl, 0.98, 5.51, [1.95, 1.20, 0.95, 0.75], [
+    add_matrix(sl, 0.98, 5.51, [2.25, 1.05, 0.95, 0.75], [
         (("", "표면 덮음", "정밀도", "F"), "head"),
-        (("A 스테레오 (2장)", f"{cov_one['surface_coverage']*100:.1f}%",
-          f"{cov_one['precision']*100:.1f}%", f"{cov_one['f_score']*100:.0f}"), "body"),
-        (("B 카빙 (20뷰)", f"{carve['surface_coverage']*100:.1f}%",
-          f"{carve['precision']*100:.1f}%", f"{carve['f_score_002']*100:.0f}"), "key"),
-        (("A + B", f"{cov_both['surface_coverage']*100:.1f}%",
-          f"{cov_both['precision']*100:.1f}%",
-          f"{cov_both['f_score']*100:.0f}"), "body"),
+        ((f"1쌍 (영상 2장)", f"{cov_one['surface_coverage']*100:.1f}%",
+          f"{cov_one['precision']*100:.1f}%",
+          f"{cov_one['f_score']*100:.0f}"), "body"),
+        ((f"{cov_fuse['pairs_used']}쌍 융합", f"{fuse0['surface_coverage']*100:.1f}%",
+          f"{fuse0['precision']*100:.1f}%",
+          f"{fuse0['f_score']*100:.0f}"), "key"),
+        (("+ 일관성 필터", f"{fuse1['surface_coverage']*100:.1f}%",
+          f"{fuse1['precision']*100:.1f}%",
+          f"{fuse1['f_score']*100:.0f}"), "body"),
     ])
-    add_panel(sl, 6.96, 5.02, 5.65, 1.86, "합치지 않은 이유 — 겹침을 쟀습니다", [
-        k(f"A 가 덮는 것의 {ov['b_share_already_in_a']*100:.0f}% 는 B 도 덮습니다. "
-          f"고유 기여는 {ov['b_only']*100:.1f}%p."),
-        b(f"합치면 커버리지가 {ov['b_only']*100:.1f}%p 오르는 대신 정밀도가 "
-          f"{(carve['precision']-cov_both['precision'])*100:.1f}%p 깎입니다."),
+    add_panel(sl, 6.96, 5.02, 5.65, 1.86, "커버리지가 한계입니다 — 원인을 쟀습니다", [
+        b(f"유효화소 {best['valid_ratio']*100:.0f}% 는 보이는 실루엣 안에서만 잰 값입니다."),
+        b(f"뒷면은 단일 시점에서 원리적으로 안 보입니다."),
         gap(),
-        b("A 가 남는 이유는 성능이 아니라 입력입니다."),
-        b("B 는 실루엣 마스크가 없으면 아예 동작하지 않습니다."),
+        k(f"{cov_fuse['pairs_used']}쌍 중 상위 2쌍이 커버리지의 "
+          f"{top2_share*100:.0f}% 를 만듭니다."),
+        b(f"시점이 구면 {spread['sphere_cells_total']}칸 중 "
+          f"{spread['sphere_cells_filled']}칸에 뭉쳐 있습니다."),
     ])
     add_notes(sl, f"""
 2D 에서 3D 로의 변환 결과입니다. 네 장을 왼쪽부터 봐 주십시오.
 
-첫 번째가 정답 메시입니다. 두 번째가 경로 A, 영상 두 장으로 만든 스테레오 복원
-{cov_one['n_points']:,}점입니다. 정확합니다 — 깊이 오차 중앙값이 {best['median_abs']*100:.1f}센티미터입니다. 그런데
-정답과 비교해 보시면 한쪽 면만 있습니다. 표면의 {cov_one['surface_coverage']*100:.0f}퍼센트입니다.
+첫 번째가 정답 메시입니다. 두 번째가 영상 두 장으로 만든 스테레오 복원
+{cov_one['n_points']:,}점입니다. 정확합니다 — 깊이 오차 중앙값이 {best['median_abs']*100:.2f}센티미터,
+5센티미터 이내가 {best['within_5cm']*100:.0f}퍼센트입니다. 그런데 정답과 비교해 보시면
+한쪽 면만 있습니다. 표면의 {cov_one['surface_coverage']*100:.0f}퍼센트입니다.
 
 단일 시점이 뒷면을 못 보는 것은 알고리즘 문제가 아니라 원리 문제입니다. 그래서 시점을
-늘려 봤습니다. 쌍 선별 조건을 풀어 후보를 {cov_fuse['candidates']}쌍까지 늘리고 전부 융합해도
-{cov_fuse['stages'][0]['surface_coverage']*100:.0f}퍼센트에서 멈춥니다. {cov_fuse['candidates']}쌍 중 {cov_fuse['pairs_used']}쌍만 복원되기 때문입니다. 원인은 쌍 개수가
-아니라 무늬 부족이었습니다. 앞 장에서 조명을 뒤집었을 때와 같은 결론입니다.
+늘렸습니다. 쌍 선별 조건을 풀어 후보를 {cov_fuse['candidates']}쌍까지 늘리면 {cov_fuse['pairs_used']}쌍이 복원되고,
+융합하면 세 번째 그림처럼 {fuse0['surface_coverage']*100:.0f}퍼센트가 됩니다. 반대편이 채워지는 것이 보입니다.
 
-그래서 세 번째, 경로 B 를 함께 만들었습니다. 실루엣과 자세만으로 복셀을 깎는
-visual hull 입니다. 무늬가 필요 없으니 스테레오에 최악인 조건이 오히려 유리합니다.
-20뷰로 표면의 {carve['surface_coverage']*100:.0f}퍼센트를 덮습니다.
+대신 정밀도가 {cov_one['precision']*100:.0f}에서 {fuse0['precision']*100:.0f}퍼센트로 떨어집니다. 다중 뷰 일관성 필터를
+걸면 정밀도가 {fuse1['precision']*100:.0f}퍼센트로 회복되지만 커버리지가 {fuse1['surface_coverage']*100:.0f}퍼센트로 내려갑니다.
+정밀도와 커버리지를 동시에 얻을 수 없다는 것을 표에 그대로 적었습니다.
 
-두 경로의 약점이 상보적입니다. A 는 정확하지만 보이는 면만, B 는 전방위지만 실루엣의
-교집합이라 오목한 곳을 못 만듭니다. 합치면 {cov_both['surface_coverage']*100:.0f}퍼센트입니다.
-
-전제가 다르다는 점은 짚어 두겠습니다. B 는 정답 마스크와 정답 자세를 둘 다 씁니다.
-A 는 마스크 없이도 동작합니다. 그래서 이 표는 어느 쪽이 낫다는 뜻이 아니라, 덮는
-범위와 필요한 입력이 다른 두 경로라는 뜻입니다.
+왜 {fuse0['surface_coverage']*100:.0f}퍼센트에서 멈추는지도 쟀습니다. 쌍을 하나씩 더할 때 커버리지가 얼마나
+오르는지 기록했더니, {cov_fuse['pairs_used']}쌍 중 상위 두 쌍이 {top2_share*100:.0f}퍼센트를 만듭니다. 시점 간
+최대각은 {spread['max_angle_deg']:.0f}도로 넓어 보이지만 구면을 {spread['sphere_cells_total']}칸으로 나누면 {spread['sphere_cells_filled']}칸에만 있습니다.
+쌍이 부족한 것이 아니라 쓸 만한 쌍이 두어 개고 그 둘이 비슷한 데를 봅니다.
 
 맨 오른쪽은 과제 예시 코드입니다. X, Y 가 픽셀 인덱스이고 Z 가 0에서 255 밝기값이라
 세 축의 단위가 서로 다릅니다. 납작한 판으로 나옵니다.
@@ -402,46 +411,65 @@ A 는 마스크 없이도 동작합니다. 그래서 이 표는 어느 쪽이 �
     # ---------------- 4. 개선점 ----------------
     sl = new_slide(
         prs, 4, "04 / 개선점",
-        f"스테레오를 전방위로 밀어봤지만 {cov_fuse['stages'][0]['surface_coverage']*100:.0f}% 에서 멈춥니다",
-        "재 본 것만 적습니다 · 수치는 outputs/metrics.json 에 그대로 남습니다")
+        "합성 데이터로 고른 파라미터를 실데이터에서 다시 골랐습니다",
+        "재 본 것과 재 보지 않은 것을 구분합니다 · "
+        "수치는 outputs/metrics.json 에 그대로 남습니다")
     add_image(sl, os.path.join(OUT, "02_pair_survey.png"), 0.72, 1.70, 11.89, 3.16)
     add_card(sl, 0.72, 5.02, 5.86, 1.86)
     add_text(sl, 0.98, 5.21, 5.34, 0.24,
-             [("시차 탐색 범위를 좁히면 (최적 쌍)", SANS_SB, 10.5, INK)])
-    add_matrix(sl, 0.98, 5.51, [1.55, 1.35, 1.35], [
-        (("", "현재", "좁힘"), "head"),
-        (("유효화소", f"{narrow['current']['valid_ratio']*100:.1f}%",
-          f"{narrow['narrowed']['valid_ratio']*100:.1f}%"), "key"),
-        (("5cm 이내", f"{narrow['current']['within_5cm']*100:.1f}%",
-          f"{narrow['narrowed']['within_5cm']*100:.1f}%"), "body"),
+             [("정합 블록 크기를 다시 고르니 (최적 쌍)", SANS_SB, 10.5, INK)])
+    add_matrix(sl, 0.98, 5.51, [1.85, 1.20, 1.20], [
+        (("", f"블록 {blk_old['block_size']}", f"블록 {blk_new['block_size']}"), "head"),
+        (("유효화소", f"{blk_old['best_pair']['valid_ratio']*100:.1f}%",
+          f"{blk_new['best_pair']['valid_ratio']*100:.1f}%"), "key"),
+        (("5cm 이내", f"{blk_old['best_pair']['within_5cm']*100:.1f}%",
+          f"{blk_new['best_pair']['within_5cm']*100:.1f}%"), "body"),
+        (("복원 성공 쌍", f"{blk_old['pairs_reconstructed']}",
+          f"{blk_new['pairs_reconstructed']}"), "body"),
     ])
-    add_panel(sl, 6.96, 5.02, 5.65, 1.86, "쌍을 늘려도 벽이 있습니다", [
-        b(f"후보를 {cov_fuse['candidates']}쌍으로 늘려도 {cov_fuse['pairs_used']}쌍만 복원됩니다."),
-        b("일관성 필터를 걸면 정밀도는 오르지만 커버리지가 무너집니다."),
+    add_panel(sl, 6.96, 5.02, 5.65, 1.86, "재 본 것 · 재 보지 않은 것", [
+        k("채택 — 블록 크기 3 → 11. 전 지표가 함께 올랐습니다."),
+        b(f"미채택 — 시차 범위 좁히기. 유효화소 "
+          f"{narrow['current']['valid_ratio']*100:.0f}→"
+          f"{narrow['narrowed']['valid_ratio']*100:.0f}% 대신 5cm 이내 "
+          f"{narrow['current']['within_5cm']*100:.0f}→"
+          f"{narrow['narrowed']['within_5cm']*100:.0f}%."),
         gap(),
-        k("원인은 쌍 개수가 아니라 무늬 부족입니다."),
-        b("그래서 전방위는 실루엣 기반으로 갔습니다 (앞 장)."),
+        b("재 보지 않음 — 시점 분산 기반 쌍 선별, 정렬 창 축소,"),
+        b("　신뢰도 출력, 쌍별 블록 크기."),
     ])
     add_notes(sl, f"""
-개선점입니다. 재 본 것만 적었습니다.
+개선점입니다. 재 본 것과 재 보지 않은 것을 나눠 적었습니다.
 
-가장 큰 약점은 유효화소 {best['valid_ratio']*100:.0f}퍼센트입니다. 나머지는 답을 내지 못한 것이지
-맞힌 것이 아닙니다. 앞 장의 정확도 수치는 전부 이 안에서 잰 값입니다.
+가장 크게 바꾼 것부터 말씀드리겠습니다. SGBM 의 블록 크기를 3으로 두고 있었는데,
+그 근거가 합성 장면의 RMSE 였습니다. 합성 장면은 무늬가 넉넉해서 어떤 블록이든
+대응이 잡히고, 그 조건에서는 작은 블록이 기울어진 면을 덜 뭉갭니다. 그런데 실제
+위성 영상은 정반대입니다. 정합할 단서가 부족해서 작은 블록은 아예 대응을 못
+찾습니다.
 
-첫 번째 후보는 시차 탐색 범위입니다. 타겟의 경계 반지름을 알면 깊이가 어느 구간에
-있는지 알고, 따라서 시차도 그렇습니다. 최적 쌍에서 물리적으로 가능한 폭은 24픽셀인데
-지금은 144픽셀을 훑고 있습니다. 좁혀 보니 유효화소가 {narrow['current']['valid_ratio']*100:.0f}에서 {narrow['narrowed']['valid_ratio']*100:.0f}퍼센트로
-올랐습니다.
+후보 기하 스무 쌍을 고정해 두고 블록만 3에서 17까지 바꿔 다시 복원했습니다.
+11이 최적이었습니다. 오차 중앙값이 {blk_old['best_pair']['median_abs']*100:.2f}에서 {blk_new['best_pair']['median_abs']*100:.2f}센티미터,
+5센티미터 이내가 {blk_old['best_pair']['within_5cm']*100:.0f}에서 {blk_new['best_pair']['within_5cm']*100:.0f}퍼센트, 유효화소가
+{blk_old['best_pair']['valid_ratio']*100:.0f}에서 {blk_new['best_pair']['valid_ratio']*100:.0f}퍼센트가 됐고, 복원에 성공한 쌍도
+{blk_old['pairs_reconstructed']}개에서 {blk_new['pairs_reconstructed']}개로 늘었습니다. 더 키우면 유효화소만 오르고 정확도는
+다시 나빠지니, 격자의 끝이 아니라 안쪽에서 고른 값입니다.
 
-그런데 공짜가 아닙니다. 다른 쌍에서는 커버리지만 오르고 정확도가 떨어집니다. 탐색
-후보가 줄면 uniquenessRatio 검사를 통과하기 쉬워져서, 원래는 기각됐을 애매한 대응이
-살아남기 때문입니다. 트레이드오프라 기본값으로 채택하지 않고 측정값만 남겼습니다.
+교훈은 값 자체가 아니라 절차라고 생각합니다. 합성 데이터로 고른 하이퍼파라미터를
+실데이터에 검증 없이 옮기면 안 됩니다. 두 데이터에서 병목이 다르기 때문입니다.
+합성 검증은 수식이 맞는지 확인하는 데 쓰고, 파라미터는 쓸 데이터에서 골라야 합니다.
 
-두 번째로 아직 안 해 본 것은 스테레오와 카빙을 화소 단위로 합치는 것입니다. 지금은
-두 점구름을 그냥 겹쳐 {cov_both['surface_coverage']*100:.0f}퍼센트를 얻는데, 정밀도가 {carve['precision']*100:.0f}에서
-{cov_both['precision']*100:.0f}퍼센트로 떨어집니다. 카빙이 만든 껍질 안쪽으로 스테레오 깊이를 밀어 넣어
-오목한 부분만 파는 방식이 표준인데, 그러면 둘의 장점만 취할 수 있습니다. 이건
-재 보지 않았습니다.
+두 번째는 시차 탐색 범위입니다. 타겟의 경계 반지름을 알면 시차가 어느 구간에 있는지
+압니다. 최적 쌍에서 물리적으로 가능한 폭은 {narrow['narrowed']['num_disparities']}픽셀인데 지금은
+{narrow['current']['num_disparities']}픽셀을 훑고 있습니다. 좁혀 보니 유효화소는 {narrow['current']['valid_ratio']*100:.0f}에서
+{narrow['narrowed']['valid_ratio']*100:.0f}퍼센트로 올랐는데, 5센티미터 이내가 {narrow['current']['within_5cm']*100:.0f}에서
+{narrow['narrowed']['within_5cm']*100:.0f}퍼센트로 떨어졌습니다. 탐색 후보가 줄면 uniqueness 검사를 통과하기
+쉬워져서 원래는 기각됐을 애매한 대응이 살아남기 때문입니다. 트레이드오프라
+채택하지 않고 측정값만 남겼습니다.
+
+재 보지 않은 것도 적었습니다. 앞 장에서 시점이 구면 {spread['sphere_cells_total']}칸 중 {spread['sphere_cells_filled']}칸에 뭉쳐
+있다고 말씀드렸는데, 쌍 선별 기준을 시점 분산 쪽으로 바꾸면 같은 쌍 수로 더 넓게
+덮을 수 있을 것으로 봅니다. 그 외에 정렬 창을 타겟 경계 상자로 더 좁히는 것,
+신뢰도를 함께 내보내는 것, 블록 크기를 쌍마다 고르는 것이 남아 있습니다.
 
 위 그림은 쌍별 결과입니다. 베이스라인이 크다고 정확한 것이 아니고, 커버리지와
 정확도가 함께 가지도 않는다는 것이 보입니다.
@@ -464,8 +492,9 @@ def main() -> int:
     prs.slide_height = Inches(7.5)
     build(prs, summary)
 
-    os.makedirs(REPORT, exist_ok=True)
-    out = os.path.join(REPORT, "2차업무_정승원.pptx")
+    dest = sys.argv[1] if len(sys.argv) > 1 else REPORT
+    os.makedirs(dest, exist_ok=True)
+    out = os.path.join(dest, "2차업무_정승원.pptx")
     prs.save(out)
     print(f"저장 완료 -> {out}  ({TOTAL_PAGES} 슬라이드)")
     return 0

@@ -28,7 +28,7 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import figures  # noqa: E402
-from src import (baseline, carving, depth as depth_mod, metrics, pointcloud,  # noqa: E402
+from src import (baseline, depth as depth_mod, metrics, pointcloud,  # noqa: E402
                  scene, stereo)
 from src.camera import PinholeCamera, Pose, quaternion_to_rotation  # noqa: E402
 from src.spe3r import SPE3RModel  # noqa: E402
@@ -151,48 +151,6 @@ def surface_coverage(pred_body, mesh_points, threshold: float = 0.02) -> dict:
             "surface_coverage": recall, "precision": precision, "f_score": f}
 
 
-def coverage_overlap(a_body, b_body, mesh_points, threshold: float = 0.02) -> dict:
-    """두 복원이 정답 표면의 어느 부분을 각각/함께 덮는지 나눈다.
-
-    총계만 보면 "합치면 오른다" 로 보이지만, 겹치는 부분이 대부분이면 두 번째
-    방법이 실제로 더하는 것은 거의 없다. "약점이 상보적" 이라는 말을 쓰려면
-    겹치지 않는 부분이 얼마나 되는지를 재야 한다.
-
-    겹치지 않는 부분이 어디인지도 함께 본다. 상대의 표면에서 멀고 그 안쪽이면
-    오목한 부분일 가능성이 크다 - visual hull 이 원리적으로 못 만드는 곳이다.
-    """
-    from scipy.spatial import cKDTree
-
-    gt, center, scale = pointcloud.normalize_scale(mesh_points)
-    a = (np.asarray(a_body, dtype=np.float64) - center) / scale
-    b = (np.asarray(b_body, dtype=np.float64) - center) / scale
-    d_a, _ = cKDTree(a).query(gt, k=1)
-    d_b, _ = cKDTree(b).query(gt, k=1)
-    ca, cb = d_a < threshold, d_b < threshold
-    only_b = cb & ~ca
-
-    out = {
-        "threshold": threshold, "n_gt": int(len(gt)),
-        "a_only": float((ca & ~cb).mean()), "b_only": float(only_b.mean()),
-        "both": float((ca & cb).mean()), "neither": float((~ca & ~cb).mean()),
-        "b_share_already_in_a": float((ca & cb).sum() / max(1, cb.sum())),
-        "a_misses_recovered_by_b": float(only_b.sum() / max(1, (~ca).sum())),
-    }
-    if only_b.sum():
-        # b 만 덮은 점이 a 의 표면에서 얼마나 떨어져 있나, 그리고 안쪽인가.
-        tree = cKDTree(a)
-        _, idx = tree.query(gt[only_b], k=1)
-        cen = gt.mean(axis=0)
-        inside = (np.linalg.norm(gt[only_b] - cen, axis=1)
-                  < np.linalg.norm(a[idx] - cen, axis=1))
-        out.update({
-            "b_only_dist_to_a_median": float(np.median(d_a[only_b])),
-            "gt_dist_to_a_median": float(np.median(d_a)),
-            "b_only_inside_a_ratio": float(inside.mean()),
-        })
-    return out
-
-
 def run_multiview_fusion(model, mesh_points, target_radius,
                          max_rotation_deg: float = 12.0,
                          min_lateral_ratio: float = 1.5) -> dict:
@@ -284,71 +242,8 @@ def run_multiview_fusion(model, mesh_points, target_radius,
     return {"candidates": len(geos), "pairs_used": len(clouds),
             "max_rotation_deg": max_rotation_deg,
             "min_lateral_ratio": min_lateral_ratio, "stages": stages,
-            "incremental": incremental, "view_spread": spread}
-
-
-def carved_depth_map(carved_points, pair, pose):
-    """복셀 카빙으로 만든 3D 표면을 정렬된 왼쪽 카메라로 되쏘아 깊이 맵을 만든다.
-
-    과제는 "깊이맵 생성 및 변환과정" 을 요구한다. 스테레오는 깊이 맵이 먼저 나오고
-    3D 가 뒤따르지만, 카빙은 3D 가 먼저 나오므로 깊이 맵을 따로 만들어야 한다.
-    이것을 안 하면 경로 B 는 깊이 맵을 거치지 않는 셈이 된다.
-
-    reconstruct() 와 같은 좌표계로 돌려주어야 화소 단위로 비교할 수 있다. 정렬
-    회전 R1 을 자세에 미리 합쳐서 넘긴다.
-
-        p_rect = R1 (R_i p_body + t_i) = (R1 R_i) p_body + R1 t_i
-
-    splat 을 주는 이유는 복셀 중심을 투영하면 표면이 성기게 찍혀 화면에 구멍이
-    생기기 때문이다. 복셀 한 변이 화소보다 크면 splat 없이도 메워지지만, 해상도를
-    올리면 반대가 된다.
-    """
-    rect_pose = Pose(R=pair.R1 @ pose.R, t=pair.R1 @ pose.t)
-    return carving.render_depth(carved_points, rect_pose, pair.camera,
-                                fill_holes=True, splat=1)
-
-
-def run_carving(model, mesh_points, num_views: int = 20, resolution: int = 128) -> dict:
-    """실루엣 기반 전방위 복원 (visual hull).
-
-    단일 시점 스테레오는 뒷면을 원리적으로 못 본다. 과제가 영상 장수를 정해 주지
-    않았으므로 전방위로 가는 것도 범위 안이고, 실제로 그렇게 해야 "3D 복원" 이라고
-    말할 수 있다. 실루엣과 자세만으로 동작하므로 무늬가 없어도 되고, 시점을 늘리면
-    닫힌 표면이 나온다.
-
-    스테레오와 약점이 상보적이다. 스테레오는 정확하지만 앞면만 보고, 카빙은
-    전방위지만 오목한 부분을 원리적으로 복원하지 못한다.
-    """
-    vertices, _ = model.load_mesh()
-    views = model.select_views(num_views, seed=0)
-    masks = [model.load_mask(v) for v in views]
-    poses = [model.pose(v) for v in views]
-
-    res = carving.carve(model.camera, masks, poses,
-                        bounds=carving.bounds_from_mesh(vertices),
-                        resolution=resolution)
-    pts = carving.surface_points(res["occupancy"], res["centers"])
-    if len(pts) == 0:
-        return {"num_views": num_views, "resolution": resolution, "n_points": 0}
-
-    # Chamfer 는 정규화 좌표계에서 잰다 (SPE3R 논문과 같은 정의). 정규화 기준은
-    # 예측이 아니라 정답 메시로 잡는다. 예측의 자기 크기로 맞추면 균일하게
-    # 부푼 복원이 다시 줄어들어 실제보다 좋게 나온다.
-    gt, center, scale = pointcloud.normalize_scale(mesh_points)
-    pred = (pts - center) / scale
-    ch = metrics.chamfer_distance(pred, gt, norm=1)
-    f = metrics.f_score(pred, gt, threshold=0.02)
-    return {
-        "_points": pts,
-        "num_views": num_views, "resolution": resolution,
-        "n_points": int(len(pts)), "kept_ratio": res["kept_ratio"],
-        "surface_coverage": f["recall"],
-        "chamfer_l1": ch["chamfer"],
-        "chamfer_pred_to_gt": ch["pred_to_target"],
-        "chamfer_gt_to_pred": ch["target_to_pred"],
-        "f_score_002": f["f_score"],
-        "precision": f["precision"], "recall": f["recall"],
-    }
+            "incremental": incremental, "view_spread": spread,
+            "_points": allp}
 
 
 def reference_sensitivity(model, mesh_points, best, vertices, faces) -> dict:
@@ -468,7 +363,54 @@ def disparity_range_ablation(model, results) -> list:
     return rows
 
 
-def evaluate_pair(model, geo, mesh_points, target_radius, erode_px=2):
+def block_size_ablation(model, geos, mesh_points, target_radius,
+                        sizes=(3, 5, 7, 9, 11, 13, 15, 17)) -> list:
+    """SGBM 정합 블록 크기를 실데이터에서 고른 근거 (stereo.DEFAULT_BLOCK_SIZE).
+
+    처음 기본값은 3 이었다. **합성 장면**에서 RMSE 가 가장 낮았기 때문이다.
+    합성 장면은 무늬가 충분해 어느 블록이든 정합이 되고, 그때는 작은 블록이
+    기울어진 면을 덜 뭉갠다. 실제 위성 영상은 반대다 - 정합할 단서가 부족해서
+    작은 블록은 아예 대응을 못 찾는다.
+
+    "합성에서 고른 값이 실데이터에서도 최선인가" 는 검증되지 않은 가정이었다.
+    후보 기하 전체를 고정해 두고 블록만 바꿔 다시 복원한다. 기본값이 바뀌어도
+    비교 대상이 흔들리지 않게 `results` 가 아니라 `geos` 에서 출발한다.
+
+    블록을 키우면 정확도가 커버리지와 맞바뀌는지 보이도록, 복원에 성공한 쌍
+    수와 그 쌍들을 융합한 표면 커버리지까지 함께 남긴다.
+    """
+    rows = []
+    for bs in sizes:
+        rs = [r for r in (evaluate_pair(model, g, mesh_points, target_radius,
+                                        block_size=bs) for g in geos)
+              if r is not None]
+        if not rs:
+            continue
+        clouds = [r["_pair"].to_body(r["_out"]["points"], model.pose(r["i"]))
+                  for r in rs]
+        cov = surface_coverage(np.vstack(clouds), mesh_points)
+        best = min(rs, key=lambda r: r["median_abs"])
+        rows.append({
+            "block_size": bs,
+            "candidates": len(geos), "pairs_reconstructed": len(rs),
+            "median_abs_mean": float(np.mean([r["median_abs"] for r in rs])),
+            "within_5cm_mean": float(np.mean([r["within_5cm"] for r in rs])),
+            "valid_ratio_mean": float(np.mean([r["valid_ratio"] for r in rs])),
+            "best_pair": {"i": best["i"], "j": best["j"],
+                          "median_abs": best["median_abs"],
+                          "within_5cm": best["within_5cm"],
+                          "valid_ratio": best["valid_ratio"],
+                          "rmse": best["rmse"]},
+            "fused_surface_coverage": cov["surface_coverage"],
+            "fused_precision": cov["precision"],
+            "fused_f_score": cov["f_score"],
+            "fused_points": cov["n_points"],
+        })
+    return rows
+
+
+def evaluate_pair(model, geo, mesh_points, target_radius, erode_px=2,
+                  block_size=stereo.DEFAULT_BLOCK_SIZE):
     """뷰 쌍 하나에 대해 스테레오 복원을 수행하고 기준 깊이와 비교한다.
 
     두 가지 표준 후처리를 적용하고, 적용 전후를 모두 기록한다.
@@ -499,14 +441,15 @@ def evaluate_pair(model, geo, mesh_points, target_radius, erode_px=2):
     out = stereo.reconstruct(pair, model.load_image(i, grayscale=True),
                              model.load_image(j, grayscale=True),
                              mask=silhouette > 0, distance=d0,
-                             depth_range=(d0 - target_radius, d0 + target_radius))
+                             depth_range=(d0 - target_radius, d0 + target_radius),
+                             block_size=block_size)
     # 이상치 필터의 효과만 분리하려면 나머지 조건이 전부 같아야 한다. 침식과
     # depth_range 까지 함께 빼면 필터가 아니라 그 셋의 합을 재게 된다.
     raw = stereo.reconstruct(pair, model.load_image(i, grayscale=True),
                              model.load_image(j, grayscale=True),
                              mask=silhouette > 0, distance=d0,
                              depth_range=(d0 - target_radius, d0 + target_radius),
-                             postfilter=False)
+                             postfilter=False, block_size=block_size)
 
     ref = stereo.reference_depth(pair, model.pose(i), mesh_points)
     mask = out["mask"] if out["mask"] is not None else np.isfinite(ref)
@@ -538,6 +481,7 @@ def evaluate_pair(model, geo, mesh_points, target_radius, erode_px=2):
         "depth_resolution_m_per_px": stereo.depth_resolution(
             d0, pair.focal, pair.baseline),
         "_pair": pair, "_out": out, "_ref": ref, "_mask": mask, "_raw": raw,
+        "_silhouette": silhouette > 0,
         "_depth_range": (d0 - target_radius, d0 + target_radius),
     }
 
@@ -556,7 +500,7 @@ def run_spe3r(model, mesh_points, target_radius):
                if r is not None]
     log(f"  복원 성공 {len(results)}쌍")
     if not results:
-        return [], None
+        return geos, [], None
 
     results.sort(key=lambda r: r["median_abs"])
     good = [r for r in results if r["median_abs"] < 0.10]
@@ -565,14 +509,14 @@ def run_spe3r(model, mesh_points, target_radius):
         log(f"    img{r['i']+1:06d}/img{r['j']+1:06d}  {r['rotation_deg']:5.2f}deg  "
             f"B={r['baseline_m']:.3f} m  med={r['median_abs']:.4f} m  "
             f"<5cm {r['within_5cm']*100:5.1f}%  cov {r['valid_ratio']*100:5.1f}%")
-    return results, results[0]
+    return geos, results, results[0]
 
 
 def run_example_code(model, best):
     """과제 예시 코드를 같은 정렬 좌표계에서 돌려 동일 기준으로 비교한다.
 
     채점 화소를 두 가지로 나눠 보고한다. 스테레오는 정합에 실패한 화소를
-    NaN 으로 버리므로(최적 쌍에서 60.2%), 대조군을 실루엣 전체에서 채점하면
+    NaN 으로 버리므로(최적 쌍에서 80.8%), 대조군을 실루엣 전체에서 채점하면
     두 방법이 서로 다른 화소에서 채점되는 셈이 된다. 스테레오만 어려운
     화소를 빼고 채점받는 비교는 성립하지 않는다.
 
@@ -641,7 +585,7 @@ def main() -> int:
     target_radius = pointcloud.bounding_radius(vertices)
     log(f"  타겟 경계 반지름 {target_radius:.4f} m (메시에서 유도, 여유 5%)")
 
-    results, best = run_spe3r(model, mesh_points, target_radius)
+    geos, results, best = run_spe3r(model, mesh_points, target_radius)
     if best is None:
         log("복원 가능한 쌍이 없습니다.")
         return 1
@@ -707,14 +651,13 @@ def main() -> int:
             f"{r['valid_ratio']*100:8.1f}%")
     log("  샘플 수는 수렴했고, splat 과 침식량은 쌍마다 최적이 달라 고르지 않는다.")
 
-    log("\n[6] 표면을 얼마나 덮었는가 — 전방위 복원")
+    log("\n[6] 표면을 얼마나 덮었는가")
     log("  유효화소는 '보이는 실루엣 안에서 값이 나온 비율' 이고, 표면 커버리지는")
-    log("  '타겟 표면 전체 중 복원된 비율' 이다. 3D 복원이라면 뒤쪽을 봐야 한다.")
+    log("  '타겟 표면 전체 중 복원된 비율' 이다. 단일 시점은 뒷면을 원리적으로")
+    log("  못 보므로 유효화소가 100% 여도 이 값은 절반을 넘지 못한다.")
     cov_single = surface_coverage(stereo_body, mesh_points)
     fusion = run_multiview_fusion(model, mesh_points, target_radius)
-    carved = run_carving(model, mesh_points)
-    combined = surface_coverage(np.vstack([stereo_body, carved["_points"]]),
-                                mesh_points)
+    fusion_points = fusion.pop("_points")
 
     log(f"  {'':32s}{'점 수':>9s}{'정밀도':>9s}{'표면 커버리지':>13s}{'F':>8s}")
 
@@ -722,29 +665,9 @@ def main() -> int:
         log(f"  {tag:32s}{r['n_points']:9,d}{r['precision']*100:8.1f}%"
             f"{r['surface_coverage']*100:12.1f}%{r['f_score']*100:8.1f}")
 
-    cov_line("스테레오 1쌍 (과제 지정 경로)", cov_single)
+    cov_line("1쌍 (과제 지정 경로)", cov_single)
     for st in fusion["stages"]:
-        cov_line(f"스테레오 {fusion['pairs_used']}쌍 · {st['filter']}", st)
-    cov_line(f"실루엣 카빙 {carved['num_views']}뷰", {
-        "n_points": carved["n_points"], "precision": carved["precision"],
-        "surface_coverage": carved["surface_coverage"],
-        "f_score": carved["f_score_002"]})
-    cov_line("스테레오 + 카빙", combined)
-
-    # "약점이 상보적" 이라는 말을 쓰려면 겹치지 않는 부분을 재야 한다.
-    ov = coverage_overlap(carved["_points"], stereo_body, mesh_points)
-    log(f"  겹침을 나눠 보면 — 카빙만 {ov['a_only']*100:.1f}% · 둘 다 "
-        f"{ov['both']*100:.1f}% · 스테레오만 {ov['b_only']*100:.1f}% · "
-        f"둘 다 못 덮음 {ov['neither']*100:.1f}%")
-    log(f"  스테레오가 덮는 것의 {ov['b_share_already_in_a']*100:.0f}% 는 카빙도 덮는다. "
-        f"고유 기여는 {ov['b_only']*100:.1f}%p 다.")
-    if "b_only_inside_a_ratio" in ov:
-        log(f"  그 {ov['b_only']*100:.1f}%p 는 카빙이 가장 크게 빗나간 곳이다 "
-            f"(카빙 표면까지 거리 중앙값 {ov['b_only_dist_to_a_median']:.4f}, "
-            f"전체 평균 {ov['gt_dist_to_a_median']:.4f}). 그중 "
-            f"{ov['b_only_inside_a_ratio']*100:.0f}% 가 hull 안쪽 = 오목한 부분이다.")
-    log(f"  카빙이 놓친 곳의 {ov['a_misses_recovered_by_b']*100:.0f}% 를 스테레오가 메운다.")
-    log("  상보성은 실재하지만 규모가 작다. 이 타겟이 대체로 볼록하기 때문이다.")
+        cov_line(f"{fusion['pairs_used']}쌍 융합 · {st['filter']}", st)
     log(f"  후보를 회전 {fusion['max_rotation_deg']:.0f}도까지 풀어 "
         f"{fusion['candidates']}쌍을 훑어도 {fusion['pairs_used']}쌍만 복원된다.")
     inc = fusion["incremental"]
@@ -760,30 +683,30 @@ def main() -> int:
     log(f"  시점 간 최대각 {sp['max_angle_deg']:.0f}도인데 구면 "
         f"{sp['sphere_cells_total']}칸 중 {sp['sphere_cells_filled']}칸에만 있다. "
         f"넓어 보여도 한쪽에 뭉쳐 있다.")
-    log("  쌍 개수가 아니라 무늬 부족이 벽이다 (6-1절과 같은 결론).")
+    log("  그래서 벽은 '쌍이 모자라서' 가 아니다. 쓸 만한 쌍이 두어 개고 그")
+    log("  둘이 비슷한 데를 본다. 남은 커버리지는 쌍을 더 모아서가 아니라")
+    log("  시점 배치와 정합 설정에서 나온다 ([7] 절).")
 
-    # 경로 B 도 깊이 맵을 거쳐야 과제의 "깊이맵 생성" 을 충족한다. 카빙 결과를
-    # 최적 쌍과 같은 시점·같은 채점 영역으로 되쏘아 같은 지표로 비교한다.
-    carved_depth = carved_depth_map(carved["_points"], best["_pair"],
-                                    model.pose(best["i"]))
-    m_carved = metrics.depth_metrics(carved_depth, best["_ref"], mask=best["_mask"])
-    carved_depth_metrics = {
-        "rmse": m_carved["rmse"], "median_abs": m_carved["median_abs"],
-        "within_5cm": within(carved_depth, best["_ref"], best["_mask"]),
-        "valid_ratio": m_carved["valid_ratio"],
-    }
-    log(f"\n  같은 시점·같은 채점 영역에서 두 경로의 깊이 맵을 비교하면")
-    log(f"  {'':24s}{'RMSE':>9s}{'중앙값':>10s}{'<5cm':>9s}{'유효화소':>9s}")
-    log(f"  {'A 스테레오 깊이 맵':24s}{best['rmse']:9.4f}{best['median_abs']:10.4f}"
-        f"{best['within_5cm']*100:8.1f}%{best['valid_ratio']*100:8.1f}%")
-    log(f"  {'B 카빙 → 깊이 맵':24s}{carved_depth_metrics['rmse']:9.4f}"
-        f"{carved_depth_metrics['median_abs']:10.4f}"
-        f"{carved_depth_metrics['within_5cm']*100:8.1f}%"
-        f"{carved_depth_metrics['valid_ratio']*100:8.1f}%")
-    log("  카빙 쪽이 모든 지표에서 낫다. visual hull 의 앞면이 참 표면보다 앞에")
-    log("  놓이는데(실측 평균 2.5 mm 앞, 화소의 74.9%), 이 타겟은 이 시점에서")
-    log("  거의 볼록해 그 차이가 작다. 다만 입력량이 다르다 - A 는 영상 2장과")
-    log("  자세 2개, B 는 마스크 20장과 자세 20개다. 같은 조건의 비교가 아니다.")
+    log("\n[7] 정합 블록 크기를 실데이터에서 다시 고른 근거")
+    blocks = block_size_ablation(model, geos, mesh_points, target_radius)
+    log("  처음 기본값은 3 이었다. 합성 장면 RMSE 가 가장 낮았기 때문이다.")
+    log("  같은 후보 기하 위에서 블록만 바꿔 다시 복원하면 그림이 뒤집힌다.")
+    log(f"  {'블록':>4s}{'복원쌍':>7s}{'최적쌍 중앙값':>14s}{'<5cm':>8s}"
+        f"{'유효화소':>9s}{'융합 커버리지':>14s}{'정밀도':>9s}")
+    for bl in blocks:
+        bp = bl["best_pair"]
+        mark = " <- 채택" if bl["block_size"] == stereo.DEFAULT_BLOCK_SIZE else ""
+        log(f"  {bl['block_size']:4d}{bl['pairs_reconstructed']:7d}"
+            f"{bp['median_abs']:14.5f}{bp['within_5cm']*100:7.1f}%"
+            f"{bp['valid_ratio']*100:8.1f}%"
+            f"{bl['fused_surface_coverage']*100:13.1f}%"
+            f"{bl['fused_precision']*100:8.1f}%{mark}")
+    log(f"  후보 {blocks[0]['candidates']}쌍 고정. 융합 커버리지는 이 후보만 쓴 값이라")
+    log("  [6] 의 121쌍 융합과는 다른 집합이다. 블록끼리의 비교만 읽으면 된다.")
+    log("  11 에서 5cm 이내 비율이 최고이고 중앙값도 사실상 최저다. 더 키우면")
+    log("  유효화소만 오르고 정확도는 다시 나빠진다. 격자 끝이 아니라 안쪽이다.")
+    log("  합성으로 고른 하이퍼파라미터를 실데이터에 검증 없이 옮기면 안 된다는")
+    log("  뜻이다. 두 데이터에서 병목이 서로 다르기 때문이다.")
 
     log("\n그림 생성")
     figures.figure_concept(best, os.path.join(OUT, "00_concept.png"))
@@ -792,15 +715,18 @@ def main() -> int:
     best["_example_median"] = ex["full"]["median_abs"]
     figures.figure_spe3r(best, ex_depth, os.path.join(OUT, "03_spe3r_stereo.png"))
     figures.figure_pointclouds(
-        mesh_points, stereo_body, carved["_points"], ex_cloud,
+        mesh_points, stereo_body, fusion_points, ex_cloud,
         os.path.join(OUT, "04_pointclouds.png"),
-        coverage={"stereo": cov_single["surface_coverage"],
-                  "carving": carved["surface_coverage"]})
+        coverage={"single": cov_single["surface_coverage"],
+                  "fusion": fusion["stages"][0]["surface_coverage"],
+                  "pairs": fusion["pairs_used"]})
 
     log("PLY 저장")
     pointcloud.write_ply(os.path.join(OUT, "pointcloud_ground_truth.ply"),
                          mesh_points[::13])
     pointcloud.write_ply(os.path.join(OUT, "pointcloud_stereo.ply"), stereo_body)
+    pointcloud.write_ply(os.path.join(OUT, "pointcloud_stereo_fusion.ply"),
+                         fusion_points)
     pointcloud.write_ply(os.path.join(OUT, "pointcloud_example_code.ply"),
                          pointcloud.normalize_scale(ex_cloud)[0])
 
@@ -834,13 +760,9 @@ def main() -> int:
         "best_pair_points": int(len(stereo_body)),
         "filter_ablation": ablation,
         "disparity_range_ablation": narrow,
-        "silhouette_carving": {kk: vv for kk, vv in carved.items()
-                               if not kk.startswith("_")},
-        "carved_depth_map": carved_depth_metrics,
-        "coverage_overlap_carving_vs_stereo": ov,
+        "block_size_ablation": blocks,
         "surface_coverage": {"stereo_single_pair": cov_single,
-                             "multiview_stereo_fusion": fusion,
-                             "stereo_plus_carving": combined},
+                             "multiview_stereo_fusion": fusion},
         "reference_sensitivity": sens,
     }
     with open(os.path.join(OUT, "metrics.json"), "w", encoding="utf-8") as f:

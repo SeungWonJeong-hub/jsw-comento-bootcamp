@@ -28,6 +28,10 @@ import numpy as np
 
 from .camera import PinholeCamera
 
+# SGBM 정합 블록 크기의 기본값. 근거는 compute_disparity() 의 설명에 있다.
+# 한 곳에서만 정하지 않으면 reconstruct() 의 기본값이 조용히 다른 값을 쓴다.
+DEFAULT_BLOCK_SIZE = 11
+
 
 def relative_pose(pose_i, pose_j):
     """뷰 i 카메라에서 뷰 j 카메라로 가는 상대 강체 변환.
@@ -254,13 +258,13 @@ def reference_depth(pair: "RectifiedPair", pose, points_body) -> np.ndarray:
     return pointcloud.zbuffer_depth(p_rect, pair.camera, splat=1, fill_holes=True)
 
 
-def compute_disparity(left, right, num_disparities: int, block_size: int = 3,
+def compute_disparity(left, right, num_disparities: int,
+                      block_size: int = DEFAULT_BLOCK_SIZE,
                       min_disparity: int = 0, uniqueness: int = 5) -> np.ndarray:
     """StereoSGBM 으로 시차 맵을 만든다. 매칭 실패는 NaN.
 
-    block_size 기본값을 3 으로 둔 근거
-        SGBM 은 블록 안에서 시차가 일정하다고 가정하므로, 블록이 클수록 기울어진
-        면에서 깊이가 뭉개진다. 정답 깊이가 있는 합성 장면에서 잰 값:
+    block_size 기본값을 11 로 둔 근거
+        처음에는 3 이었다. **합성 장면**에서 RMSE 가 가장 낮았기 때문이다.
 
             block  RMSE     중앙값   5cm이내  유효화소  복원 깊이 폭 (정답 0.898)
               3    0.0413   0.0105    95.4%    97.6%    0.915
@@ -268,8 +272,25 @@ def compute_disparity(left, right, num_disparities: int, block_size: int = 3,
               7    0.0543   0.0093    95.5%    99.0%    0.908
               9    0.0552   0.0092    95.6%    99.3%    0.903
 
-        블록이 커지면 유효 화소와 중앙값은 조금 좋아지지만 RMSE 는 나빠진다.
-        RMSE 가 가장 낮은 3 을 기본값으로 두되 차이는 크지 않다.
+        그런데 합성 장면은 무늬가 넉넉해서 어떤 블록이든 대응이 잡힌다. 그
+        조건에서는 작은 블록이 기울어진 면을 덜 뭉개니 3 이 이긴다. **실제
+        위성 영상은 정반대다.** 정합할 단서가 부족해서 작은 블록은 애초에
+        대응을 못 찾는다. 같은 쌍·같은 채점 영역에서 블록만 바꿔 재면
+        (run_3d_experiment.py 의 block_size_ablation, 최적 쌍 기준):
+
+            block  중앙값    5cm이내  유효화소
+              3    0.0089    91.6%    60.2%
+              7    0.0079    93.9%    72.2%
+             11    0.0074    95.5%    80.8%   <- 채택
+             13    0.0074    95.3%    83.5%
+             17    0.0077    94.3%    90.3%
+
+        11 은 5cm 이내 비율이 가장 높고 중앙값도 사실상 최저다. 더 키우면
+        유효화소만 오르고 정확도는 다시 나빠진다. 격자의 끝이 아니라 안쪽에서
+        고른 값이라 우연히 걸린 값이 아니다.
+
+        **교훈은 값 자체가 아니라 절차다.** 합성 데이터로 고른 하이퍼파라미터를
+        실데이터에 검증 없이 옮기면 안 된다. 두 데이터의 병목이 다르기 때문이다.
         uniquenessRatio 는 1~10 사이에서 결과가 거의 바뀌지 않아 5 를 유지한다.
 
     주의 — 성능은 파라미터보다 표면 무늬에 더 크게 좌우된다
@@ -393,7 +414,8 @@ def depth_resolution(depth: float, focal: float, baseline: float) -> float:
 
 def reconstruct(pair: "RectifiedPair", left, right, mask=None,
                 distance: float = None, disparity_margin: float = 1.6,
-                depth_range: tuple = None, postfilter: bool = True) -> dict:
+                depth_range: tuple = None, postfilter: bool = True,
+                block_size: int = DEFAULT_BLOCK_SIZE) -> dict:
     """정렬된 쌍에서 깊이 맵과 포인트 클라우드를 만든다.
 
     Parameters
@@ -405,6 +427,9 @@ def reconstruct(pair: "RectifiedPair", left, right, mask=None,
         쓰는 것은 아니지만 정답 자세에 의존하는 것은 맞다. 실제 상대항법이면
         추정 거리를 넣어야 한다. README 7절 한계에 함께 적었다.
     postfilter : filter_disparity() 로 이상치를 제거할지 여부.
+    block_size : SGBM 정합 블록 크기. 기본 3 은 합성 장면에서 고른 값이라
+        실데이터에 그대로 맞는다는 보장이 없다. 호출부에서 실측으로
+        비교할 수 있게 열어 둔다 (README 8절 개선점).
 
     Returns
     -------
@@ -422,7 +447,8 @@ def reconstruct(pair: "RectifiedPair", left, right, mask=None,
         num_disp = int(np.ceil(expected * disparity_margin / 16)) * 16
         num_disp = max(16, min(num_disp, 16 * ((pair.match_width - 16) // 16)))
 
-    disparity = compute_disparity(L, R, num_disparities=num_disp)
+    disparity = compute_disparity(L, R, num_disparities=num_disp,
+                                  block_size=block_size)
     if postfilter:
         disparity = filter_disparity(disparity)
     depth = disparity_to_depth(disparity, pair.focal, pair.baseline)
