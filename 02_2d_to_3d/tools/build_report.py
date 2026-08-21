@@ -346,10 +346,10 @@ def build(prs, s):
     # ---------------- 3. 2D -> 3D 변환 결과 ----------------
     sl = new_slide(
         prs, 3, "03 / 2D → 3D 변환 결과",
-        f"실루엣 카빙으로 타겟 표면의 {carve['surface_coverage']*100:.0f}% 를 복원했습니다",
-        "참고자료가 가리키는 스테레오부터 했지만 표면의 "
-        f"{cov_one['surface_coverage']*100:.0f}% 에서 멈춰 갈아탔습니다 · "
-        "정답 메시 40만 점 중 복원점이 2 cm 안에 있는 비율")
+        f"깊이 맵으로 표면의 {cov_one['surface_coverage']*100:.0f}%, "
+        f"실루엣으로 {carve['surface_coverage']*100:.0f}% 를 복원했습니다",
+        "깊이를 재는 것은 스테레오뿐입니다 · 카빙은 물체가 없는 공간을 지우는 방식이라 "
+        "거리를 재지 않습니다 · 표면 커버리지는 정답 메시 40만 점 기준")
     add_image(sl, os.path.join(OUT, "04_pointclouds.png"), 0.72, 1.70, 11.89, 3.16)
     add_card(sl, 0.72, 5.02, 5.86, 1.86)
     add_text(sl, 0.98, 5.21, 5.34, 0.24, [("표면 커버리지", SANS_SB, 10.5, INK)])
