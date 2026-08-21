@@ -483,7 +483,122 @@
           "precision": 0.7313540912382331,
           "f_score": 0.18260242805734553
         }
-      ]
+      ],
+      "incremental": [
+        {
+          "pair_index": 1,
+          "i": 949,
+          "j": 955,
+          "n_points": 941,
+          "cumulative_coverage": 0.0320625,
+          "gain": 0.0320625,
+          "alone": 0.0320625
+        },
+        {
+          "pair_index": 2,
+          "i": 305,
+          "j": 323,
+          "n_points": 312,
+          "cumulative_coverage": 0.0320625,
+          "gain": 0.0,
+          "alone": 0.0
+        },
+        {
+          "pair_index": 3,
+          "i": 723,
+          "j": 775,
+          "n_points": 53,
+          "cumulative_coverage": 0.0494825,
+          "gain": 0.017419999999999998,
+          "alone": 0.01742
+        },
+        {
+          "pair_index": 4,
+          "i": 438,
+          "j": 489,
+          "n_points": 168,
+          "cumulative_coverage": 0.051345,
+          "gain": 0.001862500000000003,
+          "alone": 0.0018625
+        },
+        {
+          "pair_index": 5,
+          "i": 369,
+          "j": 426,
+          "n_points": 1557,
+          "cumulative_coverage": 0.1075975,
+          "gain": 0.0562525,
+          "alone": 0.0590925
+        },
+        {
+          "pair_index": 6,
+          "i": 53,
+          "j": 216,
+          "n_points": 297,
+          "cumulative_coverage": 0.1311475,
+          "gain": 0.02355,
+          "alone": 0.02383
+        },
+        {
+          "pair_index": 7,
+          "i": 642,
+          "j": 778,
+          "n_points": 349,
+          "cumulative_coverage": 0.13488,
+          "gain": 0.0037324999999999997,
+          "alone": 0.0104875
+        },
+        {
+          "pair_index": 8,
+          "i": 527,
+          "j": 650,
+          "n_points": 518,
+          "cumulative_coverage": 0.14848,
+          "gain": 0.013600000000000001,
+          "alone": 0.01968
+        },
+        {
+          "pair_index": 9,
+          "i": 829,
+          "j": 983,
+          "n_points": 1324,
+          "cumulative_coverage": 0.239645,
+          "gain": 0.091165,
+          "alone": 0.10491
+        },
+        {
+          "pair_index": 10,
+          "i": 637,
+          "j": 783,
+          "n_points": 5711,
+          "cumulative_coverage": 0.4494225,
+          "gain": 0.2097775,
+          "alone": 0.2762125
+        },
+        {
+          "pair_index": 11,
+          "i": 285,
+          "j": 434,
+          "n_points": 529,
+          "cumulative_coverage": 0.47322,
+          "gain": 0.02379749999999997,
+          "alone": 0.04683
+        },
+        {
+          "pair_index": 12,
+          "i": 375,
+          "j": 592,
+          "n_points": 62,
+          "cumulative_coverage": 0.47322,
+          "gain": 0.0,
+          "alone": 0.0
+        }
+      ],
+      "view_spread": {
+        "max_angle_deg": 171.9257571121035,
+        "sphere_cells_filled": 10,
+        "sphere_cells_total": 32
+      }
     },
     "stereo_plus_carving": {
       "n_points": 15473,

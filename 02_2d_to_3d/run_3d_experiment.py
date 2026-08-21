@@ -168,6 +168,7 @@ def run_multiview_fusion(model, mesh_points, target_radius,
 
     geos = stereo.find_pairs(model, max_rotation_deg, min_lateral_ratio)
     clouds = []
+    used = []
     for g in geos:
         i, j = g["i"], g["j"]
         try:
@@ -190,6 +191,7 @@ def run_multiview_fusion(model, mesh_points, target_radius,
         if out["points"] is None or len(out["points"]) < 50:
             continue
         clouds.append(pair.to_body(out["points"], model.pose(i)))
+        used.append((i, j))
 
     if not clouds:
         return {"candidates": len(geos), "pairs_used": 0, "stages": []}
@@ -209,9 +211,38 @@ def run_multiview_fusion(model, mesh_points, target_radius,
         stages.append({"filter": f"다른 쌍 {need}개 이상이 확인 (반경 {radius})",
                        **surface_coverage(allp[keep], mesh_points)})
 
+    # 왜 47% 에서 멈추는지는 총계만 보면 알 수 없다. 쌍을 하나씩 더할 때
+    # 커버리지가 얼마나 오르는지를 함께 남긴다. "쌍이 12개나 되는데 왜" 가
+    # 아니라 "그 12개 중 실질적으로 몇 개가 일하는가" 가 답이기 때문이다.
+    incremental = []
+    prev = 0.0
+    for k in range(1, len(clouds) + 1):
+        cum = surface_coverage(np.vstack(clouds[:k]), mesh_points)["surface_coverage"]
+        alone = surface_coverage(clouds[k - 1], mesh_points)["surface_coverage"]
+        incremental.append({
+            "pair_index": k, "i": used[k - 1][0], "j": used[k - 1][1],
+            "n_points": int(len(clouds[k - 1])),
+            "cumulative_coverage": cum, "gain": cum - prev, "alone": alone,
+        })
+        prev = cum
+
+    # 시점이 방향을 얼마나 덮는지. 최대각만 보면 넓어 보이지만 한쪽에 뭉쳐
+    # 있을 수 있어, 구면을 균등 분할해 몇 칸이 채워지는지 함께 센다.
+    dirs = np.array([model.pose(i).R[:, 2] for i, _ in used])
+    rng = np.random.default_rng(0)
+    cells = rng.normal(size=(32, 3))
+    cells /= np.linalg.norm(cells, axis=1, keepdims=True)
+    filled = len({int(np.argmax(cells @ d)) for d in dirs})
+    spread = {
+        "max_angle_deg": float(np.degrees(np.arccos(
+            np.clip(dirs @ dirs.T, -1, 1))).max()),
+        "sphere_cells_filled": filled, "sphere_cells_total": len(cells),
+    }
+
     return {"candidates": len(geos), "pairs_used": len(clouds),
             "max_rotation_deg": max_rotation_deg,
-            "min_lateral_ratio": min_lateral_ratio, "stages": stages}
+            "min_lateral_ratio": min_lateral_ratio, "stages": stages,
+            "incremental": incremental, "view_spread": spread}
 
 
 def carved_depth_map(carved_points, pair, pose):
@@ -659,6 +690,19 @@ def main() -> int:
     cov_line("스테레오 + 카빙", combined)
     log(f"  후보를 회전 {fusion['max_rotation_deg']:.0f}도까지 풀어 "
         f"{fusion['candidates']}쌍을 훑어도 {fusion['pairs_used']}쌍만 복원된다.")
+    inc = fusion["incremental"]
+    top = sorted(inc, key=lambda r: -r["gain"])[:2]
+    log(f"  그 {fusion['pairs_used']}쌍 중에서도 상위 2쌍이 커버리지의 "
+        f"{sum(r['gain'] for r in top)/inc[-1]['cumulative_coverage']*100:.0f}% 를 만든다:")
+    for r in inc:
+        mark = " <<<" if r in top else ""
+        log(f"    {r['pair_index']:2d}쌍 누적  {r['cumulative_coverage']*100:5.1f}%"
+            f"  (+{r['gain']*100:4.1f}%p · 단독 {r['alone']*100:4.1f}%)"
+            f"  img{r['i']+1:06d}/img{r['j']+1:06d}{mark}")
+    sp = fusion["view_spread"]
+    log(f"  시점 간 최대각 {sp['max_angle_deg']:.0f}도인데 구면 "
+        f"{sp['sphere_cells_total']}칸 중 {sp['sphere_cells_filled']}칸에만 있다. "
+        f"넓어 보여도 한쪽에 뭉쳐 있다.")
     log("  쌍 개수가 아니라 무늬 부족이 벽이다 (6-1절과 같은 결론).")
 
     # 경로 B 도 깊이 맵을 거쳐야 과제의 "깊이맵 생성" 을 충족한다. 카빙 결과를
