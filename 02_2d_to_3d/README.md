@@ -43,14 +43,16 @@ pip install -r requirements.txt
 
 py -3 tools/get_spe3r_aqua.py          # 데이터 준비 (약 18 MB, 최초 1회)
 py -3 tools/verify_pose_convention.py  # 자세 규약 실측 검증
-py -3 -m pytest tests/ -v              # Unit Test 71개
+py -3 tools/save_test_report.py        # Unit Test 71개 → outputs/pytest_report.txt
 py -3 run_3d_experiment.py             # 실험 실행 → outputs/ (약 3분)
 py -3 tools/build_report.py [출력폴더]  # 발표자료 생성 (기본 report/)
 ```
 
 발표자료(.pptx)는 저장소에 커밋하지 않는다. 필요할 때 위 명령으로 만든다.
-`outputs/` 는 재실행해도 14개 산출물이 **바이트 단위로 동일**하다(로그에 시간·
-로컬 경로를 남기지 않고 모든 난수 seed를 고정했다).
+`outputs/` 는 재실행해도 14개 산출물이 **바이트 단위로 동일**하다. 로그에 걸린
+시간과 로컬 경로를 남기지 않고 모든 난수 seed를 고정했다. 테스트 결과도 같은
+이유로 `save_test_report.py` 가 걸린 시간을 지운 뒤 저장한다 — 그 한 줄 때문에
+파일이 매번 달라지면 "재현된다" 는 말이 반만 맞게 되기 때문이다.
 
 ## 2. 두 번째 시점을 어떻게 얻는가
 스테레오에는 시점이 2개 필요하다. 그런데 SPE3R의 포즈 라벨 1,000개를 측정해보면
@@ -552,6 +554,7 @@ tests/
 tools/
   get_spe3r_aqua.py         데이터셋 선택적 다운로드
   verify_pose_convention.py 자세 규약 실측 검증
+  save_test_report.py       테스트 실행 결과를 outputs/pytest_report.txt 로 저장
   build_report.py           발표자료 생성 (기본 report/, 인자로 폴더 지정 가능)
 run_3d_experiment.py        실험 실행기 (실험 로직만)
 figures.py                  결과 그림 생성 (상세 5장 + 발표용 2장)

@@ -61,6 +61,63 @@ def test_count() -> int:
     return int(hit.group(1)) if hit else 0
 
 
+def code_lines(name="test_relative_pose_maps_view_i_to_view_j"):
+    """테스트 파일에서 함수 하나를 원문 그대로 읽어 온다.
+
+    과제 요청이 "Unit Test 코드 및 실행 결과 문서화" 이므로 슬라이드에 코드를
+    직접 싣는다. 슬라이드에 손으로 옮겨 적으면 코드가 바뀌었을 때 조용히
+    어긋나므로 파일에서 읽는다.
+    """
+    path = os.path.join(ROOT, "tests", "test_stereo.py")
+    src = io.open(path, encoding="utf-8").read().splitlines()
+    start = next(i for i, l in enumerate(src) if l.startswith(f"def {name}("))
+    end = start + 1
+    while end < len(src) and not src[end].startswith("def "):
+        end += 1
+    while end > start and not src[end - 1].strip():
+        end -= 1
+    return src[start:end]
+
+
+def report_lines():
+    """pytest 실행 결과에서 슬라이드에 들어갈 만큼만 뽑는다.
+
+    전문은 outputs/pytest_report.txt 에 그대로 있다. 여기서는 파일별 통과 수와
+    테스트 이름 몇 개만 옮긴다. 이름을 고르는 기준은 '무엇을 검증하는지가
+    이름만 봐도 드러나는 것' 이다.
+    """
+    import re
+    from collections import Counter
+
+    path = os.path.join(OUT, "pytest_report.txt")
+    if not os.path.exists(path):
+        return ["outputs/pytest_report.txt 가 없습니다"]
+    text = io.open(path, encoding="utf-8", errors="replace").read()
+
+    hits = re.findall(r"^(\S+?\.py)::(\S+) PASSED", text, re.M)
+    per_file = Counter(f.split("/")[-1] for f, _ in hits)
+    names = {n.split("[")[0] for n in (x[1] for x in hits)}
+    total = re.search(r"(\d+) passed", text)
+
+    picked = [n for n in (
+        "test_disparity_to_depth_matches_formula",
+        "test_relative_pose_maps_view_i_to_view_j",
+        "test_brightness_depth_confuses_albedo_with_distance",
+        "test_vertical_reconstruct_returns_unrotated_maps",
+        "test_fit_window_keeps_geometry_and_contains_the_source",
+        "test_reference_depth_lands_in_the_same_frame_as_reconstruct",
+        "test_unlit_surfaces_break_matching",
+    ) if n in names]
+
+    out = [f"collected {len(hits)} items", ""]
+    for f, n in sorted(per_file.items()):
+        out.append(f"{f:<24s}{n:>3d} passed")
+    out += ["", "PASSED (발췌)"]
+    out += [f"  {n}" for n in picked]
+    out += ["  ...", "", f"{total.group(1) if total else '?'} passed"]
+    return out
+
+
 def set_font(run, name, size, color, bold=False, tracking=None):
     """글꼴을 지정한다. tracking 은 자간 [pt], 음수면 좁힌다.
 
@@ -226,6 +283,16 @@ def m(t):
     return (t, MONO, 9.5, BODY)
 
 
+def t(x):
+    """발표용 문장. 듣는 사람이 읽을 크기라 본문보다 한 단계 크다."""
+    return (x, SANS, 11, BODY)
+
+
+def tk(x):
+    """발표용 문장 중 결론."""
+    return (x, SANS_MD, 11, INK)
+
+
 def gap():
     return ("", SANS, 4, BODY)
 
@@ -236,19 +303,25 @@ def gap():
 def build(prs, s):
     """4 페이지. 과제 결과물 형식(업무.pdf p.16)에 맞춰 자리를 나눈다.
 
-        1. 방법          - 베이스라인이 없는 데이터에서 왜 스테레오가 되는가
+        1. 방법          - 카메라가 고정인데 어떻게 깊이를 재는가
         2. Unit Test     - 코드 및 실행 결과 문서화 (p.16 요구)
         3. 2D -> 3D 변환 - 변환 결과 이미지 첨부 (p.16 요구)
         4. 개선점        - 요청내용 3번 "개선점을 도출"
 
-    1 번을 뺄까 했지만 남긴다. 카메라 병진이 항상 (0, 0, Z) 인 데이터에서 왜
-    삼각측량이 성립하는지를 먼저 깔지 않으면 나머지 세 장이 읽히지 않는다.
+    쓰는 방침
+        한 장에 카드 두 개, 카드 하나에 문장 세 줄까지만 둔다. 발표에서 듣는
+        사람이 읽을 수 있는 양이 그 정도다. 자세한 수치와 근거는 README 와
+        metrics.json 에 있고 슬라이드는 그중 결론만 옮긴다.
+
+        전문 용어는 풀어 쓴다. '시차' 대신 '두 사진에서 밀린 거리', '정합'
+        대신 '같은 지점 찾기', 'blockSize' 대신 '오려서 비교하는 네모의
+        크기' 로 쓴다. 듣는 사람이 용어를 해석하는 동안 다음 문장을 놓친다.
+
+        그림은 한 장에 하나만 넣고, 4 장은 표만 둔다.
     """
     syn = s["synthetic_validation"]
     ss = syn["stereo"]
-    sur = s["spe3r_pair_survey"]
     best = s["best_pair"]
-    ch = s["best_pair_chamfer"]
     tc = test_count()
     # 대조군은 스테레오가 값을 낸 화소에서만 채점한 'common' 을 쓴다. 실루엣
     # 전체에서 채점한 'full' 과 나란히 놓으면 두 방법이 서로 다른 화소에서
@@ -260,277 +333,250 @@ def build(prs, s):
     cov_one = cov["stereo_single_pair"]
     cov_fuse = cov["multiview_stereo_fusion"]
     fuse0 = cov_fuse["stages"][0]
-    fuse1 = cov_fuse["stages"][1]
     blocks = s["block_size_ablation"]
     blk_old = blocks[0]
-    blk_new = next(b for b in blocks
-                   if b["best_pair"]["valid_ratio"] == best["valid_ratio"])
-    inc = cov_fuse["incremental"]
-    top2 = sorted(inc, key=lambda r: -r["gain"])[:2]
-    top2_share = sum(r["gain"] for r in top2) / inc[-1]["cumulative_coverage"]
-    spread = cov_fuse["view_spread"]
+    blk_new = next(x for x in blocks
+                   if x["best_pair"]["valid_ratio"] == best["valid_ratio"])
     gap_ratio = bex["median_abs"] / best["median_abs"]
-    ch_ratio = ch["target_to_pred"] / ch["pred_to_target"]
 
     # ---------------- 1. 방법 ----------------
     sl = new_slide(
         prs, 1, "01 / 방법",
-        "카메라가 고정이어도 타겟이 돌면 스테레오가 된다",
-        "SPE3R aqua · 위성 근접 영상 1,000장 · 256×256 · Stanford SLAB · CC BY-NC-SA 4.0")
+        "카메라는 그대로인데, 위성이 돌아서 깊이를 쟀습니다",
+        "SPE3R 위성 근접 영상 1,000장 · 256×256 · Stanford SLAB")
     add_image(sl, os.path.join(OUT, "00_concept.png"), 0.72, 1.70, 11.89, 3.16)
-    add_panel(sl, 0.72, 5.02, 5.86, 1.86, "왜 시점이 두 개 필요한가", [
-        b("영상 한 장은 깊이를 잃습니다. 한 시선 위의 모든 점이"),
-        b("같은 화소에 맺히기 때문입니다."),
-        gap(),
-        k("SPE3R은 카메라가 제자리에 고정돼 있습니다."),
-        k("대신 타겟이 매 프레임 무작위로 회전합니다."),
+    add_panel(sl, 0.72, 5.02, 5.86, 1.86, "왜 사진이 두 장 필요한가", [
+        t("사진 한 장으로는 멀고 가까움을 알 수 없습니다."),
+        t("사람도 눈이 둘이라 거리를 느낍니다."),
+        t("떨어진 두 곳에서 찍으면 가까운 것일수록 많이 밀립니다."),
     ])
-    add_panel(sl, 6.96, 5.02, 5.65, 1.86, "파이프라인 5단계", [
-        b("① 쌍 선별 — 회전 8° 이내, 옆으로 움직인 쌍만"),
-        b("② 정렬 — cv2.stereoRectify 로 에피폴라선을 가로로"),
-        b("③ 시차 — cv2.StereoSGBM 으로 가로 이동량 d 탐색"),
-        k("④ 깊이 맵 — Z = f · B / d"),
-        k("⑤ 포인트 클라우드 — X = (u−cx)·Z/f,  Y = (v−cy)·Z/f"),
+    add_panel(sl, 6.96, 5.02, 5.65, 1.86, "그런데 이 데이터는 카메라가 고정입니다", [
+        t("옆으로 1 mm 도 움직이지 않습니다."),
+        tk("대신 위성이 매 장면 무작위로 돌아갑니다."),
+        t(f"그 각도 차이가 두 번째 눈이 됩니다. 옆에서 "
+          f"{best['baseline_m']*100:.0f} cm 떨어져 찍은 효과입니다."),
     ])
     add_notes(sl, f"""
-영상 한 장으로는 깊이를 알 수 없습니다. 한 시선 위의 점이 전부 같은 화소에 맺히기
-때문입니다. 그래서 시점이 두 개 필요합니다.
+사진 한 장으로는 멀고 가까움을 알 수 없습니다. 한 방향으로 늘어선 점들이 전부 같은
+자리에 찍히기 때문입니다. 사람도 눈이 둘이라 거리를 느끼는 것과 같습니다. 그래서
+서로 다른 위치에서 찍은 사진이 두 장 필요합니다. 가까운 것일수록 두 사진 사이에서
+많이 밀리는데, 그 밀린 정도로 거리를 계산합니다.
 
-그런데 이 데이터셋은 카메라가 제자리에 고정돼 있습니다. 포즈 라벨 1,000개를 재보니
-병진이 항상 0, 0, Z 입니다. 옆으로 1밀리미터도 움직이지 않습니다. 교과서대로면
-여기서 삼각측량은 불가능합니다.
+그런데 이 데이터셋은 카메라가 제자리에 고정돼 있습니다. 위치 값 천 개를 확인해 보니
+옆으로 1밀리미터도 움직이지 않습니다. 교과서대로면 여기서는 이 방법을 쓸 수 없습니다.
 
-삼각측량에 필요한 것은 카메라의 절대 운동이 아니라 카메라와 타겟 사이의 상대
-운동입니다. 이 데이터셋은 타겟이 매 프레임 무작위로 회전하므로, 타겟을 고정으로 놓고
-보면 카메라가 궤도를 돈 것과 같습니다. 두 뷰의 상대 자세를 계산하면 베이스라인이
-드러납니다. 회전 {best['rotation_deg']:.2f}도, 거리 {best['distance_m']:.2f}미터인 쌍에서 유효 베이스라인
-{best['baseline_m']:.3f}미터를 얻었습니다.
+핵심은 카메라가 움직였느냐가 아니라, 카메라와 위성 사이의 관계가 달라졌느냐입니다.
+이 데이터셋은 위성이 매 장면 무작위로 돌아갑니다. 위성을 가만히 놓고 보면 카메라가
+그 주위를 돈 것과 같습니다. 두 장의 각도 차이를 계산하면 옆에서
+{best['baseline_m']*100:.0f}센티미터 떨어져 찍은 것과 같은 효과가 나옵니다.
+회전 {best['rotation_deg']:.1f}도짜리 사진 쌍에서 나온 값입니다.
 
-이것을 cv2.stereoRectify 에 넣으면 평행 정렬된 쌍이 되어 표준 SGBM 을 그대로 쓸 수
-있습니다. 시차 1픽셀이 깊이 {best['depth_resolution_m_per_px']*100:.1f}센티미터에 해당합니다.
+그 다음은 교과서 그대로입니다. 두 사진을 나란히 펴고, 같은 지점이 옆으로 얼마나
+밀렸는지 찾고, 그 값으로 거리를 계산합니다. 1픽셀 차이가
+{best['depth_resolution_m_per_px']*100:.1f}센티미터에 해당합니다.
 """)
 
     # ---------------- 2. Unit Test ----------------
+    # 과제 요청은 "Unit Test 코드 및 실행 결과 문서화" 다. 설계 설명만 적으면
+    # 요구를 반만 채우므로, 실제 테스트 코드 한 조각과 실제 실행 결과를 그대로
+    # 싣는다. 둘 다 파일에서 읽어 오므로 코드가 바뀌면 슬라이드도 따라간다.
     sl = new_slide(
         prs, 2, "02 / Unit Test",
-        "출력 크기와 자료형만 보면 수식이 틀려도 통과합니다",
-        f"pytest {tc}개 · 손으로 풀 수 있는 조건을 만들어 수치까지 대조 · "
-        "실행 결과는 outputs/pytest_report.txt 에 저장")
-    add_image(sl, os.path.join(OUT, "01_synthetic_validation_slide.png"),
-              0.72, 1.70, 11.89, 3.16)
-    add_panel(sl, 0.72, 5.02, 5.86, 1.86, "정답 깊이에 오차가 없는 조건을 만든다", [
-        b("구와 직육면체로 위성을 세우면 광선과 도형의 교차를"),
-        b("손으로 풀 수 있습니다. 정답에 렌더링 오차가 0 이므로"),
-        b("남는 오차는 전부 정합 알고리즘에서 온 것입니다."),
-        gap(),
-        k(f"정답 깊이 폭 {syn['gt_span_m']:.3f} m → 스테레오 {ss['span_m']:.3f} m "
-          f"/ 과제 예시 {se['span_m']:.3f} m"),
-    ])
-    add_panel(sl, 6.96, 5.02, 5.65, 1.86, f"{tc}개를 다섯 갈래로", [
-        b("해석해 — Z = f·B/d 를 1e-12 까지 대조"),
-        b("불변식 — B와 d를 함께 2배 하면 Z 는 그대로"),
-        b("실패 특성화 — 같은 거리라도 반사율이 다르면 4배 다른 깊이"),
-        b("경계 조건 — 시차 0(무한원점), None 입력, 크기 불일치"),
-        k("회귀 — 실제로 찾은 버그를 다시 나지 않게 고정"),
+        "크기와 자료형만 확인하면, 식이 틀려도 통과합니다",
+        "실제 테스트 코드와 실행 결과 · tests/ · outputs/pytest_report.txt")
+
+    add_card(sl, 0.72, 1.70, 7.35, 3.30)
+    add_text(sl, 0.98, 1.89, 6.83, 0.24, [
+        ("테스트 코드 — tests/test_stereo.py", SANS_SB, 10.5, INK)])
+    add_text(sl, 0.98, 2.24, 6.83, 0.22, [
+        ("1장에서 말한 '돌아간 각도가 두 번째 눈이 된다' 를 식으로 확인합니다",
+         SANS, 10, MUTED)])
+    add_text(sl, 0.98, 2.58, 6.83, 2.30,
+             [(x, MONO, 9.5, BODY) for x in code_lines()], spacing=1.3)
+
+    add_card(sl, 8.31, 1.70, 4.30, 3.30)
+    add_text(sl, 8.57, 1.89, 3.78, 0.24, [
+        ("실행 결과 — pytest", SANS_SB, 10.5, INK)])
+    add_text(sl, 8.57, 2.24, 3.78, 0.22, [
+        ("걸린 시간만 지우고 그대로 저장합니다", SANS, 10, MUTED)])
+    add_text(sl, 8.57, 2.58, 3.78, 2.20,
+             [(x, MONO, 8.5, BODY) for x in report_lines()], spacing=1.2)
+
+    add_panel(sl, 0.72, 5.18, 11.89, 1.64, "왜 이렇게 짰나", [
+        t("공과 상자로 위성을 세우면 정답 거리를 식으로 구할 수 있습니다. "
+          "정답에 오차가 없으니, 틀린 만큼이 곧 알고리즘의 오차입니다."),
+        t("그래서 '그림이 그럴듯한가' 가 아니라 '숫자가 맞는가' 로 확인합니다. "
+          f"정답 깊이 차이 {syn['gt_span_m']:.2f} m 를 저희는 {ss['span_m']:.2f} m 로, "
+          f"과제 예시 코드는 {se['span_m']:.3f} m 로 복원했습니다."),
+        tk(f"이번에 찾은 버그 4건은 전부 테스트가 없던 자리에서 나왔습니다. "
+           f"고친 뒤 일부러 되돌려 그 테스트가 진짜 실패하는지까지 확인했습니다."),
     ])
     add_notes(sl, f"""
-과제 예시의 테스트는 출력 크기와 자료형만 확인합니다. 그것만으로는 수식이 틀려도
-통과합니다. 그래서 손으로 풀 수 있는 조건을 만들어 수치까지 대조했습니다.
+과제 예시의 테스트는 결과의 크기와 자료형만 확인합니다. 그것만으로는 계산식이 틀려도
+통과합니다. 그래서 정답을 손으로 풀 수 있는 조건을 만들어 숫자까지 맞춰 봤습니다.
 
-구와 직육면체로 위성을 세우면 광선과 도형의 교차를 해석적으로 풀 수 있습니다.
-정답 깊이에 렌더링 오차가 전혀 없으니, 남는 오차는 전부 정합 알고리즘에서 온
-것입니다.
+왼쪽이 실제 테스트 코드 한 조각입니다. 앞 장에서 카메라는 고정인데 위성이 돌아서
+두 번째 눈이 생긴다고 말씀드렸는데, 그 말이 진짜인지 확인하는 테스트입니다. 위성에
+찍힌 점 200개를 두 장면의 좌표로 각각 옮겨 놓고, 저희가 계산한 각도 차이로 한쪽을
+다른 쪽으로 옮겼을 때 정확히 겹치는지를 봅니다. 소수점 열두 자리까지 맞아야
+통과합니다.
 
-그림 세 장을 같은 색 범위로 놓았습니다. 왼쪽이 정답 깊이인데 태양전지판 양 끝이
-{syn['gt_span_m']:.2f}미터 차이 납니다. 가운데 스테레오가 그 차이를 {ss['span_m']:.2f}미터로 되살립니다.
-오른쪽 과제 예시 코드는 {se['span_m']:.3f}미터, 사실상 평면 하나입니다.
+오른쪽이 실행 결과입니다. 테스트 {tc}개가 전부 통과합니다. 이 파일은 outputs 폴더에
+그대로 저장돼 있습니다. 걸린 시간만 지웠는데, 실행할 때마다 달라지는 값이라 결과
+파일이 매번 바뀌는 것을 막기 위해서입니다.
 
-테스트는 네 갈래로 시작했습니다. 해석해 대조, 불변식, 실패 특성화, 경계 조건입니다.
-여기에 회귀 갈래를 하나 더 붙였습니다. 파이프라인을 검토하면서 실제로 버그를 여러 건
-찾았고 전부 테스트가 없던 영역에서 나왔기 때문입니다. 고친 뒤에는 수정을 일부러
-되돌려 해당 테스트가 실제로 실패하는지까지 확인했습니다.
+아래가 왜 이렇게 짰는지입니다. 공과 상자로 위성 모양을 세우면 거리를 식으로 정확히
+구할 수 있습니다. 정답에 오차가 전혀 없으니 틀린 만큼이 곧 알고리즘의 오차입니다.
+정답 깊이 차이 {syn['gt_span_m']:.2f}미터를 저희는 {ss['span_m']:.2f}미터로 되살렸고,
+과제 예시 코드는 {se['span_m']:.3f}미터, 사실상 납작한 판 하나였습니다.
+
+테스트는 크게 세 가지를 봅니다. 식이 맞는지, 틀린 방법이 왜 틀리는지, 그리고 한 번 난
+버그가 다시 나지 않는지입니다. 마지막이 중요했습니다. 이번에 버그를 네 건 찾았는데
+전부 테스트가 없던 자리에서 나왔습니다. 고친 뒤에는 일부러 다시 망가뜨려서 그 테스트가
+진짜로 실패하는지까지 확인했습니다.
 """)
 
     # ---------------- 3. 2D -> 3D 변환 결과 ----------------
     sl = new_slide(
         prs, 3, "03 / 2D → 3D 변환 결과",
-        f"깊이 오차 중앙값 {best['median_abs']*100:.2f} cm, "
-        f"표면 커버리지는 1쌍 {cov_one['surface_coverage']*100:.0f}% → "
-        f"{cov_fuse['pairs_used']}쌍 융합 {fuse0['surface_coverage']*100:.0f}%",
-        "왼쪽부터 정답 · 1쌍 · 다중쌍 융합 · 과제 예시 코드 · "
-        "표면 커버리지는 정답 메시 40만 점 기준")
+        "앞면은 정확하고, 뒷면이 비어 있습니다",
+        "왼쪽부터 정답 · 사진 2장 · 사진 여러 장 · 과제 예시 코드")
     add_image(sl, os.path.join(OUT, "04_pointclouds.png"), 0.72, 1.70, 11.89, 3.16)
-    add_card(sl, 0.72, 5.02, 5.86, 1.86)
-    add_text(sl, 0.98, 5.21, 5.34, 0.24, [("표면 커버리지", SANS_SB, 10.5, INK)])
-    add_matrix(sl, 0.98, 5.51, [2.25, 1.05, 0.95, 0.75], [
-        (("", "표면 덮음", "정밀도", "F"), "head"),
-        ((f"1쌍 (영상 2장)", f"{cov_one['surface_coverage']*100:.1f}%",
-          f"{cov_one['precision']*100:.1f}%",
-          f"{cov_one['f_score']*100:.0f}"), "body"),
-        ((f"{cov_fuse['pairs_used']}쌍 융합", f"{fuse0['surface_coverage']*100:.1f}%",
-          f"{fuse0['precision']*100:.1f}%",
-          f"{fuse0['f_score']*100:.0f}"), "key"),
-        (("+ 일관성 필터", f"{fuse1['surface_coverage']*100:.1f}%",
-          f"{fuse1['precision']*100:.1f}%",
-          f"{fuse1['f_score']*100:.0f}"), "body"),
+    add_card(sl, 0.72, 5.02, 4.30, 1.86)
+    add_text(sl, 0.98, 5.21, 3.78, 0.24, [("결과", SANS_SB, 10.5, INK)])
+    add_matrix(sl, 0.98, 5.60, [2.34, 1.44], [
+        (("거리 오차 (중앙값)", f"{best['median_abs']*100:.2f} cm"), "key"),
+        (("5 cm 안에 든 비율", f"{best['within_5cm']*100:.1f}%"), "key"),
+        (("겉면을 덮은 비율 · 2장", f"{cov_one['surface_coverage']*100:.1f}%"), "body"),
+        ((f"겉면을 덮은 비율 · {cov_fuse['pairs_used']}쌍",
+          f"{fuse0['surface_coverage']*100:.1f}%"), "body"),
     ])
-    add_panel(sl, 6.96, 5.02, 5.65, 1.86, "커버리지가 한계입니다 — 원인을 쟀습니다", [
-        b(f"유효화소 {best['valid_ratio']*100:.0f}% 는 보이는 실루엣 안에서만 잰 값입니다."),
-        b(f"뒷면은 단일 시점에서 원리적으로 안 보입니다."),
-        gap(),
-        k(f"{cov_fuse['pairs_used']}쌍 중 상위 2쌍이 커버리지의 "
-          f"{top2_share*100:.0f}% 를 만듭니다."),
-        b(f"시점이 구면 {spread['sphere_cells_total']}칸 중 "
-          f"{spread['sphere_cells_filled']}칸에 뭉쳐 있습니다."),
+    add_panel(sl, 5.26, 5.02, 7.35, 1.86, "이렇게 읽어 주십시오", [
+        t(f"거리는 정확합니다. 과제 예시 코드보다 {gap_ratio:.1f}배 정확합니다."),
+        tk("대신 한 시점에서는 뒷면이 안 보입니다. 알고리즘이 부족한 것이 아니라 "
+           "가려서 안 보이는 것입니다."),
+        t(f"사진을 더 모아 {cov_fuse['pairs_used']}쌍을 합치면 반대편이 채워져 "
+          f"{fuse0['surface_coverage']*100:.0f}% 가 되지만, 대신 정확도가 떨어집니다."),
     ])
     add_notes(sl, f"""
-2D 에서 3D 로의 변환 결과입니다. 네 장을 왼쪽부터 봐 주십시오.
+2D 사진에서 3D 로 바꾼 결과입니다. 네 장을 왼쪽부터 봐 주십시오.
 
-첫 번째가 정답 메시입니다. 두 번째가 영상 두 장으로 만든 스테레오 복원
-{cov_one['n_points']:,}점입니다. 정확합니다 — 깊이 오차 중앙값이 {best['median_abs']*100:.2f}센티미터,
-5센티미터 이내가 {best['within_5cm']*100:.0f}퍼센트입니다. 그런데 정답과 비교해 보시면
-한쪽 면만 있습니다. 표면의 {cov_one['surface_coverage']*100:.0f}퍼센트입니다.
+첫 번째가 정답 모양입니다. 두 번째가 사진 두 장으로 만든 결과, 점
+{cov_one['n_points']:,}개입니다. 거리는 정확합니다. 오차 중앙값이
+{best['median_abs']*100:.2f}센티미터이고, 100번 중 {best['within_5cm']*100:.0f}번은
+5센티미터 안에 들어옵니다. 과제 예시 코드보다 {gap_ratio:.1f}배 정확합니다.
 
-단일 시점이 뒷면을 못 보는 것은 알고리즘 문제가 아니라 원리 문제입니다. 그래서 시점을
-늘렸습니다. 쌍 선별 조건을 풀어 후보를 {cov_fuse['candidates']}쌍까지 늘리면 {cov_fuse['pairs_used']}쌍이 복원되고,
-융합하면 세 번째 그림처럼 {fuse0['surface_coverage']*100:.0f}퍼센트가 됩니다. 반대편이 채워지는 것이 보입니다.
+그런데 정답과 비교해 보시면 한쪽 면만 있습니다. 위성 겉면 전체로 따지면
+{cov_one['surface_coverage']*100:.0f}퍼센트입니다. 알고리즘이 부족해서가 아니라, 한
+방향에서 보면 뒷면이 가려서 안 보이기 때문입니다. 아무리 잘 만들어도 절반을 넘길 수
+없습니다.
 
-대신 정밀도가 {cov_one['precision']*100:.0f}에서 {fuse0['precision']*100:.0f}퍼센트로 떨어집니다. 다중 뷰 일관성 필터를
-걸면 정밀도가 {fuse1['precision']*100:.0f}퍼센트로 회복되지만 커버리지가 {fuse1['surface_coverage']*100:.0f}퍼센트로 내려갑니다.
-정밀도와 커버리지를 동시에 얻을 수 없다는 것을 표에 그대로 적었습니다.
+그래서 사진을 더 모았습니다. 조건을 풀어 {cov_fuse['candidates']}쌍까지 후보를 늘리면
+{cov_fuse['pairs_used']}쌍이 복원되고, 다 합치면 세 번째 그림처럼
+{fuse0['surface_coverage']*100:.0f}퍼센트가 됩니다. 반대편이 채워지는 것이 보입니다.
+다만 공짜는 아닙니다. 정확한 점의 비율이 {cov_one['precision']*100:.0f}에서
+{fuse0['precision']*100:.0f}퍼센트로 떨어집니다. 넓게 덮는 것과 정확한 것을 동시에 얻을
+수는 없었습니다.
 
-왜 {fuse0['surface_coverage']*100:.0f}퍼센트에서 멈추는지도 쟀습니다. 쌍을 하나씩 더할 때 커버리지가 얼마나
-오르는지 기록했더니, {cov_fuse['pairs_used']}쌍 중 상위 두 쌍이 {top2_share*100:.0f}퍼센트를 만듭니다. 시점 간
-최대각은 {spread['max_angle_deg']:.0f}도로 넓어 보이지만 구면을 {spread['sphere_cells_total']}칸으로 나누면 {spread['sphere_cells_filled']}칸에만 있습니다.
-쌍이 부족한 것이 아니라 쓸 만한 쌍이 두어 개고 그 둘이 비슷한 데를 봅니다.
-
-맨 오른쪽은 과제 예시 코드입니다. X, Y 가 픽셀 인덱스이고 Z 가 0에서 255 밝기값이라
-세 축의 단위가 서로 다릅니다. 납작한 판으로 나옵니다.
+맨 오른쪽은 과제 예시 코드입니다. 가로세로는 픽셀 번호이고 높이가 밝기값이라 세 축의
+단위가 서로 다릅니다. 그래서 납작한 판으로 나옵니다.
 """)
 
     # ---------------- 4. 개선점 ----------------
     # 이 장은 그림을 넣지 않는다. 쌍별 산점도는 한 눈에 읽히지 않아 발표에서
-    # 설명이 그림을 따라가는 모양이 된다. 여기서 보여야 하는 것은 "블록만
-    # 바꿔 가며 잰 표" 하나이므로 표를 크게 놓는 편이 낫다.
+    # 설명이 그림을 따라가는 모양이 된다. 보여야 하는 것은 "설정 하나만 바꿔
+    # 가며 잰 표" 이므로 표를 크게 놓는 편이 낫다.
     sl = new_slide(
         prs, 4, "04 / 개선점",
-        "합성 데이터로 고른 파라미터를 실데이터에서 다시 골랐습니다",
-        "재 본 것과 재 보지 않은 것을 구분합니다 · "
-        "수치는 outputs/metrics.json 에 그대로 남습니다")
+        "가짜 영상에서 고른 설정을, 실제 영상에서 다시 골랐습니다",
+        "재 본 것과 아직 안 해 본 것을 나눠서 적었습니다")
 
-    # 좌상 — 블록 크기 실측표 (후보 기하 20쌍 고정, 블록만 변경)
-    add_card(sl, 0.72, 1.70, 7.35, 2.85)
-    add_text(sl, 0.98, 1.89, 6.83, 0.24, [
-        ("정합 블록 크기 — 후보 기하 20쌍을 고정하고 블록만 바꿔 다시 복원",
-         SANS_SB, 10.5, INK)])
-    add_matrix(sl, 0.98, 2.25, [1.20, 1.00, 1.28, 1.05, 1.10, 1.20], [
-        (("블록", "복원 쌍", "최적쌍 중앙값", "5cm 이내", "유효화소",
-          "20쌍 융합 커버리지"), "head"),
-    ] + [
-        ((f"{bl['block_size']}" + (" (기존)" if bl is blk_old else
-                                   " (채택)" if bl is blk_new else ""),
-          f"{bl['pairs_reconstructed']}",
-          f"{bl['best_pair']['median_abs']:.4f}",
-          f"{bl['best_pair']['within_5cm']*100:.1f}%",
-          f"{bl['best_pair']['valid_ratio']*100:.1f}%",
-          f"{bl['fused_surface_coverage']*100:.1f}%"),
-         "key" if bl is blk_new else "body")
-        for bl in blocks
+    add_panel(sl, 0.72, 1.70, 7.35, 2.85, "무엇이 문제였나", [
+        t("두 사진에서 같은 지점을 찾을 때, 주변을 네모나게 오려서 비교합니다."),
+        t("그 네모의 크기를 3으로 두고 있었습니다."),
+        gap(),
+        t("근거가 가짜(합성) 영상이었습니다. 가짜 영상은 무늬가 많아서"),
+        t("작은 네모로도 잘 찾아지고, 작을수록 경계가 선명합니다."),
+        gap(),
+        tk("실제 위성은 반대입니다. 무늬가 거의 없어 작은 네모로는 못 찾습니다."),
+        tk("실제 영상으로 3부터 17까지 다시 재서 11로 바꿨습니다."),
     ])
-    add_text(sl, 0.98, 4.20, 6.83, 0.22, [
-        ("11 에서 5cm 이내가 최고이고 중앙값도 사실상 최저 — 격자 끝이 아니라 안쪽",
-         SANS, 9.5, MUTED)])
-
-    # 우상 — 바꾼 뒤 최적 쌍이 어떻게 달라졌나
     add_card(sl, 8.31, 1.70, 4.30, 2.85)
     add_text(sl, 8.57, 1.89, 3.78, 0.24,
-             [("채택 — 블록 3 → 11", SANS_SB, 10.5, INK)])
-    add_matrix(sl, 8.57, 2.25, [1.66, 1.06, 1.06], [
-        (("최적 쌍", "블록 3", "블록 11"), "head"),
-        (("오차 중앙값", f"{blk_old['best_pair']['median_abs']:.4f}",
-          f"{blk_new['best_pair']['median_abs']:.4f}"), "key"),
-        (("RMSE", f"{blk_old['best_pair']['rmse']:.4f}",
-          f"{blk_new['best_pair']['rmse']:.4f}"), "body"),
-        (("5cm 이내", f"{blk_old['best_pair']['within_5cm']*100:.1f}%",
+             [("바꾼 뒤 (같은 사진, 같은 기준)", SANS_SB, 10.5, INK)])
+    add_matrix(sl, 8.57, 2.32, [1.70, 1.04, 1.04], [
+        (("", "전", "후"), "head"),
+        (("거리 오차", f"{blk_old['best_pair']['median_abs']*100:.2f} cm",
+          f"{blk_new['best_pair']['median_abs']*100:.2f} cm"), "key"),
+        (("5 cm 안", f"{blk_old['best_pair']['within_5cm']*100:.1f}%",
           f"{blk_new['best_pair']['within_5cm']*100:.1f}%"), "key"),
-        (("유효화소", f"{blk_old['best_pair']['valid_ratio']*100:.1f}%",
+        (("값이 나온 픽셀", f"{blk_old['best_pair']['valid_ratio']*100:.1f}%",
           f"{blk_new['best_pair']['valid_ratio']*100:.1f}%"), "key"),
-        (("복원 성공 쌍", f"{blk_old['pairs_reconstructed']}",
-          f"{blk_new['pairs_reconstructed']}"), "body"),
+        (("쓸 수 있는 쌍", f"{blk_old['pairs_reconstructed']}쌍",
+          f"{blk_new['pairs_reconstructed']}쌍"), "body"),
     ])
-    add_text(sl, 8.57, 3.75, 3.78, 0.70, [
-        ("모든 지표가 함께 올랐습니다.", SANS_MD, 10, INK),
-        ("합성 장면은 무늬가 넉넉해 작은 블록이 유리하지만,",
-         SANS, 10, BODY),
-        ("실제 영상은 단서가 부족해 정반대입니다.", SANS, 10, BODY),
+    add_text(sl, 8.57, 3.72, 3.78, 0.60, [
+        ("하나를 내주고 얻은 것이 아니라", SANS, 11, BODY),
+        ("전부 같이 좋아졌습니다.", SANS_MD, 11, INK),
     ])
 
-    # 좌하 — 재 봤지만 채택하지 않은 것
-    add_card(sl, 0.72, 4.72, 5.86, 2.10)
-    add_text(sl, 0.98, 4.91, 5.34, 0.24, [
-        ("미채택 — 시차 탐색 범위 좁히기 (최적 쌍)", SANS_SB, 10.5, INK)])
-    add_matrix(sl, 0.98, 5.27, [1.75, 1.30, 1.30], [
-        (("", f"0~{narrow['current']['num_disparities']} px",
-          f"{narrow['narrowed']['min_disparity']}~"
-          f"{narrow['narrowed']['min_disparity'] + narrow['narrowed']['num_disparities']} px"), "head"),
-        (("유효화소", f"{narrow['current']['valid_ratio']*100:.1f}%",
-          f"{narrow['narrowed']['valid_ratio']*100:.1f}%"), "key"),
-        (("5cm 이내", f"{narrow['current']['within_5cm']*100:.1f}%",
-          f"{narrow['narrowed']['within_5cm']*100:.1f}%"), "body"),
+    add_panel(sl, 0.72, 4.72, 5.86, 2.10, "해 봤지만 쓰지 않은 것", [
+        t("찾는 범위를 좁혀 봤습니다. 빈 곳은 줄어드는데"),
+        t(f"5 cm 안에 드는 비율이 {narrow['current']['within_5cm']*100:.1f}% 에서 "
+          f"{narrow['narrowed']['within_5cm']*100:.1f}% 로 떨어집니다."),
+        gap(),
+        tk("넓게 덮는 것과 정확한 것을 맞바꾸는 셈이라 그대로 뒀습니다."),
     ])
-    add_text(sl, 0.98, 6.06, 5.34, 0.60, [
-        ("커버리지와 정확도의 트레이드오프입니다. 탐색 후보가 줄면",
-         SANS, 10, BODY),
-        ("uniqueness 검사를 통과하기 쉬워져 애매한 대응이 살아납니다.",
-         SANS, 10, BODY),
+    add_panel(sl, 6.75, 4.72, 5.86, 2.10, "아직 안 해 본 것", [
+        tk("① 사진을 고를 때 보는 방향이 골고루 퍼지게 고르기"),
+        t("　지금은 한쪽에 몰려 있어, 같은 장수로 더 넓게 덮을 수 있습니다."),
+        t("② 화면에서 위성이 차지하는 부분만 잘라 더 크게 보기"),
+        t("③ 자신 없는 값을 버리지 말고 '자신 없음' 으로 표시해 남기기"),
     ])
-
-    # 우하 — 아직 재 보지 않은 것
-    add_panel(sl, 6.75, 4.72, 5.86, 2.10, "재 보지 않은 것 — 다음 순서", [
-        k(f"① 쌍 선별을 시점 분산 기준으로 (지금은 구면 "
-          f"{spread['sphere_cells_total']}칸 중 {spread['sphere_cells_filled']}칸)"),
-        b("② 정렬 창을 타겟 경계 상자로 한 번 더 좁히기"),
-        b("③ 좌우 일관성 검사 대신 신뢰도를 함께 내보내기"),
-        b("④ 블록 크기를 쌍마다 고르기 (15~17은 유효화소 90%)"),
-    ])
-
     add_notes(sl, f"""
-개선점입니다. 재 본 것과 재 보지 않은 것을 나눠 적었습니다.
+개선점입니다. 재 본 것과 아직 안 해 본 것을 나눠 적었습니다.
 
-가장 크게 바꾼 것부터 말씀드리겠습니다. SGBM 의 블록 크기를 3으로 두고 있었는데,
-그 근거가 합성 장면의 RMSE 였습니다. 합성 장면은 무늬가 넉넉해서 어떤 블록이든
-대응이 잡히고, 그 조건에서는 작은 블록이 기울어진 면을 덜 뭉갭니다. 그런데 실제
-위성 영상은 정반대입니다. 정합할 단서가 부족해서 작은 블록은 아예 대응을 못
-찾습니다.
+가장 크게 바꾼 것부터 말씀드리겠습니다. 두 사진에서 같은 지점을 찾을 때, 점 하나만
+보면 어디가 어딘지 알 수 없어서 그 주변을 네모나게 오려서 통째로 비교합니다. 그
+네모의 크기를 3으로 두고 있었습니다.
 
-왼쪽 표가 그것을 재 본 것입니다. 후보 기하 스무 쌍을 고정해 두고 블록만 3에서
-17까지 바꿔 다시 복원했습니다. 11이 최적이었습니다. 오른쪽 표를 보시면 오차
-중앙값이 {blk_old['best_pair']['median_abs']*100:.2f}에서 {blk_new['best_pair']['median_abs']*100:.2f}센티미터, 5센티미터 이내가
-{blk_old['best_pair']['within_5cm']*100:.0f}에서 {blk_new['best_pair']['within_5cm']*100:.0f}퍼센트, 유효화소가 {blk_old['best_pair']['valid_ratio']*100:.0f}에서
-{blk_new['best_pair']['valid_ratio']*100:.0f}퍼센트가 됐고, 복원에 성공한 쌍도 {blk_old['pairs_reconstructed']}개에서 {blk_new['pairs_reconstructed']}개로 늘었습니다.
-어느 하나를 내주고 다른 하나를 얻은 것이 아니라 전부 함께 올랐습니다.
+문제는 그 3을 고른 근거가 가짜 영상이었다는 점입니다. 앞 장에서 보여 드린, 정답을
+손으로 풀 수 있는 합성 장면입니다. 그 영상은 무늬가 많아서 작은 네모로도 잘 찾아지고,
+작을수록 물체 경계가 선명하게 나옵니다. 그래서 3이 제일 좋았습니다.
 
-더 키우면 유효화소만 오르고 정확도는 다시 나빠집니다. 그래서 11은 격자의 끝이
-아니라 안쪽에서 고른 값입니다.
+그런데 실제 위성 영상은 정반대였습니다. 금속 표면이라 무늬가 거의 없어서, 작은
+네모로는 어디가 같은 지점인지 아예 못 찾습니다. 가짜 영상에서 고른 값을 실제 영상에
+그대로 쓰고 있었던 겁니다.
 
-교훈은 값 자체가 아니라 절차라고 생각합니다. 합성 데이터로 고른 하이퍼파라미터를
-실데이터에 검증 없이 옮기면 안 됩니다. 두 데이터에서 병목이 다르기 때문입니다.
-합성 검증은 수식이 맞는지 확인하는 데 쓰고, 파라미터는 쓸 데이터에서 골라야 합니다.
+그래서 사진 스무 쌍을 그대로 두고 네모 크기만 3부터 17까지 바꿔 가며 다시 재서 11을
+골랐습니다. 오른쪽 표가 그 결과입니다. 거리 오차가
+{blk_old['best_pair']['median_abs']*100:.2f}에서 {blk_new['best_pair']['median_abs']*100:.2f}센티미터,
+5센티미터 안에 드는 비율이 {blk_old['best_pair']['within_5cm']*100:.0f}에서
+{blk_new['best_pair']['within_5cm']*100:.0f}퍼센트, 값이 나온 픽셀이
+{blk_old['best_pair']['valid_ratio']*100:.0f}에서 {blk_new['best_pair']['valid_ratio']*100:.0f}퍼센트가
+됐습니다. 쓸 수 있는 사진 쌍도 {blk_old['pairs_reconstructed']}쌍에서
+{blk_new['pairs_reconstructed']}쌍으로 늘었습니다. 보통은 하나를 얻으면 하나를 내주는데
+이건 전부 같이 좋아졌습니다.
 
-왼쪽 아래는 재 봤지만 채택하지 않은 것입니다. 시차 탐색 범위입니다. 타겟의 경계
-반지름을 알면 시차가 어느 구간에 있는지 압니다. 최적 쌍에서 물리적으로 가능한 폭은
-{narrow['narrowed']['num_disparities']}픽셀인데 지금은 {narrow['current']['num_disparities']}픽셀을 훑고 있습니다. 좁혀 보니 유효화소는
-{narrow['current']['valid_ratio']*100:.0f}에서 {narrow['narrowed']['valid_ratio']*100:.0f}퍼센트로 올랐는데, 5센티미터 이내가 {narrow['current']['within_5cm']*100:.0f}에서
-{narrow['narrowed']['within_5cm']*100:.0f}퍼센트로 떨어졌습니다. 탐색 후보가 줄면 uniqueness 검사를 통과하기
-쉬워져서 원래는 기각됐을 애매한 대응이 살아남기 때문입니다. 트레이드오프라
-채택하지 않고 측정값만 남겼습니다.
+더 키우면 값이 나온 픽셀만 늘고 정확도는 다시 나빠집니다. 그래서 11은 끝값이 아니라
+가운데에서 고른 값입니다.
 
-오른쪽 아래는 아직 재 보지 않은 것입니다. 앞 장에서 시점이 구면 {spread['sphere_cells_total']}칸 중
-{spread['sphere_cells_filled']}칸에 뭉쳐 있다고 말씀드렸는데, 쌍 선별 기준을 시점 분산 쪽으로 바꾸면 같은
-쌍 수로 더 넓게 덮을 수 있을 것으로 봅니다. 이것을 첫 번째로 보고 있습니다.
+여기서 배운 건 11이라는 숫자가 아니라 순서라고 생각합니다. 가짜 데이터로 고른 설정을
+실제 데이터에 그냥 옮기면 안 됩니다. 두 데이터에서 걸리는 지점이 다르기 때문입니다.
+가짜 데이터는 식이 맞는지 확인하는 데 쓰고, 설정은 실제로 쓸 데이터에서 골라야
+합니다.
 
-한계도 함께 말씀드리면, 자세는 데이터셋이 준 정답을 그대로 썼고, 위성은 한 종만
-실험했으며, 깊이 분해능 하한이 {best['depth_resolution_m_per_px']*100:.1f} 센티미터 퍼 픽셀입니다.
+왼쪽 아래는 해 봤지만 쓰지 않은 것입니다. 찾는 범위를 좁히면 빈 곳은 줄어드는데,
+5센티미터 안에 드는 비율이 {narrow['current']['within_5cm']*100:.1f}에서
+{narrow['narrowed']['within_5cm']*100:.1f}퍼센트로 떨어집니다. 넓게 덮는 것과 정확한 것을
+맞바꾸는 셈이라 그대로 뒀고 잰 값만 남겨 뒀습니다.
+
+오른쪽 아래는 아직 안 해 본 것입니다. 첫 번째를 가장 유력하게 봅니다. 지금은 조건에
+맞는 사진을 전부 쓰는데, 그러다 보니 보는 방향이 한쪽에 몰려 있습니다. 방향이
+골고루 퍼지게 고르면 같은 장수로 더 넓게 덮을 수 있을 것으로 봅니다.
+
+마지막으로 한계도 말씀드리면, 위성의 자세는 데이터셋이 준 정답을 그대로 썼고, 위성은
+한 종류만 실험했습니다.
 """)
 
 
