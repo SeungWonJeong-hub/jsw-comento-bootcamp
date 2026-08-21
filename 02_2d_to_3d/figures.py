@@ -90,7 +90,7 @@ def figure_concept(best, path):
            color="#555555")
     satellite(a, 1.9, 0, 14, 0.85, alpha=0.30)
     satellite(a, 1.9, 0, 72, 0.85, alpha=1.0)
-    a.text(1.9, -1.55, "프레임 i / 프레임 j", ha="center", fontsize=10.5,
+    a.text(1.9, -1.55, "사진 1 (흐림) / 사진 2", ha="center", fontsize=10.5,
            color="#555555")
     a.annotate("", xy=(1.35, 1.75), xytext=(3.3, 1.30),
                arrowprops=dict(arrowstyle="->", color="#d62728", lw=2.0,
@@ -106,11 +106,14 @@ def figure_concept(best, path):
     r, show = 3.25, 30.0        # 실제 4.5°는 너무 작아 그림에서는 과장한다
     cy0 = -1.35
     satellite(a, 0, cy0, 20, 0.85)
-    for sgn, alpha in ((-1, 0.5), (1, 1.0)):
+    for sgn, alpha, tag in ((1, 0.5, "사진 1"), (-1, 1.0, "사진 2")):
         th = np.deg2rad(90 + sgn * show / 2)
         cx, cyy = r * np.cos(th), cy0 + r * np.sin(th)
         camera(a, cx, cyy, np.rad2deg(th) + 180, 0.5, "#1f77b4")
         a.plot([cx, 0], [cyy, cy0], ls=":", color="#bbbbbb", lw=1.1)
+        a.text(cx + np.sign(cx) * 0.62, cyy + 0.18, tag, fontsize=10.5,
+               color="#1f77b4", ha="right" if cx < 0 else "left",
+               va="center")
     a.add_patch(Arc((0, cy0), 2 * r, 2 * r, theta1=90 - show / 2,
                     theta2=90 + show / 2, color="#1f77b4", lw=1.4, ls="--"))
     th1, th2 = np.deg2rad(90 - show / 2), np.deg2rad(90 + show / 2)
@@ -121,7 +124,7 @@ def figure_concept(best, path):
            ha="center", fontsize=12.5, color="#d62728")
     a.text(0, 3.0, f"타겟이 {ang:.2f}° 회전 = 카메라가 궤도를 돈 것",
            ha="center", fontsize=11.5, color="#171717")
-    a.text(0, -3.15, "R_ij = R_j·R_iᵀ      t_ij = t_j − R_ij·t_i",
+    a.text(0, -3.15, "R = R2 · R1^T        t = t2 − R · t1",
            ha="center", fontsize=10.5, color="#555555", family="monospace")
     a.text(3.2, 0.4, "(각도는\n 과장)", fontsize=9.5, color="#aaaaaa", ha="center")
 
