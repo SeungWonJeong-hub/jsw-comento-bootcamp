@@ -242,10 +242,17 @@ def add_image(slide, path, cx, cy, cw, ch, caption=None):
     return pic
 
 
+TALK = []
+
+
 def add_notes(slide, text):
-    """발표자 노트. PowerPoint 발표자 보기에서 보인다."""
-    tf = slide.notes_slide.notes_text_frame
-    tf.text = text.strip()
+    """할 말을 모아 둔다. 슬라이드에는 넣지 않는다.
+
+    발표자 노트로 넣으면 파일을 열어 본 사람에게 그대로 보이고, 인쇄하거나
+    다른 도구로 변환할 때 따라다닌다. 발표자가 볼 것은 손에 든 대본이면
+    충분하므로 pptx 는 슬라이드만 담고, 같은 내용을 대본 txt 로 따로 낸다.
+    """
+    TALK.append(text.strip())
 
 
 def new_slide(prs, page, eyebrow, title, subtitle):
@@ -512,6 +519,24 @@ def build(prs, s):
 """)
 
 
+def talk_script(width=46):
+    """모아 둔 할 말을 대본 txt 로 조립한다."""
+    import textwrap
+
+    titles = ["01 / 방법", "02 / Unit Test", "03 / 2D → 3D 변환 결과",
+              "04 / 개선점"]
+    out = ["2차 업무 발표 대본 — 정승원",
+           f"슬라이드 {TOTAL_PAGES}장 · 각 장에서 할 말", "=" * 50, ""]
+    for i, note in enumerate(TALK):
+        out += [f"[{i + 1}] {titles[i]}", "-" * 50]
+        for line in note.splitlines():
+            line = line.strip()
+            if line:
+                out += textwrap.wrap(line, width, subsequent_indent="  ")
+        out.append("")
+    return "\n".join(out)
+
+
 def main() -> int:
     path = os.path.join(OUT, "metrics.json")
     if not os.path.exists(path):
@@ -530,6 +555,11 @@ def main() -> int:
     out = os.path.join(dest, "2차업무_정승원.pptx")
     prs.save(out)
     print(f"저장 완료 -> {out}  ({TOTAL_PAGES} 슬라이드)")
+
+    script = os.path.join(dest, "2차업무_발표대본_정승원.txt")
+    io.open(script, "w", encoding="utf-8-sig",
+            newline="\r\n").write(talk_script())
+    print(f"저장 완료 -> {script}")
     return 0
 
 

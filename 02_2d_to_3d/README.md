@@ -45,10 +45,13 @@ py -3 tools/get_spe3r_aqua.py          # 데이터 준비 (약 18 MB, 최초 1�
 py -3 tools/verify_pose_convention.py  # 자세 규약 실측 검증
 py -3 tools/save_test_report.py        # Unit Test 71개 → outputs/pytest_report.txt
 py -3 run_3d_experiment.py             # 실험 실행 → outputs/ (약 3분)
-py -3 tools/build_report.py [출력폴더]  # 발표자료 생성 (기본 report/)
+py -3 tools/build_report.py [출력폴더]  # 발표자료 + 발표 대본 (기본 report/)
 ```
 
-발표자료(.pptx)는 저장소에 커밋하지 않는다. 필요할 때 위 명령으로 만든다.
+발표자료(.pptx)와 발표 대본(.txt)은 저장소에 커밋하지 않는다(`report/` 는
+`.gitignore`). 필요할 때 위 명령으로 만든다. 할 말은 발표자 노트로 넣지 않고
+대본 txt 로 따로 낸다 — 노트로 넣으면 파일을 열어 본 사람에게 그대로 보이고,
+인쇄하거나 다른 도구로 변환할 때 따라다니기 때문이다.
 `outputs/` 는 재실행해도 15개 산출물이 **바이트 단위로 동일**하다. 로그에 걸린
 시간과 로컬 경로를 남기지 않고 모든 난수 seed를 고정했다. 테스트 결과도 같은
 이유로 `save_test_report.py` 가 걸린 시간을 지운 뒤 저장한다 — 그 한 줄 때문에
@@ -557,7 +560,7 @@ tools/
   get_spe3r_aqua.py         데이터셋 선택적 다운로드
   verify_pose_convention.py 자세 규약 실측 검증
   save_test_report.py       테스트 실행 결과를 outputs/pytest_report.txt 로 저장
-  build_report.py           발표자료 생성 (기본 report/, 인자로 폴더 지정 가능)
+  build_report.py           발표자료(4장) + 발표 대본 생성, 인자로 폴더 지정
 run_3d_experiment.py        실험 실행기 (실험 로직만)
 figures.py                  결과 그림 생성 (상세 5장 + 발표용 3장)
 outputs/                    그림 8장, PLY 4개, metrics.json, 로그, pytest 결과
