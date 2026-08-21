@@ -294,39 +294,41 @@ def unproject_scene(camera, rendered):
     return camera.pixel_rays()[v] * depth[v][:, None]
 
 
-def test_reference_depth_lands_in_the_same_frame_as_reconstruct(wide_cam):
+@pytest.mark.parametrize("direction, shift", [
+    ("가로", np.array([0.4, 0.0, 0.0])),
+    ("세로", np.array([0.0, 0.4, 0.0])),
+])
+def test_reference_depth_lands_in_the_same_frame_as_reconstruct(
+        wide_cam, direction, shift):
     """reference_depth 와 reconstruct 가 같은 좌표계를 돌려줘야 한다.
 
     이 둘은 좌표 규약을 공유하는 짝이다. 한쪽만 고치면 채점이 조용히 어긋난다.
     실제로 reconstruct 의 세로 경로를 고치면서 reference_depth 의 unrotate 를
     안 걷어내, 마스크 안에서 기준 깊이가 정의된 비율이 27.9% 까지 떨어진 적이
-    있다. 가로/세로 양쪽에서 겹침을 확인한다.
+    있다. 가로/세로가 서로 독립인 경우이므로 parametrize 로 나눈다. 한 방향이
+    깨져도 다른 방향은 끝까지 실행되고, 어느 쪽이 깨졌는지 테스트 이름에 남는다.
     """
-    B = 0.4
     prims = scene.default_satellite()
     pose_l = Pose(quaternion_to_rotation([0.94, 0.0, 0.342, 0.0]), (0.0, 0.0, 5.0))
+    pose_r = Pose(pose_l.R, pose_l.t - shift)
+    left = scene.render(wide_cam, pose_l, prims, texture_strength=0.35)
+    right = scene.render(wide_cam, pose_r, prims, texture_strength=0.35)
+    pair = stereo.RectifiedPair(wide_cam, np.eye(3), -shift)
 
-    for name, shift in (("가로", np.array([B, 0.0, 0.0])),
-                        ("세로", np.array([0.0, B, 0.0]))):
-        pose_r = Pose(pose_l.R, pose_l.t - shift)
-        left = scene.render(wide_cam, pose_l, prims, texture_strength=0.35)
-        right = scene.render(wide_cam, pose_r, prims, texture_strength=0.35)
-        pair = stereo.RectifiedPair(wide_cam, np.eye(3), -shift)
+    out = stereo.reconstruct(pair, left["image"], right["image"],
+                             mask=left["mask"], distance=5.0)
+    ref = stereo.reference_depth(
+        pair, pose_l, pose_l.inverse_apply(unproject_scene(wide_cam, left)))
 
-        out = stereo.reconstruct(pair, left["image"], right["image"],
-                                 mask=left["mask"], distance=5.0)
-        ref = stereo.reference_depth(pair, pose_l,
-                                     pose_l.inverse_apply(unproject_scene(wide_cam, left)))
+    assert ref.shape == out["depth"].shape
+    # 마스크 안에서 기준 깊이가 거의 전부 정의되어야 한다. 방향이 어긋나면
+    # 이 비율이 무너진다.
+    covered = (np.isfinite(ref) & out["mask"]).sum() / max(1, out["mask"].sum())
+    assert covered > 0.9, f"{direction}: 마스크 안 기준 깊이 정의 비율 {covered:.1%}"
 
-        assert ref.shape == out["depth"].shape, name
-        # 마스크 안에서 기준 깊이가 거의 전부 정의되어야 한다. 방향이 어긋나면
-        # 이 비율이 무너진다.
-        covered = (np.isfinite(ref) & out["mask"]).sum() / max(1, out["mask"].sum())
-        assert covered > 0.9, f"{name}: 마스크 안 기준 깊이 정의 비율 {covered:.1%}"
-
-        v = np.isfinite(out["depth"]) & np.isfinite(ref) & out["mask"]
-        assert v.sum() > 500, f"{name}: 겹치는 화소 {int(v.sum())}"
-        assert float(np.median(np.abs(out["depth"][v] - ref[v]))) < 0.05, name
+    v = np.isfinite(out["depth"]) & np.isfinite(ref) & out["mask"]
+    assert v.sum() > 500, f"{direction}: 겹치는 화소 {int(v.sum())}"
+    assert float(np.median(np.abs(out["depth"][v] - ref[v]))) < 0.05
 
 
 def test_to_body_roundtrip_for_identity_rectification(cam):

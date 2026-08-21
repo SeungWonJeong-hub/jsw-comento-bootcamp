@@ -22,7 +22,7 @@
 필요한 입력이 다른 두 경로**라는 표다.
 
 - 데이터셋: [SPE3R](https://purl.stanford.edu/pk719hm4806) (Stanford SLAB, CC BY-NC-SA 4.0), 모델 `aqua`
-- 테스트: pytest **72개** 통과 (데이터 준비 후 기준. 없으면 6개가 skip 되어 66개)
+- 테스트: pytest **80개** 통과 (데이터 준비 후 기준. 없으면 6개가 skip 되어 74개)
 - 대조군: 과제 예시 코드(업무.pdf p.15, 밝기를 깊이로 사용)를 원문 그대로 재현
 
 ---
@@ -33,7 +33,7 @@ pip install -r requirements.txt
 
 py -3 tools/get_spe3r_aqua.py          # 데이터 준비 (약 18 MB, 최초 1회)
 py -3 tools/verify_pose_convention.py  # 자세 규약 실측 검증
-py -3 -m pytest tests/ -v              # Unit Test 72개
+py -3 -m pytest tests/ -v              # Unit Test 80개
 py -3 run_3d_experiment.py             # 실험 실행 → outputs/ (약 1분)
 py -3 tools/build_report.py            # 발표자료 생성 → report/
 ```
@@ -331,7 +331,7 @@ MVS 표준인 다중 뷰 일관성 필터(다른 쌍이 확인해 준 점만 남
 
 ## 7. Unit Test 설계
 과제 예시의 테스트(p.14)는 출력 크기와 자료형만 확인한다. 그것만으로는 수식이
-틀려도 통과한다. 72개 테스트를 네 갈래로 구성했다.
+틀려도 통과한다. 80개 테스트를 네 갈래로 구성했다.
 
 | 갈래 | 예시 | 검증 방식 |
 |---|---|---|
@@ -347,6 +347,13 @@ MVS 표준인 다중 뷰 일관성 필터(다른 쌍이 확인해 준 점만 남
 | **회귀** | 세로 스테레오가 정렬 좌표계로 되돌아오는가 | 실제 버그를 잡은 테스트 |
 | | `reference_depth`와 `reconstruct`가 같은 좌표계인가 | 두 번째 버그를 잡은 테스트 |
 | | 화면에 잘리는 뷰가 있어도 참 형상을 깎지 않는가 | 카빙 버그를 잡은 테스트 |
+
+**독립적인 경우는 `@pytest.mark.parametrize` 로 나눈다.** 가로/세로 스테레오와
+무작위 쿼터니언이 그렇다. 한 번에 루프를 돌면 첫 실패에서 멈춰 나머지가 실행되지
+않고 어느 값에서 깨졌는지도 이름에 안 남는다. 반대로 **분포로 판정하는 테스트는
+나누지 않는다** — 자세별 밝기 상관계수(12개 자세의 중앙값)와 자세 규약 정밀도
+(뷰마다 0.87~0.94로 흔들려 개별 판정하면 뷰 750에서 깨진다)가 그렇고, 코드에
+그 이유를 적어 두었다.
 
 마지막 갈래는 뒤늦게 붙였다. 3-2절의 버그 두 개가 **테스트 0개인 영역**에서
 나왔기 때문이다. `unrotate`/`rot90`을 검증하는 테스트가 없었고, `reference_depth`는
@@ -502,8 +509,8 @@ src/
   metrics.py      Chamfer, F-score, 깊이 오차, IoU
   carving.py      실루엣 기반 전방위 복원 (4절)
 tests/
-  test_stereo.py          스테레오 파이프라인 · 정렬 창 · 세로 경로 회귀 (26개)
-  test_3d_processing.py   기하·평가지표·대조군·경계조건·카빙 회귀 (46개)
+  test_stereo.py          스테레오 파이프라인 · 정렬 창 · 세로 경로 회귀 (27개)
+  test_3d_processing.py   기하·평가지표·대조군·경계조건·카빙 회귀 (53개)
 tools/
   get_spe3r_aqua.py         데이터셋 선택적 다운로드
   verify_pose_convention.py 자세 규약 실측 검증

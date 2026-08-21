@@ -111,14 +111,18 @@ def test_unproject_recovers_analytic_depth(cam, front_pose):
 # 2. 자세 표현 — 쿼터니언과 강체 변환
 # --------------------------------------------------------------------------
 
-def test_quaternion_gives_proper_rotation():
-    """쿼터니언에서 만든 행렬은 직교하고 행렬식이 +1 이어야 한다."""
-    rng = np.random.default_rng(3)
-    for _ in range(20):
-        q = rng.normal(size=4)
-        R = quaternion_to_rotation(q)
-        np.testing.assert_allclose(R @ R.T, np.eye(3), atol=1e-12)
-        assert np.linalg.det(R) == pytest.approx(1.0, abs=1e-12)
+@pytest.mark.parametrize("seed", range(8))
+def test_quaternion_gives_proper_rotation(seed):
+    """쿼터니언에서 만든 행렬은 직교하고 행렬식이 +1 이어야 한다.
+
+    무작위 쿼터니언마다 독립적인 경우이므로 seed 로 나눈다. 한 번에 루프를
+    돌면 첫 실패에서 멈춰 나머지가 실행되지 않고, 어느 값에서 깨졌는지도
+    테스트 이름에 남지 않는다.
+    """
+    q = np.random.default_rng(seed).normal(size=4)
+    R = quaternion_to_rotation(q)
+    np.testing.assert_allclose(R @ R.T, np.eye(3), atol=1e-12)
+    assert np.linalg.det(R) == pytest.approx(1.0, abs=1e-12)
 
 
 def test_identity_quaternion_is_identity_matrix():
@@ -446,6 +450,8 @@ def test_brightness_depth_no_better_than_predicting_the_mean(cam):
         (rmse / std)^2 = 1 - R^2 관계로 결정계수와 직접 연결된다.
 
     자세 하나만 보면 우연히 잘 맞을 수 있어 12 개 자세의 중앙값으로 판정한다.
+    같은 이유로 parametrize 로 나누지 않는다. 자세별 판정이 아니라 분포로
+    판정하는 것이 이 테스트의 의도다.
     """
     ratios, r2s, corrs = [], [], []
     for pose in scene.orbit_poses(12, distance=5.0, seed=42):
@@ -582,6 +588,11 @@ def test_spe3r_pose_convention_matches_ground_truth_mask():
     # IoU 가 아니라 정밀도(예측 실루엣 안에 정답이 든 비율)를 잰다. 정점만
     # 투영하면 실루엣이 성겨서 합집합 기준 IoU 는 낮게 나온다. 규약이 틀리면
     # 이 값이 0.3 아래로 떨어지므로 판별에는 충분하다.
+    #
+    # 여기는 parametrize 로 나누지 않는다. 뷰마다 값이 0.87~0.94 로 흔들려서
+    # 뷰 하나씩 0.9 를 넘으라고 걸면 뷰 750(0.8749) 에서 깨진다. 임계값을
+    # 낮추면 규약이 틀렸을 때를 못 잡는다. 개별 판정이 아니라 평균으로 보는
+    # 것이 이 테스트의 의도다.
     precisions = []
     for i in (0, 250, 500, 750):
         pose = model.pose(i)
