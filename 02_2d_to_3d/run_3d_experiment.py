@@ -20,6 +20,7 @@ import json
 import os
 import sys
 
+import cv2
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -40,6 +41,7 @@ CONVERGENCE = 15.0      # 두 시선이 벌어진 각 [도]
 BLOCK = 5               # 정합 블록. 아래 [4] 에서 재서 고른다.
 MIN_CONTRAST = 2.0      # 이보다 무늬가 옅은 곳은 값을 내지 않는다.
                         # 근거는 stereo.texture_mask 의 설명에 있다.
+SUBPIXEL = 2            # 정합 전에 가로로 이만큼 늘린다. 아래 설명 참고.
 
 _ALT = None             # 촬영 고도 [m]. main() 이 화소 크기에서 정한다.
 _log = []
@@ -121,9 +123,38 @@ def reconstruct(view, camera, relief, block_size=BLOCK):
     n_disp = max(16, int(np.ceil((d_hi - min_disp) / 16)) * 16)
 
     L, R, _ = pair.remap(view["left"], view["right"])
-    disparity = stereo.filter_disparity(stereo.compute_disparity(
-        L, R, num_disparities=n_disp, min_disparity=min_disp,
-        block_size=block_size))
+
+    # 가로로 SUBPIXEL 배 늘려 정합한 뒤 시차를 되돌린다.
+    #
+    # 왜 — SGBM 의 부화소 보간은 시차를 정수 쪽으로 끌어당긴다(픽셀 락킹).
+    # 시차 소수부를 세어 보면 정수 부근(±0.1 px)에 49.3% 가 몰려 있다. 균일
+    # 하면 20% 여야 한다. 그 쏠림이 깊이를 +0.043 px 치우치게 만든다.
+    #
+    # 가로만 늘리는 이유는 시차가 가로 방향이기 때문이다. 늘려서 정합하면
+    # 시차를 반 픽셀 단위로 표현할 수 있어 양자화가 절반이 된다. 실측:
+    #
+    #     배율   값이 나온 화소   Z 오차 중앙값   정수 부근   시차 편향
+    #      1x        69.4%         64.9 m        49.3%     +0.043 px
+    #      2x        69.3%         34.6 m        35.9%     +0.024 px
+    #      4x        69.6%         43.0 m        40.9%     +0.028 px
+    #
+    # 2배에서 오차가 거의 반이 되고 화소 손실은 없다. 4배는 오히려 나빠진다 -
+    # 보간이 없는 정보를 만들어 내지는 못하기 때문이다.
+    if SUBPIXEL > 1:
+        up = (cv2.resize(L, None, fx=SUBPIXEL, fy=1, interpolation=cv2.INTER_CUBIC),
+              cv2.resize(R, None, fx=SUBPIXEL, fy=1, interpolation=cv2.INTER_CUBIC))
+        raw = stereo.compute_disparity(
+            up[0], up[1], num_disparities=n_disp * SUBPIXEL,
+            min_disparity=min_disp * SUBPIXEL, block_size=block_size)
+        # 원래 격자로 되돌린 뒤 필터를 건다. 이상치 필터의 크기 기준(덩어리
+        # 화소 수)이 늘린 영상에서는 다른 넓이를 뜻하기 때문이다.
+        raw = cv2.resize(raw, (L.shape[1], L.shape[0]),
+                         interpolation=cv2.INTER_NEAREST) / SUBPIXEL
+    else:
+        raw = stereo.compute_disparity(L, R, num_disparities=n_disp,
+                                       min_disparity=min_disp,
+                                       block_size=block_size)
+    disparity = stereo.filter_disparity(raw)
     depth = stereo.disparity_to_depth(disparity, pair.focal, pair.baseline)
     depth = np.where((depth >= lo) & (depth <= hi), depth, np.nan)
     # 무늬가 없는 곳에서는 매처가 무엇을 고르든 믿을 수 없다. 값을 내지 않는다.
@@ -266,7 +297,7 @@ def main() -> int:
                   "relief_m": relief, "altitude_m": _ALT,
                   "focal_px": focal, "convergence_deg": CONVERGENCE,
                   "baseline_m": view["baseline"], "block_size": BLOCK,
-                  "min_contrast": MIN_CONTRAST},
+                  "min_contrast": MIN_CONTRAST, "subpixel": SUBPIXEL},
         "best": best,
         "convergence_sweep": conv_rows,
         "block_size_sweep": block_rows,

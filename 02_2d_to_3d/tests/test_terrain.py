@@ -420,3 +420,18 @@ def test_texture_gate_keeps_patterned_areas_and_drops_flat_ones():
 def test_local_contrast_rejects_bad_window(bad):
     with pytest.raises(ValueError):
         stereo.local_contrast(np.zeros((16, 16), np.uint8), ksize=bad)
+
+
+def test_render_rejects_terrain_above_the_camera():
+    """지형이 카메라보다 높으면 멈춰야 한다.
+
+    고정점 반복은 광선이 아래로 내려가며 지면을 한 번 만난다고 가정한다.
+    지형이 카메라보다 높으면 그 전제가 깨지는데, 예외 없이 두면 값이 거의
+    안 나오는 결과가 조용히 돌아온다. 실제로 기복 4 km 지형을 고도 2.5 km
+    에서 찍는 설정이 유효화소 3% 를 내놓고도 아무 말이 없었다.
+    """
+    elev, gsd = terrain.synthetic_dtm(size=64, gsd=5.0, relief=4000.0, seed=1)
+    cam = PinholeCamera(64, 64, 500.0)
+    pose = terrain.look_at((0.0, 0.0, 2500.0), (0.0, 0.0, 0.0))
+    with pytest.raises(ValueError, match="카메라 고도"):
+        terrain.render_heightfield(elev, gsd, terrain.shade(elev, gsd), cam, pose)

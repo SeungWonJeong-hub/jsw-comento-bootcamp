@@ -316,6 +316,14 @@ def render_heightfield(elev, gsd, intensity, camera, pose: Pose, iters: int = 12
     h, w = elev.shape
 
     centre = -pose.R.T @ pose.t                     # 지형 좌표계의 카메라 위치
+    # 지형이 카메라보다 높으면 고정점 반복의 전제(광선이 아래로 내려가며 한 번
+    # 만난다)가 깨진다. 값이 거의 안 나오는 결과가 조용히 돌아오는 대신
+    # 여기서 멈춘다. 실제로 기복 4 km 지형을 고도 2.5 km 에서 찍는 설정이
+    # 유효화소 3% 를 내놓고도 아무 말이 없었다.
+    if np.nanmax(elev) >= centre[2]:
+        raise ValueError(
+            f"지형 최고점 {np.nanmax(elev):.1f} m 가 카메라 고도 "
+            f"{centre[2]:.1f} m 보다 높습니다.")
     dirs = camera.pixel_rays().reshape(-1, 3) @ pose.R   # 화소별 시선 (지형 좌표계)
     dirs /= np.linalg.norm(dirs, axis=1, keepdims=True)
 
