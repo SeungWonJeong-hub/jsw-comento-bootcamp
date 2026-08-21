@@ -140,9 +140,9 @@ def run_synthetic():
 
 
 def run_carving(model, mesh_points, num_views: int = 20, resolution: int = 128) -> dict:
-    """추가 실험 — 실루엣 기반 복원 (visual hull). README 10절.
+    """추가 실험 — 실루엣 기반 복원 (visual hull). README 11절.
 
-    스테레오가 후보 20 쌍 중 3 쌍만 쓸 수 있다는 점 때문에, 마스크와 자세만으로
+    스테레오가 후보 20 쌍 중 5 쌍만 쓸 수 있다는 점 때문에, 마스크와 자세만으로
     동작하는 대안을 같은 지표로 재 둔다. 발표 범위 밖이지만 수치를 문서에만
     적어 두면 근거를 추적할 수 없으므로 여기서 만들어 metrics.json 에 남긴다.
     """
