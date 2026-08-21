@@ -83,7 +83,10 @@ def depth_metrics(pred: np.ndarray, target: np.ndarray,
     n_domain = int(domain.sum())
     n_valid = int(valid.sum())
     if n_valid == 0:
+        # 정상 경로와 키가 같아야 한다. median_abs 를 빼 두면 호출부가
+        # m["median_abs"] 에서 KeyError 로 죽는다. 값이 없는 것은 NaN 으로 알린다.
         return {"rmse": float("nan"), "mae": float("nan"),
+                "median_abs": float("nan"),
                 "valid_ratio": 0.0, "n_valid": 0, "n_domain": n_domain}
 
     err = pred[valid] - target[valid]

@@ -132,17 +132,12 @@ def run_synthetic():
 # [2] SPE3R 적용
 # ---------------------------------------------------------------------------
 
-def reference_depth(mesh_points_body, pose, pair):
-    """메시를 정렬된 왼쪽 카메라로 투영해 기준 깊이 맵을 만든다.
-
-    SPE3R 은 화소 단위 정답 깊이를 제공하지 않는다. 대신 watertight 메시를
-    조밀하게 샘플링해 z-buffer 로 투영하면 기준값을 만들 수 있다.
-    샘플링 밀도에서 오는 오차가 있으므로 '정답'이 아니라 '기준'으로 부른다.
-    """
-    p_left = pose.apply(mesh_points_body)
-    p_rect = p_left @ pair.R1.T
-    d = pointcloud.zbuffer_depth(p_rect, pair.camera, splat=1, fill_holes=True)
-    return pair.unrotate(d) if not pair.horizontal else d
+# 기준 깊이 생성은 stereo.reference_depth() 로 옮겼다. reconstruct() 와 좌표
+# 규약을 공유하므로 같은 모듈에 두고 테스트로 묶어야 한다.
+#
+# SPE3R 은 화소 단위 정답 깊이를 제공하지 않는다. 대신 watertight 메시를
+# 조밀하게 샘플링해 z-buffer 로 투영하면 기준값을 만들 수 있다. 샘플링
+# 밀도에서 오는 오차가 있으므로 '정답'이 아니라 '기준'으로 부른다.
 
 
 def run_carving(model, mesh_points, num_views: int = 20, resolution: int = 128) -> dict:
@@ -270,7 +265,7 @@ def evaluate_pair(model, geo, mesh_points, target_radius=0.8, erode_px=2):
         return None
 
     expected = pair.expected_disparity(geo["distance"])
-    if not (6.0 < expected < 0.85 * pair.size[0]):
+    if not (6.0 < expected < 0.85 * pair.match_width):
         return None
 
     silhouette = model.load_mask(i).astype(np.uint8)
@@ -291,7 +286,7 @@ def evaluate_pair(model, geo, mesh_points, target_radius=0.8, erode_px=2):
                              depth_range=(d0 - target_radius, d0 + target_radius),
                              postfilter=False)
 
-    ref = reference_depth(mesh_points, model.pose(i), pair)
+    ref = stereo.reference_depth(pair, model.pose(i), mesh_points)
     mask = out["mask"] if out["mask"] is not None else np.isfinite(ref)
     raw_mask = raw["mask"] if raw["mask"] is not None else np.isfinite(ref)
 

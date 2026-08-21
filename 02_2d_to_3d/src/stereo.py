@@ -100,9 +100,58 @@ def find_pairs(model, max_rotation_deg: float = 8.0,
 
 
 class RectifiedPair:
-    """평행 정렬된 스테레오 쌍과 그 기하."""
+    """평행 정렬된 스테레오 쌍과 그 기하.
 
-    def __init__(self, camera, R_ij, t_ij, alpha: float = -1.0, size=None):
+    정렬 창을 원본과 같은 크기로 두면 안 된다
+        정렬은 두 카메라를 평행하게 만드는 회전이라, 정렬된 평면에서 원본 화면은
+        기울어진 사각형이 된다. 그 사각형의 경계 상자는 원본보다 크다. 창을 원본
+        크기 그대로 두면 OpenCV 가 잡아 주는 위치에서 잘려 나가고, 타겟이 그
+        바깥에 걸리면 조용히 사라진다. 후보 20 쌍 중 14 쌍에서 타겟이 창 테두리에
+        닿아 있었고, 심한 쌍은 실루엣의 절반을 잃고 있었다.
+
+        잘린 부분은 마스크에서도 함께 사라지므로 "커버리지가 낮다"로도 안 잡힌다.
+        채점 영역 자체가 줄어들 뿐이다.
+
+    fit_window=True (기본)
+        원본 네 귀퉁이가 정렬 평면 어디에 떨어지는지 계산해 아무것도 잘리지 않는
+        최소 창을 잡는다. 초점거리는 그대로 두고 주점만 옮기므로 시차와
+        베이스라인은 변하지 않는다. 최적 쌍에서 채점 영역이 8,442 -> 9,485 화소로
+        늘고 RMSE·중앙값·5cm·유효화소가 모두 함께 좋아진다.
+
+        newImageSize 로 창을 키우는 방법과는 다르다. 그쪽은 OpenCV 가 화각을
+        다시 잡아 초점거리와 주점이 함께 바뀌고, 2 배만 줘도 타겟이 창 밖으로
+        나가 아무것도 복원되지 않는다.
+    """
+
+    @staticmethod
+    def _fit_window(camera, R1, P1, P2, max_side):
+        """원본이 잘리지 않는 최소 정렬 창과 그에 맞춘 투영 행렬을 만든다."""
+        W, H = camera.width, camera.height
+        corners = np.array([[0, 0], [W - 1, 0], [0, H - 1], [W - 1, H - 1]],
+                           dtype=np.float64).reshape(-1, 1, 2)
+        pts = cv2.undistortPoints(corners, camera.K, np.zeros(5),
+                                  R=R1, P=P1).reshape(-1, 2)
+        lo = np.floor(pts.min(axis=0))
+        hi = np.ceil(pts.max(axis=0))
+        new_w, new_h = int(hi[0] - lo[0]) + 1, int(hi[1] - lo[1]) + 1
+
+        # 회전이 심한 쌍에서는 경계 상자가 수천 화소까지 커진다. 정합 비용이
+        # 넓이에 비례하므로 상한을 두고, 넘으면 전체를 균일하게 축소한다.
+        # 축소해도 잘리지는 않는다.
+        s = min(1.0, max_side / max(new_w, new_h))
+        new_w, new_h = max(16, int(new_w * s)), max(16, int(new_h * s))
+
+        out = []
+        for P in (P1, P2):
+            Q = P.copy()
+            Q[:2, :] *= s                    # 초점거리·주점·베이스라인 항을 함께
+            Q[0, 2] -= lo[0] * s
+            Q[1, 2] -= lo[1] * s
+            out.append(Q)
+        return (new_w, new_h), out[0], out[1]
+
+    def __init__(self, camera, R_ij, t_ij, alpha: float = -1.0, size=None,
+                 fit_window: bool = True, max_side: int = 1024):
         size = (camera.width, camera.height) if size is None else tuple(size)
         t_ij = np.ascontiguousarray(t_ij, dtype=np.float64).reshape(3)
         if np.linalg.norm(t_ij) < 1e-9:
@@ -114,6 +163,9 @@ class RectifiedPair:
             K, D, K, D, (camera.width, camera.height),
             np.ascontiguousarray(R_ij, dtype=np.float64), t_ij.reshape(3, 1),
             flags=cv2.CALIB_ZERO_DISPARITY, alpha=alpha, newImageSize=size)
+
+        if fit_window:
+            size, P1, P2 = self._fit_window(camera, R1, P1, P2, max_side)
 
         # 베이스라인이 세로 방향이면 OpenCV 는 오프셋을 P2[1, 3] 에 싣는다.
         self.horizontal = abs(P2[0, 3]) >= abs(P2[1, 3])
@@ -135,6 +187,16 @@ class RectifiedPair:
                                     P1[0, 2], P1[1, 2])
         self._map1 = cv2.initUndistortRectifyMap(K, D, R1, P1, size, cv2.CV_32FC1)
         self._map2 = cv2.initUndistortRectifyMap(K, D, R2, P2, size, cv2.CV_32FC1)
+
+    @property
+    def match_width(self) -> int:
+        """매처가 실제로 보는 영상의 가로 길이.
+
+        세로 스테레오는 remap() 에서 90 도 돌려 매칭하므로 가로 길이가 창의
+        세로 길이가 된다. 시차 탐색 폭의 상한은 이 값으로 잡아야 한다.
+        정사각 영상에서는 둘이 같아 차이가 드러나지 않는다.
+        """
+        return self.size[0] if self.horizontal else self.size[1]
 
     def expected_disparity(self, distance: float) -> float:
         """주어진 거리에서 예상되는 시차 [pixel]."""
@@ -167,6 +229,29 @@ class RectifiedPair:
         """
         points_left = np.asarray(points_rect, dtype=np.float64) @ self.R1
         return pose_i.inverse_apply(points_left)
+
+
+def reference_depth(pair: "RectifiedPair", pose, points_body) -> np.ndarray:
+    """동체 좌표계 점들을 정렬된 왼쪽 카메라로 투영해 기준 깊이 맵을 만든다.
+
+    reconstruct() 와 짝이다. 둘이 같은 좌표계를 돌려줘야 화소 단위로 비교할 수
+    있는데, 좌표 규약의 양쪽이 서로 다른 파일에 흩어져 있으면 한쪽만 고치는
+    사고가 난다. 실제로 그랬다. reconstruct 가 세로 쌍에서 돌아간 채로 반환하던
+    것을 고치면서 이 함수의 unrotate 를 안 걷어내, 기준 깊이가 90 도 어긋난
+    채로 채점되고 있었다. 마스크 안에서 기준 깊이가 정의된 비율이 27.9% 까지
+    떨어졌다. 그래서 같은 모듈로 옮기고 테스트를 붙였다.
+
+    pair.camera 는 돌리기 전 정렬 카메라이므로 결과는 이미 정렬된 왼쪽 카메라
+    좌표계다. 방향을 더 손대면 안 된다.
+
+    Parameters
+    ----------
+    points_body : (N, 3) 동체 좌표계 점. 메시를 조밀하게 샘플링한 것을 넣는다.
+    """
+    from . import pointcloud
+
+    p_rect = pose.apply(points_body) @ pair.R1.T
+    return pointcloud.zbuffer_depth(p_rect, pair.camera, splat=1, fill_holes=True)
 
 
 def compute_disparity(left, right, num_disparities: int, block_size: int = 3,
@@ -335,7 +420,7 @@ def reconstruct(pair: "RectifiedPair", left, right, mask=None,
     else:
         expected = pair.expected_disparity(distance)
         num_disp = int(np.ceil(expected * disparity_margin / 16)) * 16
-        num_disp = max(16, min(num_disp, 16 * ((pair.size[0] - 16) // 16)))
+        num_disp = max(16, min(num_disp, 16 * ((pair.match_width - 16) // 16)))
 
     disparity = compute_disparity(L, R, num_disparities=num_disp)
     if postfilter:
