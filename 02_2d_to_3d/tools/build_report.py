@@ -409,35 +409,91 @@ def build(prs, s):
 """)
 
     # ---------------- 4. 개선점 ----------------
+    # 이 장은 그림을 넣지 않는다. 쌍별 산점도는 한 눈에 읽히지 않아 발표에서
+    # 설명이 그림을 따라가는 모양이 된다. 여기서 보여야 하는 것은 "블록만
+    # 바꿔 가며 잰 표" 하나이므로 표를 크게 놓는 편이 낫다.
     sl = new_slide(
         prs, 4, "04 / 개선점",
         "합성 데이터로 고른 파라미터를 실데이터에서 다시 골랐습니다",
         "재 본 것과 재 보지 않은 것을 구분합니다 · "
         "수치는 outputs/metrics.json 에 그대로 남습니다")
-    add_image(sl, os.path.join(OUT, "02_pair_survey.png"), 0.72, 1.70, 11.89, 3.16)
-    add_card(sl, 0.72, 5.02, 5.86, 1.86)
-    add_text(sl, 0.98, 5.21, 5.34, 0.24,
-             [("정합 블록 크기를 다시 고르니 (최적 쌍)", SANS_SB, 10.5, INK)])
-    add_matrix(sl, 0.98, 5.51, [1.85, 1.20, 1.20], [
-        (("", f"블록 {blk_old['block_size']}", f"블록 {blk_new['block_size']}"), "head"),
+
+    # 좌상 — 블록 크기 실측표 (후보 기하 20쌍 고정, 블록만 변경)
+    add_card(sl, 0.72, 1.70, 7.35, 2.85)
+    add_text(sl, 0.98, 1.89, 6.83, 0.24, [
+        ("정합 블록 크기 — 후보 기하 20쌍을 고정하고 블록만 바꿔 다시 복원",
+         SANS_SB, 10.5, INK)])
+    add_matrix(sl, 0.98, 2.25, [1.20, 1.00, 1.28, 1.05, 1.10, 1.20], [
+        (("블록", "복원 쌍", "최적쌍 중앙값", "5cm 이내", "유효화소",
+          "20쌍 융합 커버리지"), "head"),
+    ] + [
+        ((f"{bl['block_size']}" + (" (기존)" if bl is blk_old else
+                                   " (채택)" if bl is blk_new else ""),
+          f"{bl['pairs_reconstructed']}",
+          f"{bl['best_pair']['median_abs']:.4f}",
+          f"{bl['best_pair']['within_5cm']*100:.1f}%",
+          f"{bl['best_pair']['valid_ratio']*100:.1f}%",
+          f"{bl['fused_surface_coverage']*100:.1f}%"),
+         "key" if bl is blk_new else "body")
+        for bl in blocks
+    ])
+    add_text(sl, 0.98, 4.20, 6.83, 0.22, [
+        ("11 에서 5cm 이내가 최고이고 중앙값도 사실상 최저 — 격자 끝이 아니라 안쪽",
+         SANS, 9.5, MUTED)])
+
+    # 우상 — 바꾼 뒤 최적 쌍이 어떻게 달라졌나
+    add_card(sl, 8.31, 1.70, 4.30, 2.85)
+    add_text(sl, 8.57, 1.89, 3.78, 0.24,
+             [("채택 — 블록 3 → 11", SANS_SB, 10.5, INK)])
+    add_matrix(sl, 8.57, 2.25, [1.66, 1.06, 1.06], [
+        (("최적 쌍", "블록 3", "블록 11"), "head"),
+        (("오차 중앙값", f"{blk_old['best_pair']['median_abs']:.4f}",
+          f"{blk_new['best_pair']['median_abs']:.4f}"), "key"),
+        (("RMSE", f"{blk_old['best_pair']['rmse']:.4f}",
+          f"{blk_new['best_pair']['rmse']:.4f}"), "body"),
+        (("5cm 이내", f"{blk_old['best_pair']['within_5cm']*100:.1f}%",
+          f"{blk_new['best_pair']['within_5cm']*100:.1f}%"), "key"),
         (("유효화소", f"{blk_old['best_pair']['valid_ratio']*100:.1f}%",
           f"{blk_new['best_pair']['valid_ratio']*100:.1f}%"), "key"),
-        (("5cm 이내", f"{blk_old['best_pair']['within_5cm']*100:.1f}%",
-          f"{blk_new['best_pair']['within_5cm']*100:.1f}%"), "body"),
         (("복원 성공 쌍", f"{blk_old['pairs_reconstructed']}",
           f"{blk_new['pairs_reconstructed']}"), "body"),
     ])
-    add_panel(sl, 6.96, 5.02, 5.65, 1.86, "재 본 것 · 재 보지 않은 것", [
-        k("채택 — 블록 크기 3 → 11. 전 지표가 함께 올랐습니다."),
-        b(f"미채택 — 시차 범위 좁히기. 유효화소 "
-          f"{narrow['current']['valid_ratio']*100:.0f}→"
-          f"{narrow['narrowed']['valid_ratio']*100:.0f}% 대신 5cm 이내 "
-          f"{narrow['current']['within_5cm']*100:.0f}→"
-          f"{narrow['narrowed']['within_5cm']*100:.0f}%."),
-        gap(),
-        b("재 보지 않음 — 시점 분산 기반 쌍 선별, 정렬 창 축소,"),
-        b("　신뢰도 출력, 쌍별 블록 크기."),
+    add_text(sl, 8.57, 3.75, 3.78, 0.70, [
+        ("모든 지표가 함께 올랐습니다.", SANS_MD, 10, INK),
+        ("합성 장면은 무늬가 넉넉해 작은 블록이 유리하지만,",
+         SANS, 10, BODY),
+        ("실제 영상은 단서가 부족해 정반대입니다.", SANS, 10, BODY),
     ])
+
+    # 좌하 — 재 봤지만 채택하지 않은 것
+    add_card(sl, 0.72, 4.72, 5.86, 2.10)
+    add_text(sl, 0.98, 4.91, 5.34, 0.24, [
+        ("미채택 — 시차 탐색 범위 좁히기 (최적 쌍)", SANS_SB, 10.5, INK)])
+    add_matrix(sl, 0.98, 5.27, [1.75, 1.30, 1.30], [
+        (("", f"0~{narrow['current']['num_disparities']} px",
+          f"{narrow['narrowed']['min_disparity']}~"
+          f"{narrow['narrowed']['min_disparity'] + narrow['narrowed']['num_disparities']} px"), "head"),
+        (("유효화소", f"{narrow['current']['valid_ratio']*100:.1f}%",
+          f"{narrow['narrowed']['valid_ratio']*100:.1f}%"), "key"),
+        (("5cm 이내", f"{narrow['current']['within_5cm']*100:.1f}%",
+          f"{narrow['narrowed']['within_5cm']*100:.1f}%"), "body"),
+    ])
+    add_text(sl, 0.98, 6.06, 5.34, 0.60, [
+        ("커버리지와 정확도의 트레이드오프입니다. 탐색 후보가 줄면",
+         SANS, 10, BODY),
+        ("uniqueness 검사를 통과하기 쉬워져 애매한 대응이 살아납니다.",
+         SANS, 10, BODY),
+    ])
+
+    # 우하 — 아직 재 보지 않은 것
+    add_panel(sl, 6.75, 4.72, 5.86, 2.10, "재 보지 않은 것 — 다음 순서", [
+        k(f"① 쌍 선별을 시점 분산 기준으로 (지금은 구면 "
+          f"{spread['sphere_cells_total']}칸 중 {spread['sphere_cells_filled']}칸)"),
+        b("② 정렬 창을 타겟 경계 상자로 한 번 더 좁히기"),
+        b("③ 좌우 일관성 검사 대신 신뢰도를 함께 내보내기"),
+        b("④ 블록 크기를 쌍마다 고르기 (15~17은 유효화소 90%)"),
+    ])
+
     add_notes(sl, f"""
 개선점입니다. 재 본 것과 재 보지 않은 것을 나눠 적었습니다.
 
@@ -447,32 +503,31 @@ def build(prs, s):
 위성 영상은 정반대입니다. 정합할 단서가 부족해서 작은 블록은 아예 대응을 못
 찾습니다.
 
-후보 기하 스무 쌍을 고정해 두고 블록만 3에서 17까지 바꿔 다시 복원했습니다.
-11이 최적이었습니다. 오차 중앙값이 {blk_old['best_pair']['median_abs']*100:.2f}에서 {blk_new['best_pair']['median_abs']*100:.2f}센티미터,
-5센티미터 이내가 {blk_old['best_pair']['within_5cm']*100:.0f}에서 {blk_new['best_pair']['within_5cm']*100:.0f}퍼센트, 유효화소가
-{blk_old['best_pair']['valid_ratio']*100:.0f}에서 {blk_new['best_pair']['valid_ratio']*100:.0f}퍼센트가 됐고, 복원에 성공한 쌍도
-{blk_old['pairs_reconstructed']}개에서 {blk_new['pairs_reconstructed']}개로 늘었습니다. 더 키우면 유효화소만 오르고 정확도는
-다시 나빠지니, 격자의 끝이 아니라 안쪽에서 고른 값입니다.
+왼쪽 표가 그것을 재 본 것입니다. 후보 기하 스무 쌍을 고정해 두고 블록만 3에서
+17까지 바꿔 다시 복원했습니다. 11이 최적이었습니다. 오른쪽 표를 보시면 오차
+중앙값이 {blk_old['best_pair']['median_abs']*100:.2f}에서 {blk_new['best_pair']['median_abs']*100:.2f}센티미터, 5센티미터 이내가
+{blk_old['best_pair']['within_5cm']*100:.0f}에서 {blk_new['best_pair']['within_5cm']*100:.0f}퍼센트, 유효화소가 {blk_old['best_pair']['valid_ratio']*100:.0f}에서
+{blk_new['best_pair']['valid_ratio']*100:.0f}퍼센트가 됐고, 복원에 성공한 쌍도 {blk_old['pairs_reconstructed']}개에서 {blk_new['pairs_reconstructed']}개로 늘었습니다.
+어느 하나를 내주고 다른 하나를 얻은 것이 아니라 전부 함께 올랐습니다.
+
+더 키우면 유효화소만 오르고 정확도는 다시 나빠집니다. 그래서 11은 격자의 끝이
+아니라 안쪽에서 고른 값입니다.
 
 교훈은 값 자체가 아니라 절차라고 생각합니다. 합성 데이터로 고른 하이퍼파라미터를
 실데이터에 검증 없이 옮기면 안 됩니다. 두 데이터에서 병목이 다르기 때문입니다.
 합성 검증은 수식이 맞는지 확인하는 데 쓰고, 파라미터는 쓸 데이터에서 골라야 합니다.
 
-두 번째는 시차 탐색 범위입니다. 타겟의 경계 반지름을 알면 시차가 어느 구간에 있는지
-압니다. 최적 쌍에서 물리적으로 가능한 폭은 {narrow['narrowed']['num_disparities']}픽셀인데 지금은
-{narrow['current']['num_disparities']}픽셀을 훑고 있습니다. 좁혀 보니 유효화소는 {narrow['current']['valid_ratio']*100:.0f}에서
-{narrow['narrowed']['valid_ratio']*100:.0f}퍼센트로 올랐는데, 5센티미터 이내가 {narrow['current']['within_5cm']*100:.0f}에서
+왼쪽 아래는 재 봤지만 채택하지 않은 것입니다. 시차 탐색 범위입니다. 타겟의 경계
+반지름을 알면 시차가 어느 구간에 있는지 압니다. 최적 쌍에서 물리적으로 가능한 폭은
+{narrow['narrowed']['num_disparities']}픽셀인데 지금은 {narrow['current']['num_disparities']}픽셀을 훑고 있습니다. 좁혀 보니 유효화소는
+{narrow['current']['valid_ratio']*100:.0f}에서 {narrow['narrowed']['valid_ratio']*100:.0f}퍼센트로 올랐는데, 5센티미터 이내가 {narrow['current']['within_5cm']*100:.0f}에서
 {narrow['narrowed']['within_5cm']*100:.0f}퍼센트로 떨어졌습니다. 탐색 후보가 줄면 uniqueness 검사를 통과하기
 쉬워져서 원래는 기각됐을 애매한 대응이 살아남기 때문입니다. 트레이드오프라
 채택하지 않고 측정값만 남겼습니다.
 
-재 보지 않은 것도 적었습니다. 앞 장에서 시점이 구면 {spread['sphere_cells_total']}칸 중 {spread['sphere_cells_filled']}칸에 뭉쳐
-있다고 말씀드렸는데, 쌍 선별 기준을 시점 분산 쪽으로 바꾸면 같은 쌍 수로 더 넓게
-덮을 수 있을 것으로 봅니다. 그 외에 정렬 창을 타겟 경계 상자로 더 좁히는 것,
-신뢰도를 함께 내보내는 것, 블록 크기를 쌍마다 고르는 것이 남아 있습니다.
-
-위 그림은 쌍별 결과입니다. 베이스라인이 크다고 정확한 것이 아니고, 커버리지와
-정확도가 함께 가지도 않는다는 것이 보입니다.
+오른쪽 아래는 아직 재 보지 않은 것입니다. 앞 장에서 시점이 구면 {spread['sphere_cells_total']}칸 중
+{spread['sphere_cells_filled']}칸에 뭉쳐 있다고 말씀드렸는데, 쌍 선별 기준을 시점 분산 쪽으로 바꾸면 같은
+쌍 수로 더 넓게 덮을 수 있을 것으로 봅니다. 이것을 첫 번째로 보고 있습니다.
 
 한계도 함께 말씀드리면, 자세는 데이터셋이 준 정답을 그대로 썼고, 위성은 한 종만
 실험했으며, 깊이 분해능 하한이 {best['depth_resolution_m_per_px']*100:.1f} 센티미터 퍼 픽셀입니다.
