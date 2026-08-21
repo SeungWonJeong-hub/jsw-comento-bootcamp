@@ -714,12 +714,17 @@ def main() -> int:
     figures.figure_survey(results, os.path.join(OUT, "02_pair_survey.png"))
     best["_example_median"] = ex["full"]["median_abs"]
     figures.figure_spe3r(best, ex_depth, os.path.join(OUT, "03_spe3r_stereo.png"))
+    pc_cov = {"single": cov_single["surface_coverage"],
+              "fusion": fusion["stages"][0]["surface_coverage"],
+              "pairs": fusion["pairs_used"]}
+    # 문서용은 과제 예시 코드까지 네 칸, 발표용은 세 칸.
     figures.figure_pointclouds(
-        mesh_points, stereo_body, fusion_points, ex_cloud,
+        mesh_points, stereo_body, fusion_points,
         os.path.join(OUT, "04_pointclouds.png"),
-        coverage={"single": cov_single["surface_coverage"],
-                  "fusion": fusion["stages"][0]["surface_coverage"],
-                  "pairs": fusion["pairs_used"]})
+        example_cloud=ex_cloud, coverage=pc_cov)
+    figures.figure_pointclouds(
+        mesh_points, stereo_body, fusion_points,
+        os.path.join(OUT, "04_pointclouds_slide.png"), coverage=pc_cov)
 
     log("PLY 저장")
     pointcloud.write_ply(os.path.join(OUT, "pointcloud_ground_truth.ply"),

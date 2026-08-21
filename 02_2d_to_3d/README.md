@@ -49,7 +49,7 @@ py -3 tools/build_report.py [출력폴더]  # 발표자료 생성 (기본 report
 ```
 
 발표자료(.pptx)는 저장소에 커밋하지 않는다. 필요할 때 위 명령으로 만든다.
-`outputs/` 는 재실행해도 14개 산출물이 **바이트 단위로 동일**하다. 로그에 걸린
+`outputs/` 는 재실행해도 15개 산출물이 **바이트 단위로 동일**하다. 로그에 걸린
 시간과 로컬 경로를 남기지 않고 모든 난수 seed를 고정했다. 테스트 결과도 같은
 이유로 `save_test_report.py` 가 걸린 시간을 지운 뒤 저장한다 — 그 한 줄 때문에
 파일이 매번 달라지면 "재현된다" 는 말이 반만 맞게 되기 때문이다.
@@ -263,7 +263,9 @@ GT→pred가 그 3.0배라는 것은 **정답 표면의 상당 부분이 복원�
 남는다.
 
 `outputs/04_pointclouds.png` 에서 정답 · 1쌍 · 18쌍 융합 · 과제 예시를 나란히 볼
-수 있다.
+수 있다. 발표자료는 과제 예시를 뺀 `04_pointclouds_slide.png` 를 쓴다 — 예시
+코드가 왜 3D 가 아닌지는 3-1절에서 이미 다루므로, 같은 이야기를 두 번 하면
+정작 봐야 할 "앞면은 찼고 뒷면이 비었다" 에서 눈이 떨어진다.
 
 ## 4. 대조군은 왜 실패하는가
 밝기는 (반사율 × 조명 입사각)이라 거리 정보를 담지 않는다. 두 가지 증거가 있다.
@@ -557,8 +559,8 @@ tools/
   save_test_report.py       테스트 실행 결과를 outputs/pytest_report.txt 로 저장
   build_report.py           발표자료 생성 (기본 report/, 인자로 폴더 지정 가능)
 run_3d_experiment.py        실험 실행기 (실험 로직만)
-figures.py                  결과 그림 생성 (상세 5장 + 발표용 2장)
-outputs/                    그림 7장, PLY 4개, metrics.json, 로그, pytest 결과
+figures.py                  결과 그림 생성 (상세 5장 + 발표용 3장)
+outputs/                    그림 8장, PLY 4개, metrics.json, 로그, pytest 결과
                             metrics.json 에는 본 결과 외에 filter_ablation,
                             disparity_range_ablation, block_size_ablation,
                             surface_coverage, reference_sensitivity 가 함께

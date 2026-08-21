@@ -380,12 +380,17 @@ def _scatter3d(ax, pts, color, title, lim, size=0.5, title_size=18):
     ax.set_box_aspect((1, 1, 1))
 
 
-def figure_pointclouds(mesh_points, stereo_body, fusion_body, example_cloud, path,
-                       coverage=None):
-    """정답 · 스테레오 1쌍 · 스테레오 다중쌍 융합 · 과제 예시를 나란히 놓는다.
+def figure_pointclouds(mesh_points, stereo_body, fusion_body, path,
+                       example_cloud=None, coverage=None):
+    """정답 · 사진 2장 · 사진 여러 장을 나란히 놓는다.
 
     한 쌍만 보이면 "3D 복원했다" 로 읽히는데 실제로 덮은 것은 앞면뿐이다.
     쌍을 늘린 결과를 옆에 두어야 무엇이 채워지고 무엇이 끝내 비는지 보인다.
+
+    example_cloud 를 주면 과제 예시 코드 결과를 네 번째 칸에 붙인다. 문서용
+    그림에는 붙이고 발표용에는 붙이지 않는다. 발표에서는 (픽셀, 픽셀, 밝기)
+    가 왜 3D 가 아닌지를 2 장에서 이미 다뤘고, 같은 이야기를 두 번 하면
+    정작 봐야 할 "앞면은 찼고 뒷면이 비었다" 에서 눈이 떨어지기 때문이다.
     """
     def limits(p):
         c = (p.min(axis=0) + p.max(axis=0)) / 2
@@ -394,21 +399,23 @@ def figure_pointclouds(mesh_points, stereo_body, fusion_body, example_cloud, pat
 
     cov = coverage or {}
     lim = limits(mesh_points)
-    fig = plt.figure(figsize=(12.6, 3.3))
-    a1 = fig.add_subplot(1, 4, 1, projection="3d")
-    _scatter3d(a1, mesh_points, "#1f77b4", "정답\n(메시 표면)", lim, 0.3)
-    a2 = fig.add_subplot(1, 4, 2, projection="3d")
+    n = 4 if example_cloud is not None else 3
+    fig = plt.figure(figsize=(3.15 * n, 3.3))
+    a1 = fig.add_subplot(1, n, 1, projection="3d")
+    _scatter3d(a1, mesh_points, "#1f77b4", "정답\n(위성의 참 모양)", lim, 0.3)
+    a2 = fig.add_subplot(1, n, 2, projection="3d")
     _scatter3d(a2, stereo_body, "#d62728",
-               f"스테레오 1쌍\n{len(stereo_body):,}점 · 표면 "
+               f"사진 2장\n{len(stereo_body):,}점 · 겉면 "
                f"{cov.get('single', 0) * 100:.0f}%", lim)
-    a3 = fig.add_subplot(1, 4, 3, projection="3d")
+    a3 = fig.add_subplot(1, n, 3, projection="3d")
     _scatter3d(a3, fusion_body, "#ff7f0e",
-               f"스테레오 {cov.get('pairs', 0)}쌍 융합\n{len(fusion_body):,}점 · 표면 "
+               f"사진 {cov.get('pairs', 0)}쌍\n{len(fusion_body):,}점 · 겉면 "
                f"{cov.get('fusion', 0) * 100:.0f}%", lim, 0.25)
-    a4 = fig.add_subplot(1, 4, 4, projection="3d")
-    norm, _, _ = pointcloud.normalize_scale(example_cloud)
-    _scatter3d(a4, norm, "#7f7f7f", "과제 예시 코드\n(픽셀, 픽셀, 밝기)",
-               limits(norm), 0.2)
+    if example_cloud is not None:
+        a4 = fig.add_subplot(1, n, 4, projection="3d")
+        norm, _, _ = pointcloud.normalize_scale(example_cloud)
+        _scatter3d(a4, norm, "#7f7f7f", "과제 예시 코드\n(픽셀, 픽셀, 밝기)",
+                   limits(norm), 0.2)
     # 3D 축은 제목이 축 상자보다 위로 크게 벗어나므로 전체 제목을 두지 않는다.
     # 그림이 무엇인지는 슬라이드와 README 의 설명이 맡는다.
     fig.subplots_adjust(left=0.01, right=0.99, top=0.80, bottom=0.0, wspace=0.05)
