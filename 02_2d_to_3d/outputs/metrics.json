@@ -69,7 +69,7 @@
     "median_error_m": {
       "best": 0.008897657206210496,
       "median": 0.051213126092652494,
-      "worst": 0.8695663389364743
+      "worst": 0.8032970538072242
     },
     "pairs": [
       {
@@ -87,10 +87,10 @@
         "median_abs": 0.008897657206210496,
         "valid_ratio": 0.6021085925144966,
         "within_5cm": 0.915776571528629,
-        "rmse_nofilter": 0.12546115947102282,
-        "median_abs_nofilter": 0.009571662884293453,
-        "within_5cm_nofilter": 0.883657917019475,
-        "valid_ratio_nofilter": 0.6225619399051133,
+        "rmse_nofilter": 0.12533085796272367,
+        "median_abs_nofilter": 0.009565976010290633,
+        "within_5cm_nofilter": 0.8842569056092188,
+        "valid_ratio_nofilter": 0.622140221402214,
         "depth_resolution_m_per_px": 0.06794602117287518
       },
       {
@@ -188,14 +188,14 @@
         "expected_disparity_px": 55.9471908271897,
         "num_disparities": 96,
         "distance_m": 5.438438438438438,
-        "rmse": 0.4684637455378653,
-        "median_abs": 0.46441127387516135,
-        "valid_ratio": 0.016853375632001587,
-        "within_5cm": 0.07058823529411765,
-        "rmse_nofilter": 0.4725862763654757,
-        "median_abs_nofilter": 0.41106634829086675,
-        "within_5cm_nofilter": 0.04310344827586207,
-        "valid_ratio_nofilter": 0.022999900862496283,
+        "rmse": 0.46701726562339774,
+        "median_abs": 0.4641597589064843,
+        "valid_ratio": 0.016655100624566273,
+        "within_5cm": 0.07142857142857142,
+        "rmse_nofilter": 0.46107524596691357,
+        "median_abs_nofilter": 0.40550601940841435,
+        "within_5cm_nofilter": 0.045662100456621,
+        "valid_ratio_nofilter": 0.02171111331416675,
         "depth_resolution_m_per_px": 0.09720664001230636
       },
       {
@@ -209,14 +209,14 @@
         "expected_disparity_px": 72.751891421661,
         "num_disparities": 128,
         "distance_m": 5.305305305305305,
-        "rmse": 0.8340299813595194,
-        "median_abs": 0.8695663389364743,
-        "valid_ratio": 0.05270692347735555,
+        "rmse": 0.7985701249540851,
+        "median_abs": 0.8032970538072242,
+        "valid_ratio": 0.04060385216033316,
         "within_5cm": 0.0,
-        "rmse_nofilter": 0.8309633413003282,
-        "median_abs_nofilter": 0.8630495087371539,
+        "rmse_nofilter": 0.7947726426327207,
+        "median_abs_nofilter": 0.7994657192887873,
         "within_5cm_nofilter": 0.0,
-        "valid_ratio_nofilter": 0.05465903175429464,
+        "valid_ratio_nofilter": 0.04177511712649662,
         "depth_resolution_m_per_px": 0.07292326290950168
       }
     ]
@@ -236,10 +236,10 @@
     "median_abs": 0.008897657206210496,
     "valid_ratio": 0.6021085925144966,
     "within_5cm": 0.915776571528629,
-    "rmse_nofilter": 0.12546115947102282,
-    "median_abs_nofilter": 0.009571662884293453,
-    "within_5cm_nofilter": 0.883657917019475,
-    "valid_ratio_nofilter": 0.6225619399051133,
+    "rmse_nofilter": 0.12533085796272367,
+    "median_abs_nofilter": 0.009565976010290633,
+    "within_5cm_nofilter": 0.8842569056092188,
+    "valid_ratio_nofilter": 0.622140221402214,
     "depth_resolution_m_per_px": 0.06794602117287518
   },
   "best_pair_example_code": {
@@ -278,17 +278,17 @@
   "filter_ablation": [
     {
       "stage": "필터 없음",
-      "rmse": 0.12546115947102282,
-      "median_abs": 0.009571662884293453,
-      "within_5cm": 0.883657917019475,
-      "valid_ratio": 0.6225619399051133
+      "rmse": 0.12533085796272367,
+      "median_abs": 0.009565976010290633,
+      "within_5cm": 0.8842569056092188,
+      "valid_ratio": 0.622140221402214
     },
     {
       "stage": "filterSpeckles(400, 1px)",
-      "rmse": 0.0654217651860456,
-      "median_abs": 0.009258061370176485,
-      "within_5cm": 0.911574155139205,
-      "valid_ratio": 0.6021085925144966
+      "rmse": 0.06541847287549481,
+      "median_abs": 0.00925007129262756,
+      "within_5cm": 0.9117338003502627,
+      "valid_ratio": 0.6020031628887718
     },
     {
       "stage": "+ 중앙값 3x3",
@@ -311,10 +311,10 @@
       },
       "narrowed": {
         "min_disparity": 64,
-        "num_disparities": 48,
-        "median_abs": 0.008857067998997437,
-        "within_5cm": 0.9222189609627238,
-        "valid_ratio": 0.7183974696889827
+        "num_disparities": 32,
+        "median_abs": 0.00914148398012582,
+        "within_5cm": 0.926041261191125,
+        "valid_ratio": 0.8125461254612546
       }
     },
     {
@@ -366,9 +366,9 @@
       "narrowed": {
         "min_disparity": 128,
         "num_disparities": 64,
-        "median_abs": 0.05945163986476487,
-        "within_5cm": 0.39253539253539255,
-        "valid_ratio": 0.19199406968124536
+        "median_abs": 0.055463661399618225,
+        "within_5cm": 0.43354655294953803,
+        "valid_ratio": 0.1738324684951816
       }
     },
     {
@@ -395,16 +395,16 @@
       "current": {
         "min_disparity": 0,
         "num_disparities": 96,
-        "median_abs": 0.46441127387516135,
-        "within_5cm": 0.07058823529411765,
-        "valid_ratio": 0.016853375632001587
+        "median_abs": 0.4641597589064843,
+        "within_5cm": 0.07142857142857142,
+        "valid_ratio": 0.016655100624566273
       },
       "narrowed": {
         "min_disparity": 48,
         "num_disparities": 32,
-        "median_abs": 0.5390415646176692,
-        "within_5cm": 0.03002309468822171,
-        "valid_ratio": 0.04292653910974522
+        "median_abs": 0.46633242169534217,
+        "within_5cm": 0.03768115942028986,
+        "valid_ratio": 0.03420243878259145
       }
     },
     {
@@ -413,16 +413,16 @@
       "current": {
         "min_disparity": 0,
         "num_disparities": 128,
-        "median_abs": 0.8695663389364743,
+        "median_abs": 0.8032970538072242,
         "within_5cm": 0.0,
-        "valid_ratio": 0.05270692347735555
+        "valid_ratio": 0.04060385216033316
       },
       "narrowed": {
-        "min_disparity": 48,
-        "num_disparities": 48,
-        "median_abs": 0.8592188368268538,
+        "min_disparity": 64,
+        "num_disparities": 32,
+        "median_abs": 0.7698903249201607,
         "within_5cm": 0.0,
-        "valid_ratio": 0.055960437272254034
+        "valid_ratio": 0.04112441436751692
       }
     }
   ],
@@ -503,18 +503,18 @@
       {
         "erode_px": 0,
         "n_domain": 15423,
-        "median_abs": 0.009529095202722715,
-        "rmse": 0.06739970011288604,
-        "within_5cm": 0.9012485811577753,
-        "valid_ratio": 0.5712247941386241
+        "median_abs": 0.009514840922661527,
+        "rmse": 0.06696326063945189,
+        "within_5cm": 0.9025804251449357,
+        "valid_ratio": 0.5703818971665694
       },
       {
         "erode_px": 1,
         "n_domain": 12621,
-        "median_abs": 0.009095775540961526,
-        "rmse": 0.06601771785389082,
-        "within_5cm": 0.9095708677406255,
-        "valid_ratio": 0.5852943506853656
+        "median_abs": 0.009089527489914317,
+        "rmse": 0.06593901922431769,
+        "within_5cm": 0.9099404117009751,
+        "valid_ratio": 0.5850566516123921
       },
       {
         "erode_px": 2,

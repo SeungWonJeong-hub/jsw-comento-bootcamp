@@ -178,6 +178,52 @@ def test_rectified_pair_rejects_zero_baseline(cam):
         stereo.RectifiedPair(cam, np.eye(3), np.array([0.0, 0.0, 0.0]))
 
 
+def test_fit_window_keeps_geometry_and_contains_the_source(cam):
+    """정렬 창을 원본이 잘리지 않는 크기로 잡되, 시차 기하는 그대로여야 한다.
+
+    창을 넓히는 것은 주점을 옮기는 것뿐이므로 초점거리와 베이스라인이 변하면
+    안 된다. 변하면 Z = f·B/d 가 통째로 어긋난다.
+    """
+    B = 0.4
+    plain = stereo.RectifiedPair(cam, np.eye(3), np.array([-B, 0.0, 0.0]),
+                                 fit_window=False)
+    fitted = stereo.RectifiedPair(cam, np.eye(3), np.array([-B, 0.0, 0.0]))
+
+    assert fitted.baseline == pytest.approx(plain.baseline, rel=1e-9)
+    assert fitted.focal == pytest.approx(plain.focal, rel=1e-9)
+    assert fitted.size[0] >= plain.size[0] and fitted.size[1] >= plain.size[1]
+
+    # 원본 네 귀퉁이가 전부 창 안에 들어와야 한다.
+    rng = np.random.default_rng(2)
+    img = rng.integers(1, 255, size=cam.shape, dtype=np.uint8)
+    L, _, _ = fitted.remap(img, img)
+    assert (L > 0).sum() >= (img > 0).sum() * 0.99, "정렬 창이 원본을 자른다"
+
+
+def test_fit_window_respects_the_size_cap(cam):
+    """회전이 심하면 경계 상자가 수천 화소가 된다. 상한을 두고 균일 축소한다.
+
+    실제 데이터에서는 창 최대변이 423 이라 이 분기가 한 번도 실행되지 않는다.
+    안 타는 코드는 틀려도 모르므로 여기서 강제로 태운다. 축소는 균일해야
+    하므로 Z = f·B/d 의 f·B 비율이 보존돼야 한다.
+    """
+    B = 0.4
+    t = np.array([-B, 0.0, 0.0])
+    big = stereo.RectifiedPair(cam, np.eye(3), t, max_side=4096)
+    small = stereo.RectifiedPair(cam, np.eye(3), t, max_side=64)
+
+    assert max(small.size) <= 64, f"상한을 넘었다: {small.size}"
+    assert max(big.size) > 64, "이 테스트는 상한이 실제로 걸리는 조건을 전제로 한다"
+
+    # 균일 축소이므로 초점거리는 줄고 베이스라인은 그대로다.
+    assert small.focal < big.focal
+    assert small.baseline == pytest.approx(big.baseline, rel=1e-9)
+    # 같은 거리에서 예상 시차는 초점거리에 비례해 함께 줄어야 한다.
+    ratio = small.focal / big.focal
+    assert small.expected_disparity(5.0) == pytest.approx(
+        big.expected_disparity(5.0) * ratio, rel=1e-9)
+
+
 # --------------------------------------------------------------------------
 # 3-1. 세로 스테레오 — 돌려서 매칭하고 되돌리는 경로
 #
