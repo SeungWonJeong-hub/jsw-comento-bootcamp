@@ -73,4 +73,4 @@ tests/test_stereo.py::test_unlit_surfaces_break_matching PASSED          [ 97%]
 tests/test_stereo.py::test_find_pairs_returns_lateral_dominant_pairs PASSED [ 98%]
 tests/test_stereo.py::test_spe3r_pair_relative_pose_is_consistent_with_mesh PASSED [100%]
 
-============================= 71 passed =============================
+============================= 71 passed ==============================

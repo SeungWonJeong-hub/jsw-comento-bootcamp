@@ -161,7 +161,7 @@ def figure_concept(best, path):
     a.text(0, 2.35, f"f = {best['focal_px']:.0f} px      B = {base:.3f} m",
            ha="center", fontsize=10.5, color="#555555")
     a.text(0, -3.15, f"시차 1픽셀이 깊이 "
-           f"{best['depth_resolution_m_per_px']*100:.1f} cm 에 해당", ha="center",
+           f"{best['depth_resolution_m_per_px']:.3f} m 에 해당", ha="center",
            fontsize=11, color="#7a7a7a")
 
     fig.tight_layout()
@@ -226,12 +226,12 @@ def figure_synthetic(art, res, path):
     fig.colorbar(g, ax=ax[3], fraction=0.046)
     s = ax[4].imshow(art["z_stereo"][cy, cx], cmap="viridis", vmin=lo, vmax=hi)
     ax[4].set_title(f"스테레오 복원  Z = f·B/d\n오차 중앙값 "
-                    f"{res['stereo']['median_abs']*100:.1f} cm · 깊이 폭 "
+                    f"{res['stereo']['median_abs']:.4f} m · 깊이 폭 "
                     f"{res['stereo']['span_m']:.3f} m")
     fig.colorbar(s, ax=ax[4], fraction=0.046)
     e = ax[5].imshow(art["z_bright"][cy, cx], cmap="viridis", vmin=lo, vmax=hi)
     ax[5].set_title(f"과제 예시 코드 (최적 정렬)\n오차 중앙값 "
-                    f"{res['example_code']['full']['median_abs']*100:.1f} cm · 깊이 폭 "
+                    f"{res['example_code']['full']['median_abs']:.4f} m · 깊이 폭 "
                     f"{res['example_code']['full']['span_m']:.3f} m")
     fig.colorbar(e, ax=ax[5], fraction=0.046)
 
@@ -295,21 +295,21 @@ def figure_survey(results, path):
     w5 = np.array([r["within_5cm"] * 100 for r in results])
 
     fig, ax = plt.subplots(1, 3, figsize=(12.6, 3.6))
-    sc = ax[0].scatter(base, med * 100, c=rot, cmap="viridis", s=60)
-    ax[0].set_xlabel("유효 베이스라인 [m]"); ax[0].set_ylabel("깊이 오차 중앙값 [cm]")
+    sc = ax[0].scatter(base, med, c=rot, cmap="viridis", s=60)
+    ax[0].set_xlabel("유효 베이스라인 [m]"); ax[0].set_ylabel("깊이 오차 중앙값 [m]")
     ax[0].set_title("베이스라인과 정확도"); ax[0].set_yscale("log")
     fig.colorbar(sc, ax=ax[0], label="회전각 [도]", fraction=0.046)
 
     ax[1].scatter(cov, w5, s=60, color="#2ca02c")
-    ax[1].set_xlabel("유효 화소 비율 [%]"); ax[1].set_ylabel("5 cm 이내 화소 [%]")
+    ax[1].set_xlabel("유효 화소 비율 [%]"); ax[1].set_ylabel("0.05 m 이내 화소 [%]")
     ax[1].set_title("복원 범위와 정확도")
 
     order = np.argsort(med)
-    ax[2].plot(np.arange(1, len(med) + 1), med[order] * 100, "o-", ms=8,
+    ax[2].plot(np.arange(1, len(med) + 1), med[order], "o-", ms=8,
                color="#9467bd")
-    ax[2].axhline(10, ls="--", c="#333", lw=1.2)
-    ax[2].text(len(med) * 0.55, 11, "10 cm 기준", fontsize=10, color="#333")
-    ax[2].set_xlabel("쌍 순위"); ax[2].set_ylabel("깊이 오차 중앙값 [cm]")
+    ax[2].axhline(0.10, ls="--", c="#333", lw=1.2)
+    ax[2].text(len(med) * 0.55, 0.11, "0.10 m 기준", fontsize=10, color="#333")
+    ax[2].set_xlabel("쌍 순위"); ax[2].set_ylabel("깊이 오차 중앙값 [m]")
     ax[2].set_title(f"정확도 순 정렬 ({len(results)}쌍)"); ax[2].set_yscale("log")
 
     fig.suptitle("SPE3R 뷰 쌍별 복원 결과", fontsize=13)
@@ -346,7 +346,7 @@ def figure_spe3r(best, example_depth, path):
     fig.colorbar(r, ax=ax[3], fraction=0.046)
     s = ax[4].imshow(dep[cy, cx], cmap="viridis", vmin=lo, vmax=hi)
     ax[4].set_title(f"스테레오 복원  Z = f·B/d\n오차 중앙값 "
-                    f"{best['median_abs']*100:.1f} cm · 5cm 이내 "
+                    f"{best['median_abs']:.4f} m · 0.05 m 이내 "
                     f"{best['within_5cm']*100:.0f}%")
     fig.colorbar(s, ax=ax[4], fraction=0.046)
     e = ax[5].imshow(np.where(m, example_depth[cy, cx], np.nan), cmap="viridis",
@@ -362,11 +362,11 @@ def figure_spe3r(best, example_depth, path):
     figure_depth_triptych(
         [("기준 깊이 [m]\n(동봉 메시 z-buffer)",
           np.where(sm, ref[sy, sx], np.nan), "viridis", lo, hi),
-         (f"스테레오  Z = f·B/d\n오차 중앙값 {best['median_abs']*100:.1f} cm · "
-          f"5cm 이내 {best['within_5cm']*100:.0f}%",
+         (f"스테레오  Z = f·B/d\n오차 중앙값 {best['median_abs']:.4f} m · "
+          f"0.05 m 이내 {best['within_5cm']*100:.0f}%",
           dep[sy, sx], "viridis", lo, hi),
          (f"과제 예시 코드 (밝기, 최적 정렬)\n오차 중앙값 "
-          f"{best['_example_median']*100:.1f} cm",
+          f"{best['_example_median']:.4f} m",
           np.where(sm, example_depth[sy, sx], np.nan), "viridis", lo, hi)],
         path.replace(".png", "_slide.png"))
 
