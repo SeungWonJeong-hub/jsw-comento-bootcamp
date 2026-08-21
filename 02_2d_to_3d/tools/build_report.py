@@ -359,6 +359,10 @@ def build(prs, s):
     blocks = s["block_size_ablation"]
     blk_old = blocks[0]
     spread = cov_fuse["view_spread"]
+    posesens = s["pose_error_sensitivity"]
+    inc = cov_fuse["incremental"]
+    top2 = sorted(inc, key=lambda r: -r["gain"])[:2]
+    top2_share = sum(r["gain"] for r in top2) / inc[-1]["cumulative_coverage"]
     blk_new = next(x for x in blocks
                    if x["best_pair"]["valid_ratio"] == best["valid_ratio"])
     gap_ratio = bex["median_abs"] / best["median_abs"]
@@ -472,67 +476,64 @@ def build(prs, s):
 """)
 
     # ---------------- 4. 개선점 ----------------
-    # 카드를 넷으로 나눠 놓으니 어디부터 읽어야 하는지가 안 보였다. 개선점은
-    # "무엇을 할 것인가" 의 목록이므로 순서가 있는 한 덩어리로 둔다. 왜
-    # 그런지는 슬라이드에 적지 않고 대본에서 말한다.
+    # 이미 고친 것은 3 장까지의 수치에 반영돼 있다. 여기 또 적으면 "무엇이
+    # 남았는가" 가 흐려지므로 남은 것만 둔다. 항목마다 지금 무엇이 문제인지를
+    # 측정값으로 먼저 대고, 그래서 무엇을 할 것인지를 붙인다. 왜 그런지는
+    # 슬라이드에 적지 않고 대본에서 말한다.
     sl = new_slide(
         prs, 4, "04 / 개선점",
-        "무엇을 고쳤고, 무엇이 남았는가",
-        "효과가 큰 순서로 적었습니다 · 수치는 outputs/metrics.json 에 그대로 남습니다")
+        "실제로 쓰려면 남은 것 네 가지",
+        "각 항목의 앞줄이 지금 잰 값입니다 · outputs/metrics.json 에 그대로 남습니다")
 
-    bp_o, bp_n = blk_old["best_pair"], blk_new["best_pair"]
+    p025 = next(r for r in posesens if abs(r["degrees"] - 0.25) < 1e-9)
     items = [
-        ("1", "두 사진을 비교할 때 오려 보는 네모의 크기",
-         f"가짜 영상에서 고른 값이 {blk_old['block_size']}이었습니다. "
-         f"실제 영상에서 다시 골라 {josa(blk_new['block_size'], '으로/로')} "
-         f"바꿨습니다.",
-         f"거리 오차 {bp_o['median_abs']*100:.2f} → {bp_n['median_abs']*100:.2f} cm  ·  "
-         f"5 cm 안 {bp_o['within_5cm']*100:.1f} → {bp_n['within_5cm']*100:.1f}%  ·  "
-         f"값이 나온 픽셀 {bp_o['valid_ratio']*100:.0f} → {bp_n['valid_ratio']*100:.0f}%  ·  "
-         f"쓸 수 있는 쌍 {blk_old['pairs_reconstructed']} → "
-         f"{blk_new['pairs_reconstructed']}쌍",
-         "적용함"),
-        ("2", "사진을 고를 때 보는 방향이 골고루 퍼지게 고르기",
-         f"지금은 조건에 맞는 사진을 전부 써서 보는 방향이 한쪽에 몰려 있습니다.",
-         f"구면 {spread['sphere_cells_total']}칸 중 {spread['sphere_cells_filled']}칸  ·  "
-         f"같은 장수로 더 넓게 덮을 수 있습니다.",
-         "다음 차례"),
-        ("3", "화면에서 위성이 차지하는 부분만 잘라 더 크게 보기",
-         "지금은 화면 대부분이 빈 우주입니다.",
-         "같은 계산량으로 더 조밀하게 볼 수 있습니다.",
-         "다음 차례"),
-        ("4", "밀린 거리를 찾는 범위 좁히기",
-         "타겟 크기를 알면 범위를 좁힐 수 있는데, 좁히면 정확도를 내줍니다.",
-         f"빈 곳은 줄지만 5 cm 안이 {narrow['current']['within_5cm']*100:.1f} → "
-         f"{narrow['narrowed']['within_5cm']*100:.1f}% 로 떨어집니다.",
-         "재 봤지만 안 씀"),
+        ("1", "자세가 조금만 틀려도 무너집니다",
+         f"자세에 0.25도 오차를 주면 5 cm 안에 드는 비율이 "
+         f"{best['within_5cm']*100:.1f}% 에서 {p025['within_5cm']*100:.1f}% 로 "
+         f"떨어집니다.",
+         "→ 자세를 그대로 받지 말고, 영상의 대응점으로 상대 자세를 다시 맞춰야 "
+         "합니다."),
+        ("2", "보는 방향이 한쪽에 몰려 있습니다",
+         f"시점 간 최대각은 {spread['max_angle_deg']:.0f}도인데 구면 "
+         f"{spread['sphere_cells_total']}칸 중 {spread['sphere_cells_filled']}칸에만 "
+         f"있고, 상위 2쌍이 겉면의 {top2_share*100:.0f}% 를 만듭니다.",
+         "→ 조건에 맞는 사진을 전부 쓰지 말고, 빈 방향을 채우는 쪽으로 골라야 "
+         "합니다."),
+        ("3", "넓게 덮으면 정확한 점의 비율이 떨어집니다",
+         f"{cov_fuse['pairs_used']}쌍을 합치면 겉면은 "
+         f"{cov_one['surface_coverage']*100:.0f} → {fuse0['surface_coverage']*100:.0f}% "
+         f"로 늘지만 정확한 점의 비율이 {cov_one['precision']*100:.0f} → "
+         f"{fuse0['precision']*100:.0f}% 로 떨어집니다.",
+         "→ 값을 버리거나 남기거나로 나누지 말고, 점마다 신뢰도를 함께 내야 "
+         "합니다."),
+        ("4", "화면의 대부분이 빈 우주입니다",
+         f"위성은 화면의 일부만 차지하는데 전체를 그대로 봅니다. 깊이 분해능이 "
+         f"{best['depth_resolution_m_per_px']*100:.1f} cm/픽셀에서 막힙니다.",
+         "→ 위성이 있는 부분만 잘라 같은 계산량으로 더 조밀하게 봐야 합니다."),
     ]
 
     add_card(sl, 0.72, 1.70, 11.89, 5.12)
     y = 2.14
-    for num, head, why, res, tag in items:
+    for num, head, now, todo in items:
         add_text(sl, 0.98, y, 0.40, 0.28, [(num, SANS_SB, 15, FAINT)])
-        add_text(sl, 1.42, y, 8.60, 0.28, [(head, SANS_SB, 14, INK)],
+        add_text(sl, 1.42, y, 10.93, 0.28, [(head, SANS_SB, 14, INK)],
                  tracking=-14 * 0.02)
-        add_text(sl, 10.10, y + 0.04, 2.25, 0.24, [(tag, MONO, 9, MUTED)],
-                 align=PP_ALIGN.RIGHT)
         add_text(sl, 1.42, y + 0.40, 10.93, 0.46,
-                 [(why, SANS, 11, BODY), (res, SANS_MD, 11, INK)], spacing=1.3)
+                 [(now, SANS, 11, BODY), (todo, SANS_MD, 11, INK)], spacing=1.3)
         y += 1.24
+
     add_notes(sl, f"""
-· 개선점을 효과가 큰 순서로 넷 적었습니다.
-· 1번이 이번에 가장 크게 바꾼 것입니다. 두 사진에서 같은 지점을 찾을 때, 점 하나만 보면 어디가 어딘지 알 수 없어서 주변을 네모나게 오려 통째로 비교합니다.
-· 그 크기가 {josa(blk_old['block_size'], '이/가')}었는데, 근거가 2장에서 보여 드린 가짜 영상이었습니다. 무늬가 많아 작은 네모가 유리한 조건입니다.
-· 실제 위성은 금속이라 무늬가 없어 정반대입니다. 작은 네모로는 아예 못 찾습니다.
-· 사진 {blk_old['candidates']}쌍을 그대로 두고 크기만 3부터 17까지 바꿔 재 보니 {josa(blk_new['block_size'], '이/가')} 가장 좋았습니다. 보통은 하나를 얻으면 하나를 내주는데 전부 같이 좋아졌습니다.
-· 더 키우면 정확도가 다시 나빠지니 {josa(blk_new['block_size'], '은/는')} 끝값이 아니라 가운데 값입니다.
-· 배운 건 숫자가 아니라 순서입니다. 가짜 데이터는 식이 맞는지 확인하는 데 쓰고, 설정은 실제로 쓸 데이터에서 골라야 합니다.
-· 2번을 다음 차례로 봅니다. 3장에서 사진을 {cov_fuse['pairs_used']}쌍 합쳐 {fuse0['surface_coverage']*100:.0f}% 를 덮었다고 말씀드렸는데, 시점 간 최대각은 {spread['max_angle_deg']:.0f}도로 넓어 보여도 구면 {spread['sphere_cells_total']}칸 중 {spread['sphere_cells_filled']}칸에만 있습니다.
-· 조건에 맞는 사진을 전부 쓰다 보니 그렇습니다. 빈 칸을 채우는 쪽으로 고르면 같은 장수로 더 넓게 덮을 수 있을 것으로 봅니다.
-· 3번은 지금 정렬한 화면의 대부분이 빈 우주라, 위성 부분만 잘라 쓰면 같은 계산량으로 더 조밀하게 볼 수 있다는 것입니다.
-· 4번은 재 봤지만 쓰지 않았습니다. 타겟 크기를 알면 밀린 거리의 범위를 좁힐 수 있는데, 좁히면 애매한 대응까지 통과해서 정확도가 떨어집니다. 이번엔 하나를 얻고 하나를 내주는 쪽이라 잰 값만 남겼습니다.
-· 이 밖에 자신 없는 값을 버리는 대신 '자신 없음' 으로 표시해 남기는 것도 남아 있습니다.
-· 한계도 말씀드리면, 위성의 자세는 데이터셋이 준 정답을 그대로 썼고 위성은 한 종류만 실험했습니다.
+· 실제로 쓰려면 남은 것 네 가지입니다. 앞줄이 지금 잰 값이고 뒷줄이 할 일입니다.
+· 1번이 가장 큽니다. 지금은 위성의 자세를 데이터셋이 준 정답으로 받아 씁니다. 실제 상대항법에서는 그 자세도 추정해야 합니다.
+· 그래서 자세를 일부러 조금씩 틀리게 넣어 봤습니다. 0.25도만 틀려도 5 cm 안에 드는 비율이 {best['within_5cm']*100:.0f}에서 {p025['within_5cm']*100:.0f}퍼센트로 무너집니다.
+· 이유는 베이스라인이 짧아서입니다. 0.25도를 돌리면 5.6 m 거리에서 타겟이 2.5 cm 옮겨 앉는데, 베이스라인이 {best['baseline_m']*100:.0f} cm 뿐이라 그 7퍼센트가 그대로 깊이 배율 오차가 됩니다.
+· 그래서 자세를 그대로 믿지 말고, 두 사진의 대응점으로 상대 자세를 다시 맞추는 단계가 필요합니다.
+· 2번은 3장에서 사진 {cov_fuse['pairs_used']}쌍을 합쳐 {fuse0['surface_coverage']*100:.0f}퍼센트를 덮었다고 말씀드린 것의 원인입니다. 시점 간 최대각은 {spread['max_angle_deg']:.0f}도로 넓어 보이지만 구면 {spread['sphere_cells_total']}칸 중 {spread['sphere_cells_filled']}칸에만 있습니다.
+· 조건에 맞는 사진을 전부 쓰다 보니 그렇습니다. 실제로 상위 두 쌍이 겉면의 {top2_share*100:.0f}퍼센트를 만들고 나머지는 이미 덮은 데를 또 덮습니다. 빈 방향을 채우는 쪽으로 고르면 같은 장수로 더 넓게 덮을 수 있습니다.
+· 3번은 넓게 덮는 것과 정확한 것이 맞바뀌는 문제입니다. 지금은 자신 없는 값을 그냥 버립니다. 그래서 "모른다" 와 "틀렸다" 가 구분되지 않습니다. 점마다 신뢰도를 함께 내면 쓰는 쪽에서 골라 쓸 수 있습니다.
+· 4번은 정렬한 화면의 대부분이 빈 우주라는 것입니다. 위성이 있는 부분만 잘라 쓰면 같은 계산량으로 더 조밀하게 볼 수 있습니다. 지금 깊이 분해능이 {best['depth_resolution_m_per_px']*100:.1f} 센티미터 퍼 픽셀에서 막혀 있습니다.
+· 이 밖에 재 봤지만 쓰지 않은 것도 있습니다. 밀린 거리를 찾는 범위를 좁히면 빈 곳은 줄지만 5 cm 안이 {narrow['current']['within_5cm']*100:.1f}에서 {narrow['narrowed']['within_5cm']*100:.1f}퍼센트로 떨어져서, 잰 값만 남겼습니다.
+· 한계도 말씀드리면 위성은 한 종류만 실험했습니다.
 """)
 
 

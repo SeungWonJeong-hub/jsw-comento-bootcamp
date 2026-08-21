@@ -363,6 +363,76 @@ def disparity_range_ablation(model, results) -> list:
     return rows
 
 
+def pose_error_sensitivity(model, geo, mesh_points, target_radius,
+                           degrees=(0.0, 0.25, 0.5, 1.0, 2.0), trials=8) -> list:
+    """자세에 각도 오차를 넣으면 결과가 얼마나 무너지는가.
+
+    삼각측량에 들어가는 것은 두 뷰의 상대 자세다. 실제 상대항법에서는 그
+    자세를 추정해야 하므로, 추정 오차가 결과를 어디까지 밀어내는지가
+    "이 파이프라인을 실제로 쓸 수 있는가" 를 가른다.
+
+    뷰 j 의 자세만 무작위 축으로 각도만큼 돌린 뒤 상대 자세를 다시 계산한다.
+    기준 깊이와 채점 영역은 참 자세로 만든 것을 그대로 쓴다 - 정답을 함께
+    돌리면 오차가 상쇄되어 아무 일도 없는 것처럼 보이기 때문이다.
+
+    각도마다 축을 바꿔 여러 번 돌리고 중앙값을 본다. 축이 시선과 나란하면
+    영향이 작고 수직이면 크므로, 한 번만 재면 축을 어떻게 뽑았는지에 결과가
+    좌우된다.
+    """
+    i, j = geo["i"], geo["j"]
+    d0 = geo["distance"]
+    silhouette = cv2.erode(model.load_mask(i).astype(np.uint8),
+                           np.ones((3, 3), np.uint8), iterations=2) > 0
+    left = model.load_image(i, grayscale=True)
+    right = model.load_image(j, grayscale=True)
+    pose_i, pose_j = model.pose(i), model.pose(j)
+
+    rng = np.random.default_rng(0)
+    ref = None
+    rows = []
+    for deg in degrees:
+        got = []
+        for k in range(1 if deg == 0.0 else trials):
+            axis = rng.normal(size=3)
+            axis /= np.linalg.norm(axis)
+            rot, _ = cv2.Rodrigues(axis * np.radians(deg))
+            noisy = Pose(rot @ pose_j.R, rot @ pose_j.t)
+            R_ij, t_ij = stereo.relative_pose(pose_i, noisy)
+            try:
+                pair = stereo.RectifiedPair(model.camera, R_ij, t_ij, alpha=-1.0)
+            except (ValueError, cv2.error):
+                continue
+            if not (6.0 < pair.expected_disparity(d0) < 0.85 * pair.match_width):
+                continue
+            out = stereo.reconstruct(
+                pair, left, right, mask=silhouette, distance=d0,
+                depth_range=(d0 - target_radius, d0 + target_radius))
+            # 기준 깊이는 이 쌍의 정렬 좌표계에서 **참 자세**로 만든다. 자세를
+            # 틀리게 주면 정렬 창 자체가 달라지므로 참 자세로 만든 다른 창의
+            # 기준을 그대로 쓸 수 없다. 흔드는 것은 삼각측량에 들어가는
+            # 상대 자세뿐이고, 표면의 참 위치는 pose_i 가 준다.
+            ref = stereo.reference_depth(pair, pose_i, mesh_points)
+            mask = out["mask"] if out["mask"] is not None else np.isfinite(ref)
+            m = metrics.depth_metrics(out["depth"], ref, mask=mask)
+            if m["n_valid"] < 50:
+                got.append({"median_abs": float("nan"), "within_5cm": 0.0,
+                            "valid_ratio": m["valid_ratio"]})
+                continue
+            got.append({"median_abs": m["median_abs"],
+                        "within_5cm": within(out["depth"], ref, mask),
+                        "valid_ratio": m["valid_ratio"]})
+        if not got:
+            rows.append({"degrees": deg, "trials": 0})
+            continue
+        rows.append({
+            "degrees": deg, "trials": len(got),
+            "median_abs": float(np.nanmedian([g["median_abs"] for g in got])),
+            "within_5cm": float(np.median([g["within_5cm"] for g in got])),
+            "valid_ratio": float(np.median([g["valid_ratio"] for g in got])),
+        })
+    return rows
+
+
 def block_size_ablation(model, geos, mesh_points, target_radius,
                         sizes=(3, 5, 7, 9, 11, 13, 15, 17)) -> list:
     """SGBM 정합 블록 크기를 실데이터에서 고른 근거 (stereo.DEFAULT_BLOCK_SIZE).
@@ -687,6 +757,32 @@ def main() -> int:
     log("  둘이 비슷한 데를 본다. 남은 커버리지는 쌍을 더 모아서가 아니라")
     log("  시점 배치와 정합 설정에서 나온다 ([7] 절).")
 
+    log("\n[8] 자세가 조금 틀리면 - 실제 상대항법에서 자세는 추정값이다")
+    posesens = pose_error_sensitivity(model, geos[0] if best is None else
+                                      next(g for g in geos
+                                           if g["i"] == best["i"]
+                                           and g["j"] == best["j"]),
+                                      mesh_points, target_radius)
+    log("  뷰 j 의 자세만 무작위 축으로 돌리고 기준 깊이는 참 자세로 둔다.")
+    log("  축에 따라 영향이 달라 각도마다 8번 돌린 중앙값이다.")
+    log(f"  {'자세 오차':>9s}{'중앙값':>11s}{'<5cm':>9s}{'유효화소':>10s}")
+    for r in posesens:
+        if r.get("trials", 0) == 0:
+            log(f"  {r['degrees']:8.2f}도       복원 실패")
+            continue
+        log(f"  {r['degrees']:8.2f}도{r['median_abs']:11.4f}"
+            f"{r['within_5cm']*100:8.1f}%{r['valid_ratio']*100:9.1f}%")
+    b, d = best["baseline_m"], best["distance_m"]
+    shift = d * np.radians(0.25)
+    log(f"  0.25도만 틀려도 무너진다. 자세를 그만큼 돌리면 타겟이 "
+        f"{shift*100:.1f} cm 옮겨 앉는데,")
+    log(f"  베이스라인이 {b*100:.0f} cm 뿐이라 그 {shift/b*100:.0f}% 가 그대로 "
+        f"깊이 배율 오차가 된다 (약 {d*shift/b:.2f} m).")
+    log("  각도가 더 커지면 중앙값이 다시 작아 보이는데, 유효화소가 무너져")
+    log("  깊이 범위 안에 남은 화소만 재기 때문이다. 5cm 이내 쪽을 봐야 한다.")
+    log("  자세를 정답으로 받는 지금 구조의 한계다. 실제로 쓰려면 영상에서")
+    log("  대응점으로 상대 자세를 다시 맞춰야 한다 (README 9절).")
+
     log("\n[7] 정합 블록 크기를 실데이터에서 다시 고른 근거")
     blocks = block_size_ablation(model, geos, mesh_points, target_radius)
     log("  처음 기본값은 3 이었다. 합성 장면 RMSE 가 가장 낮았기 때문이다.")
@@ -766,6 +862,7 @@ def main() -> int:
         "filter_ablation": ablation,
         "disparity_range_ablation": narrow,
         "block_size_ablation": blocks,
+        "pose_error_sensitivity": posesens,
         "surface_coverage": {"stereo_single_pair": cov_single,
                              "multiview_stereo_fusion": fusion},
         "reference_sensitivity": sens,

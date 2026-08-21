@@ -666,6 +666,43 @@
       "fused_points": 13709
     }
   ],
+  "pose_error_sensitivity": [
+    {
+      "degrees": 0.0,
+      "trials": 1,
+      "median_abs": 0.007434495071930947,
+      "within_5cm": 0.9550972457903668,
+      "valid_ratio": 0.8076963626779124
+    },
+    {
+      "degrees": 0.25,
+      "trials": 8,
+      "median_abs": 0.24035872817210757,
+      "within_5cm": 0.0077402709094818315,
+      "valid_ratio": 0.50350133850998
+    },
+    {
+      "degrees": 0.5,
+      "trials": 8,
+      "median_abs": 0.3176806090710129,
+      "within_5cm": 0.0,
+      "valid_ratio": 0.1947001094535929
+    },
+    {
+      "degrees": 1.0,
+      "trials": 8,
+      "median_abs": 0.6748792225143836,
+      "within_5cm": 0.0,
+      "valid_ratio": 0.24631968897938894
+    },
+    {
+      "degrees": 2.0,
+      "trials": 8,
+      "median_abs": 0.15314111644293926,
+      "within_5cm": 0.0,
+      "valid_ratio": 0.02717620916737436
+    }
+  ],
   "surface_coverage": {
     "stereo_single_pair": {
       "n_points": 7661,
