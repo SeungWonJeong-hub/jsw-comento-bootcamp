@@ -377,6 +377,50 @@ def filter_disparity(disparity, max_speckle_size: int = 400,
     return out
 
 
+def local_contrast(image, ksize: int = 7) -> np.ndarray:
+    """화소 주변의 밝기 표준편차. 정합할 단서가 얼마나 있는지를 나타낸다.
+
+    블록 정합은 창 안의 밝기 패턴을 맞춘다. 그 패턴이 평평하면 어디에 갖다
+    대도 비용이 비슷해서, 매처는 탐색 구간 안 어딘가를 고르기는 하지만 그것이
+    옳다는 보장이 없다.
+
+    표준편차는 적분 영상으로 한 번에 구한다.  Var = E[x^2] - E[x]^2
+    """
+    if ksize < 3 or ksize % 2 == 0:
+        raise ValueError(f"창 크기는 3 이상 홀수여야 합니다: {ksize}")
+    f = np.asarray(image, dtype=np.float32)
+    if f.ndim == 3:
+        f = cv2.cvtColor(f.astype(np.uint8), cv2.COLOR_BGR2GRAY).astype(np.float32)
+    mean = cv2.blur(f, (ksize, ksize))
+    var = cv2.blur(f * f, (ksize, ksize)) - mean * mean
+    return np.sqrt(np.maximum(var, 0.0))
+
+
+def texture_mask(image, min_contrast: float, ksize: int = 7) -> np.ndarray:
+    """정합할 단서가 있는 화소만 True.
+
+    왜 필요한가 — 실측 (달 지형 티코 크레이터, 시차 1 px = 450 m)
+
+        대비 하한   값이 나온 화소   Z 오차 중앙값   1 px 초과
+             0          72.0%          66.1 m        0.99%
+             2          69.4%          64.9 m        0.69%
+             4          63.0%          63.3 m        0.75%
+             8          47.2%          60.9 m        0.94%
+
+        하한 2 는 화소를 2.6 %p 만 내주고 **크게 틀린 화소를 3분의 1 줄인다.**
+        더 올리면 덮는 범위만 빠르게 잃는다. 크게 틀린 화소들은 실제로 어두운
+        곳에 몰려 있었다(평균 밝기 62 대 전체 114) - 크레이터 안쪽 그늘이다.
+
+        다만 이것으로 "대응이 없다" 를 가려낼 수는 없다. 좌우에 같은 영상을
+        넣어도 화소의 21% 가 값을 내는데, 관문을 걸어도 20% 로 거의 줄지
+        않는다. 매처는 탐색 구간 안에서 반드시 무언가를 고르기 때문이다.
+        신뢰도를 함께 내보내는 것이 제대로 된 해법이고, README 9절에 적었다.
+    """
+    if min_contrast < 0:
+        raise ValueError(f"대비 하한은 0 이상이어야 합니다: {min_contrast}")
+    return local_contrast(image, ksize) >= min_contrast
+
+
 def disparity_to_depth(disparity, focal: float, baseline: float) -> np.ndarray:
     """시차 -> 깊이.  Z = f * B / d.  d <= 0 은 NaN.
 

@@ -195,6 +195,22 @@ def test_rendered_depth_recovers_the_original_elevation():
     assert world[ok, 2].max() == pytest.approx(elev.max(), abs=2.0)
 
 
+@pytest.mark.parametrize("gsd", [0.0, -5.0])
+def test_render_rejects_bad_pixel_size(gsd):
+    """화소 크기가 0 이면 조용히 0 으로 나누지 말고 예외를 내야 한다.
+
+    법선 계산은 검사하는데 렌더링은 빠져 있었다. 0 으로 나눈 좌표가 그대로
+    보간에 들어가 경고만 남기고 엉뚱한 그림이 나온다.
+    """
+    cam = PinholeCamera(32, 32, 100.0)
+    pose = terrain.look_at((0.0, 0.0, 500.0), (0.0, 0.0, 0.0))
+    with pytest.raises(ValueError):
+        terrain.render_heightfield(np.zeros((32, 32)), gsd, np.zeros((32, 32)),
+                                   cam, pose)
+    with pytest.raises(ValueError):
+        terrain.surface_points(np.zeros((32, 32)), gsd)
+
+
 def test_render_rejects_mismatched_elevation_and_intensity():
     cam = PinholeCamera(32, 32, 100.0)
     pose = terrain.look_at((0.0, 0.0, 500.0), (0.0, 0.0, 0.0))
@@ -378,3 +394,29 @@ def test_full_pipeline_recovers_the_terrain_within_one_pixel():
     assert m["valid_ratio"] > 0.25
     # 실측 0.30 px. 절반을 상한으로 두면 정합이 망가졌을 때만 걸린다.
     assert m["median_abs"] < 0.5 * one_pixel
+
+
+def test_texture_gate_keeps_patterned_areas_and_drops_flat_ones():
+    """무늬가 있는 곳만 남기고 평평한 곳은 버려야 한다.
+
+    블록 정합은 창 안의 밝기 패턴을 맞춘다. 패턴이 없으면 어디에 갖다 대도
+    비용이 비슷해서, 매처가 고른 값이 옳다는 보장이 없다.
+    """
+    flat = np.full((64, 64), 120, dtype=np.uint8)
+    assert not stereo.texture_mask(flat, 2.0).any()
+
+    rng = np.random.default_rng(0)
+    speckled = np.clip(120 + rng.normal(0, 25, (64, 64)), 0, 255).astype(np.uint8)
+    assert stereo.texture_mask(speckled, 2.0).mean() > 0.95
+
+    # 절반만 무늬가 있으면 그 절반만 남는다.
+    half = flat.copy()
+    half[:, 32:] = speckled[:, 32:]
+    kept = stereo.texture_mask(half, 2.0)
+    assert kept[:, :28].mean() < 0.05 and kept[:, 36:].mean() > 0.95
+
+
+@pytest.mark.parametrize("bad", [2, 4, 1])
+def test_local_contrast_rejects_bad_window(bad):
+    with pytest.raises(ValueError):
+        stereo.local_contrast(np.zeros((16, 16), np.uint8), ksize=bad)

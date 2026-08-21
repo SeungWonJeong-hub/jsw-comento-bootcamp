@@ -38,6 +38,8 @@ OUT = os.path.join(ROOT, "outputs")
 FOCAL_PX = 500.0        # 정렬 후 초점거리 [px]
 CONVERGENCE = 15.0      # 두 시선이 벌어진 각 [도]
 BLOCK = 5               # 정합 블록. 아래 [4] 에서 재서 고른다.
+MIN_CONTRAST = 2.0      # 이보다 무늬가 옅은 곳은 값을 내지 않는다.
+                        # 근거는 stereo.texture_mask 의 설명에 있다.
 
 _ALT = None             # 촬영 고도 [m]. main() 이 화소 크기에서 정한다.
 _log = []
@@ -124,6 +126,8 @@ def reconstruct(view, camera, relief, block_size=BLOCK):
         block_size=block_size))
     depth = stereo.disparity_to_depth(disparity, pair.focal, pair.baseline)
     depth = np.where((depth >= lo) & (depth <= hi), depth, np.nan)
+    # 무늬가 없는 곳에서는 매처가 무엇을 고르든 믿을 수 없다. 값을 내지 않는다.
+    depth = np.where(stereo.texture_mask(L, MIN_CONTRAST), depth, np.nan)
 
     # 기준 깊이도 같은 광선 방식으로 만든다. 정렬된 왼쪽 카메라에 직접
     # 쏘므로 흩뿌리기의 반올림이 끼어들지 않는다.
@@ -261,7 +265,8 @@ def main() -> int:
         "scene": {"source": source, "grid": list(elev.shape), "gsd_m": gsd,
                   "relief_m": relief, "altitude_m": _ALT,
                   "focal_px": focal, "convergence_deg": CONVERGENCE,
-                  "baseline_m": view["baseline"], "block_size": BLOCK},
+                  "baseline_m": view["baseline"], "block_size": BLOCK,
+                  "min_contrast": MIN_CONTRAST},
         "best": best,
         "convergence_sweep": conv_rows,
         "block_size_sweep": block_rows,

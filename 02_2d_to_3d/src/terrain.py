@@ -116,6 +116,8 @@ def surface_normals(elev: np.ndarray, gsd: float) -> np.ndarray:
 
 def surface_points(elev: np.ndarray, gsd: float) -> np.ndarray:
     """고도 격자를 (N, 3) 지형 좌표 점으로 편다. X 동, Y 북, Z 고도."""
+    if gsd <= 0:
+        raise ValueError(f"화소 크기는 양수여야 합니다: {gsd}")
     h, w = np.asarray(elev).shape
     y, x = np.mgrid[0:h, 0:w]
     # 격자의 가운데를 원점으로 둔다. 카메라를 원점 위에 놓기 편하다.
@@ -307,6 +309,10 @@ def render_heightfield(elev, gsd, intensity, camera, pose: Pose, iters: int = 12
     intensity = np.asarray(intensity, dtype=np.float64)
     if elev.shape != intensity.shape:
         raise ValueError(f"고도 {elev.shape} 와 밝기 {intensity.shape} 가 다릅니다.")
+    if gsd <= 0:
+        raise ValueError(f"화소 크기는 양수여야 합니다: {gsd}")
+    if iters < 1:
+        raise ValueError(f"반복 횟수는 1 이상이어야 합니다: {iters}")
     h, w = elev.shape
 
     centre = -pose.R.T @ pose.t                     # 지형 좌표계의 카메라 위치
