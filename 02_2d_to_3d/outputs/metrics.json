@@ -445,6 +445,19 @@
     "within_5cm": 0.9946230890880338,
     "valid_ratio": 1.0
   },
+  "coverage_overlap_carving_vs_stereo": {
+    "threshold": 0.02,
+    "n_gt": 400000,
+    "a_only": 0.7011,
+    "b_only": 0.01095,
+    "both": 0.2652625,
+    "neither": 0.0226875,
+    "b_share_already_in_a": 0.9603566094945015,
+    "a_misses_recovered_by_b": 0.3255295429208473,
+    "b_only_dist_to_a_median": 0.023083050749076607,
+    "gt_dist_to_a_median": 0.008991042235822541,
+    "b_only_inside_a_ratio": 0.49474885844748856
+  },
   "surface_coverage": {
     "stereo_single_pair": {
       "n_points": 5711,

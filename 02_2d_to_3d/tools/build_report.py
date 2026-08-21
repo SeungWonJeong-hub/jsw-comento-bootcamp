@@ -260,6 +260,7 @@ def build(prs, s):
     cov_both = cov["stereo_plus_carving"]
     carve = s["silhouette_carving"]
     cdm = s["carved_depth_map"]
+    ov = s["coverage_overlap_carving_vs_stereo"]
     gap_ratio = bex["median_abs"] / best["median_abs"]
     ch_ratio = ch["target_to_pred"] / ch["pred_to_target"]
 
@@ -345,29 +346,31 @@ def build(prs, s):
     # ---------------- 3. 2D -> 3D 변환 결과 ----------------
     sl = new_slide(
         prs, 3, "03 / 2D → 3D 변환 결과",
-        f"타겟 표면의 {cov_both['surface_coverage']*100:.0f}% 를 복원했습니다",
-        "두 경로를 같은 지표로 비교 · 정답 메시 표면 40만 점 중 복원점이 "
-        "2 cm 안에 있는 비율")
+        f"실루엣 카빙으로 타겟 표면의 {carve['surface_coverage']*100:.0f}% 를 복원했습니다",
+        "참고자료가 가리키는 스테레오부터 했지만 표면의 "
+        f"{cov_one['surface_coverage']*100:.0f}% 에서 멈춰 갈아탔습니다 · "
+        "정답 메시 40만 점 중 복원점이 2 cm 안에 있는 비율")
     add_image(sl, os.path.join(OUT, "04_pointclouds.png"), 0.72, 1.70, 11.89, 3.16)
     add_card(sl, 0.72, 5.02, 5.86, 1.86)
     add_text(sl, 0.98, 5.21, 5.34, 0.24, [("표면 커버리지", SANS_SB, 10.5, INK)])
-    add_matrix(sl, 0.98, 5.51, [2.10, 1.15, 1.30], [
-        (("", "점 수", "표면 덮음"), "head"),
-        (("A 스테레오 (2장)", f"{cov_one['n_points']:,}",
-          f"{cov_one['surface_coverage']*100:.1f}%"), "body"),
-        (("B 실루엣 카빙 (20뷰)", f"{carve['n_points']:,}",
-          f"{carve['surface_coverage']*100:.1f}%"), "body"),
-        (("A + B", f"{cov_both['n_points']:,}",
-          f"{cov_both['surface_coverage']*100:.1f}%"), "key"),
+    add_matrix(sl, 0.98, 5.51, [1.95, 1.20, 0.95, 0.75], [
+        (("", "표면 덮음", "정밀도", "F"), "head"),
+        (("A 스테레오 (2장)", f"{cov_one['surface_coverage']*100:.1f}%",
+          f"{cov_one['precision']*100:.1f}%", f"{cov_one['f_score']*100:.0f}"), "body"),
+        (("B 카빙 (20뷰)", f"{carve['surface_coverage']*100:.1f}%",
+          f"{carve['precision']*100:.1f}%", f"{carve['f_score_002']*100:.0f}"), "key"),
+        (("A + B", f"{cov_both['surface_coverage']*100:.1f}%",
+          f"{cov_both['precision']*100:.1f}%",
+          f"{cov_both['f_score']*100:.0f}"), "body"),
     ])
-    add_panel(sl, 6.96, 5.02, 5.65, 1.86, "같은 시점에서 두 깊이 맵을 비교하면", [
-        k(f"A 오차 중앙값 {best['median_abs']*100:.1f} cm · 유효화소 "
-          f"{best['valid_ratio']*100:.0f}%   (영상 2장)"),
-        k(f"B 오차 중앙값 {cdm['median_abs']*100:.1f} cm · 유효화소 "
-          f"{cdm['valid_ratio']*100:.0f}%   (마스크 20장)"),
+    add_panel(sl, 6.96, 5.02, 5.65, 1.86, "합치지 않은 이유 — 겹침을 쟀습니다", [
+        k(f"A 가 덮는 것의 {ov['b_share_already_in_a']*100:.0f}% 는 B 도 덮습니다. "
+          f"고유 기여는 {ov['b_only']*100:.1f}%p."),
+        b(f"합치면 커버리지가 {ov['b_only']*100:.1f}%p 오르는 대신 정밀도가 "
+          f"{(carve['precision']-cov_both['precision'])*100:.1f}%p 깎입니다."),
         gap(),
-        b("B 가 낫지만 입력이 열 배 많고 마스크는 정답입니다."),
-        b("어느 쪽이 낫다가 아니라 필요한 입력이 다른 두 경로입니다."),
+        b("A 가 남는 이유는 성능이 아니라 입력입니다."),
+        b("B 는 실루엣 마스크가 없으면 아예 동작하지 않습니다."),
     ])
     add_notes(sl, f"""
 2D 에서 3D 로의 변환 결과입니다. 네 장을 왼쪽부터 봐 주십시오.

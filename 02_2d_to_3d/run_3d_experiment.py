@@ -151,6 +151,48 @@ def surface_coverage(pred_body, mesh_points, threshold: float = 0.02) -> dict:
             "surface_coverage": recall, "precision": precision, "f_score": f}
 
 
+def coverage_overlap(a_body, b_body, mesh_points, threshold: float = 0.02) -> dict:
+    """두 복원이 정답 표면의 어느 부분을 각각/함께 덮는지 나눈다.
+
+    총계만 보면 "합치면 오른다" 로 보이지만, 겹치는 부분이 대부분이면 두 번째
+    방법이 실제로 더하는 것은 거의 없다. "약점이 상보적" 이라는 말을 쓰려면
+    겹치지 않는 부분이 얼마나 되는지를 재야 한다.
+
+    겹치지 않는 부분이 어디인지도 함께 본다. 상대의 표면에서 멀고 그 안쪽이면
+    오목한 부분일 가능성이 크다 - visual hull 이 원리적으로 못 만드는 곳이다.
+    """
+    from scipy.spatial import cKDTree
+
+    gt, center, scale = pointcloud.normalize_scale(mesh_points)
+    a = (np.asarray(a_body, dtype=np.float64) - center) / scale
+    b = (np.asarray(b_body, dtype=np.float64) - center) / scale
+    d_a, _ = cKDTree(a).query(gt, k=1)
+    d_b, _ = cKDTree(b).query(gt, k=1)
+    ca, cb = d_a < threshold, d_b < threshold
+    only_b = cb & ~ca
+
+    out = {
+        "threshold": threshold, "n_gt": int(len(gt)),
+        "a_only": float((ca & ~cb).mean()), "b_only": float(only_b.mean()),
+        "both": float((ca & cb).mean()), "neither": float((~ca & ~cb).mean()),
+        "b_share_already_in_a": float((ca & cb).sum() / max(1, cb.sum())),
+        "a_misses_recovered_by_b": float(only_b.sum() / max(1, (~ca).sum())),
+    }
+    if only_b.sum():
+        # b 만 덮은 점이 a 의 표면에서 얼마나 떨어져 있나, 그리고 안쪽인가.
+        tree = cKDTree(a)
+        _, idx = tree.query(gt[only_b], k=1)
+        cen = gt.mean(axis=0)
+        inside = (np.linalg.norm(gt[only_b] - cen, axis=1)
+                  < np.linalg.norm(a[idx] - cen, axis=1))
+        out.update({
+            "b_only_dist_to_a_median": float(np.median(d_a[only_b])),
+            "gt_dist_to_a_median": float(np.median(d_a)),
+            "b_only_inside_a_ratio": float(inside.mean()),
+        })
+    return out
+
+
 def run_multiview_fusion(model, mesh_points, target_radius,
                          max_rotation_deg: float = 12.0,
                          min_lateral_ratio: float = 1.5) -> dict:
@@ -688,6 +730,21 @@ def main() -> int:
         "surface_coverage": carved["surface_coverage"],
         "f_score": carved["f_score_002"]})
     cov_line("스테레오 + 카빙", combined)
+
+    # "약점이 상보적" 이라는 말을 쓰려면 겹치지 않는 부분을 재야 한다.
+    ov = coverage_overlap(carved["_points"], stereo_body, mesh_points)
+    log(f"  겹침을 나눠 보면 — 카빙만 {ov['a_only']*100:.1f}% · 둘 다 "
+        f"{ov['both']*100:.1f}% · 스테레오만 {ov['b_only']*100:.1f}% · "
+        f"둘 다 못 덮음 {ov['neither']*100:.1f}%")
+    log(f"  스테레오가 덮는 것의 {ov['b_share_already_in_a']*100:.0f}% 는 카빙도 덮는다. "
+        f"고유 기여는 {ov['b_only']*100:.1f}%p 다.")
+    if "b_only_inside_a_ratio" in ov:
+        log(f"  그 {ov['b_only']*100:.1f}%p 는 카빙이 가장 크게 빗나간 곳이다 "
+            f"(카빙 표면까지 거리 중앙값 {ov['b_only_dist_to_a_median']:.4f}, "
+            f"전체 평균 {ov['gt_dist_to_a_median']:.4f}). 그중 "
+            f"{ov['b_only_inside_a_ratio']*100:.0f}% 가 hull 안쪽 = 오목한 부분이다.")
+    log(f"  카빙이 놓친 곳의 {ov['a_misses_recovered_by_b']*100:.0f}% 를 스테레오가 메운다.")
+    log("  상보성은 실재하지만 규모가 작다. 이 타겟이 대체로 볼록하기 때문이다.")
     log(f"  후보를 회전 {fusion['max_rotation_deg']:.0f}도까지 풀어 "
         f"{fusion['candidates']}쌍을 훑어도 {fusion['pairs_used']}쌍만 복원된다.")
     inc = fusion["incremental"]
@@ -780,6 +837,7 @@ def main() -> int:
         "silhouette_carving": {kk: vv for kk, vv in carved.items()
                                if not kk.startswith("_")},
         "carved_depth_map": carved_depth_metrics,
+        "coverage_overlap_carving_vs_stereo": ov,
         "surface_coverage": {"stereo_single_pair": cov_single,
                              "multiview_stereo_fusion": fusion,
                              "stereo_plus_carving": combined},
