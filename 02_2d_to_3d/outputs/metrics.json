@@ -431,12 +431,61 @@
     "resolution": 128,
     "n_points": 9762,
     "kept_ratio": 0.011275291442871094,
+    "surface_coverage": 0.9663625,
     "chamfer_l1": 0.009281111465937911,
     "chamfer_pred_to_gt": 0.008996223273156124,
     "chamfer_gt_to_pred": 0.0095659996587197,
     "f_score_002": 0.9471586276757965,
     "precision": 0.9287031346035648,
     "recall": 0.9663625
+  },
+  "surface_coverage": {
+    "stereo_single_pair": {
+      "n_points": 5711,
+      "threshold": 0.02,
+      "surface_coverage": 0.2762125,
+      "precision": 0.6990019261075118,
+      "f_score": 0.3959602408377128
+    },
+    "multiview_stereo_fusion": {
+      "candidates": 121,
+      "pairs_used": 12,
+      "max_rotation_deg": 12.0,
+      "min_lateral_ratio": 1.5,
+      "stages": [
+        {
+          "filter": "없음",
+          "n_points": 11821,
+          "threshold": 0.02,
+          "surface_coverage": 0.47322,
+          "precision": 0.5222908383385501,
+          "f_score": 0.49654601637700263
+        },
+        {
+          "filter": "다른 쌍 1개 이상이 확인 (반경 0.02)",
+          "n_points": 5279,
+          "threshold": 0.02,
+          "surface_coverage": 0.316075,
+          "precision": 0.7448380375071036,
+          "f_score": 0.44381523156365477
+        },
+        {
+          "filter": "다른 쌍 2개 이상이 확인 (반경 0.02)",
+          "n_points": 1381,
+          "threshold": 0.02,
+          "surface_coverage": 0.104325,
+          "precision": 0.7313540912382331,
+          "f_score": 0.18260242805734553
+        }
+      ]
+    },
+    "stereo_plus_carving": {
+      "n_points": 15473,
+      "threshold": 0.02,
+      "surface_coverage": 0.9773125,
+      "precision": 0.8439216700058166,
+      "f_score": 0.9057321795306811
+    }
   },
   "reference_sensitivity": {
     "mesh_samples": [

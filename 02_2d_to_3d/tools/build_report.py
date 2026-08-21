@@ -254,6 +254,11 @@ def build(prs, s):
     se = syn["example_code"]["common"]
     bex = s["best_pair_example_code"]["common"]
     narrow = s["disparity_range_ablation"][0]
+    cov = s["surface_coverage"]
+    cov_one = cov["stereo_single_pair"]
+    cov_fuse = cov["multiview_stereo_fusion"]
+    cov_both = cov["stereo_plus_carving"]
+    carve = s["silhouette_carving"]
     gap_ratio = bex["median_abs"] / best["median_abs"]
     ch_ratio = ch["target_to_pred"] / ch["pred_to_target"]
 
@@ -339,55 +344,59 @@ def build(prs, s):
     # ---------------- 3. 2D -> 3D 변환 결과 ----------------
     sl = new_slide(
         prs, 3, "03 / 2D → 3D 변환 결과",
-        f"실제 위성 영상에서 깊이 오차 중앙값 {best['median_abs']*100:.1f} cm",
-        f"깊이 맵을 역투영해 {s['best_pair_points']:,}점의 포인트 클라우드로 · 대조군에는 "
-        f"정답에 맞춘 최적 정렬을 적용하고 같은 {bex['n_valid']:,}개 화소에서 채점")
+        f"타겟 표면의 {cov_both['surface_coverage']*100:.0f}% 를 복원했습니다",
+        "두 경로를 같은 지표로 비교 · 정답 메시 표면 40만 점 중 복원점이 "
+        "2 cm 안에 있는 비율")
     add_image(sl, os.path.join(OUT, "04_pointclouds.png"), 0.72, 1.70, 11.89, 3.16)
     add_card(sl, 0.72, 5.02, 5.86, 1.86)
-    add_text(sl, 0.98, 5.21, 5.34, 0.24, [("깊이 정확도", SANS_SB, 10.5, INK)])
-    add_matrix(sl, 0.98, 5.51, [1.45, 1.30, 1.30, 1.05], [
-        (("", "RMSE", "오차 중앙값", "5cm 이내"), "head"),
-        (("스테레오", f"{best['rmse']:.4f} m", f"{best['median_abs']*100:.1f} cm",
-          f"{best['within_5cm']*100:.1f}%"), "key"),
-        (("과제 예시", f"{bex['rmse']:.4f} m", f"{bex['median_abs']*100:.1f} cm",
-          f"{bex['within_5cm']*100:.1f}%"), "body"),
+    add_text(sl, 0.98, 5.21, 5.34, 0.24, [("표면 커버리지", SANS_SB, 10.5, INK)])
+    add_matrix(sl, 0.98, 5.51, [2.10, 1.15, 1.30], [
+        (("", "점 수", "표면 덮음"), "head"),
+        (("A 스테레오 (2장)", f"{cov_one['n_points']:,}",
+          f"{cov_one['surface_coverage']*100:.1f}%"), "body"),
+        (("B 실루엣 카빙 (20뷰)", f"{carve['n_points']:,}",
+          f"{carve['surface_coverage']*100:.1f}%"), "body"),
+        (("A + B", f"{cov_both['n_points']:,}",
+          f"{cov_both['surface_coverage']*100:.1f}%"), "key"),
     ])
-    add_panel(sl, 6.96, 5.02, 5.65, 1.86, "세 축이 전부 미터입니다", [
-        b("과제 예시 코드는 X, Y 가 픽셀 인덱스이고 Z 가 밝기라"),
-        b("단위가 서로 다릅니다. 맨 오른쪽이 그것입니다."),
+    add_panel(sl, 6.96, 5.02, 5.65, 1.86, "약점이 상보적입니다", [
+        k(f"A 는 정확합니다 — 깊이 오차 중앙값 {best['median_abs']*100:.1f} cm"),
+        b("대신 단일 시점이라 뒷면을 원리적으로 못 봅니다."),
         gap(),
-        k(f"Chamfer  pred→GT {ch['pred_to_target']:.4f}  ·  "
-          f"GT→pred {ch['target_to_pred']:.4f}"),
-        b("뒤쪽이 큰 것이 단일 시점이라 뒷면이 빈다는 한계의 크기입니다."),
+        k("B 는 전방위입니다 — 무늬가 없어도 됩니다"),
+        b("대신 실루엣의 교집합이라 오목한 곳을 못 만듭니다."),
     ])
     add_notes(sl, f"""
-과제가 요구한 마지막 단계, 2D 에서 3D 로의 변환 결과입니다.
+2D 에서 3D 로의 변환 결과입니다. 네 장을 왼쪽부터 봐 주십시오.
 
-깊이 맵의 각 화소를 카메라 광선을 따라 Z 만큼 밀어내면 3D 점이 됩니다. X 는 u 빼기
-cx 곱하기 Z 나누기 f 이고 Y 도 같은 식입니다. 세 축이 전부 미터입니다. 과제 예시
-코드는 X, Y 가 픽셀 인덱스이고 Z 가 0에서 255 밝기값이라 세 축의 단위가 서로 다릅니다.
-맨 오른쪽이 그것이고 납작한 판으로 나옵니다.
+첫 번째가 정답 메시입니다. 두 번째가 경로 A, 영상 두 장으로 만든 스테레오 복원
+{cov_one['n_points']:,}점입니다. 정확합니다 — 깊이 오차 중앙값이 {best['median_abs']*100:.1f}센티미터입니다. 그런데
+정답과 비교해 보시면 한쪽 면만 있습니다. 표면의 {cov_one['surface_coverage']*100:.0f}퍼센트입니다.
 
-왼쪽이 정답 메시, 가운데가 스테레오 복원 {s['best_pair_points']:,}점입니다.
+단일 시점이 뒷면을 못 보는 것은 알고리즘 문제가 아니라 원리 문제입니다. 그래서 시점을
+늘려 봤습니다. 쌍 선별 조건을 풀어 후보를 {cov_fuse['candidates']}쌍까지 늘리고 전부 융합해도
+{cov_fuse['stages'][0]['surface_coverage']*100:.0f}퍼센트에서 멈춥니다. {cov_fuse['candidates']}쌍 중 {cov_fuse['pairs_used']}쌍만 복원되기 때문입니다. 원인은 쌍 개수가
+아니라 무늬 부족이었습니다. 앞 장에서 조명을 뒤집었을 때와 같은 결론입니다.
 
-수치는 오차 중앙값 {best['median_abs']*100:.1f}센티미터, 5센티미터 이내가 {best['within_5cm']*100:.1f}퍼센트입니다.
-예시 코드는 {bex['median_abs']*100:.1f}센티미터, {bex['within_5cm']*100:.1f}퍼센트입니다. 격차가 {gap_ratio:.1f}배입니다.
+그래서 세 번째, 경로 B 를 함께 만들었습니다. 실루엣과 자세만으로 복셀을 깎는
+visual hull 입니다. 무늬가 필요 없으니 스테레오에 최악인 조건이 오히려 유리합니다.
+20뷰로 표면의 {carve['surface_coverage']*100:.0f}퍼센트를 덮습니다.
 
-채점 화소를 맞춘 점을 짚어 두겠습니다. 스테레오는 정합에 실패한 화소를 버리므로,
-대조군을 실루엣 전체에서 채점하면 두 방법이 서로 다른 화소에서 채점됩니다. 그래서
-스테레오가 값을 낸 {best['valid_ratio']*100:.0f}퍼센트 화소에서 대조군도 다시 채점했고, 표의 숫자가
-그것입니다.
+두 경로의 약점이 상보적입니다. A 는 정확하지만 보이는 면만, B 는 전방위지만 실루엣의
+교집합이라 오목한 곳을 못 만듭니다. 합치면 {cov_both['surface_coverage']*100:.0f}퍼센트입니다.
 
-Chamfer 는 양방향으로 봐 주십시오. pred 에서 GT 가 {ch['pred_to_target']:.4f}로 작다는 것은 복원한
-점이 전부 표면 근처에 있다는 뜻이고, GT 에서 pred 가 그 {ch_ratio:.1f}배라는 것은 정답 표면의
-상당 부분이 복원되지 않았다는 뜻입니다. 단일 시점이라 뒷면이 비어 있는 것이 숫자로
-드러난 것입니다.
+전제가 다르다는 점은 짚어 두겠습니다. B 는 정답 마스크와 정답 자세를 둘 다 씁니다.
+A 는 마스크 없이도 동작합니다. 그래서 이 표는 어느 쪽이 낫다는 뜻이 아니라, 덮는
+범위와 필요한 입력이 다른 두 경로라는 뜻입니다.
+
+맨 오른쪽은 과제 예시 코드입니다. X, Y 가 픽셀 인덱스이고 Z 가 0에서 255 밝기값이라
+세 축의 단위가 서로 다릅니다. 납작한 판으로 나옵니다.
 """)
 
     # ---------------- 4. 개선점 ----------------
     sl = new_slide(
         prs, 4, "04 / 개선점",
-        f"유효화소 {best['valid_ratio']*100:.0f}% — 나머지는 답을 내지 못한 것입니다",
+        f"스테레오를 전방위로 밀어봤지만 {cov_fuse['stages'][0]['surface_coverage']*100:.0f}% 에서 멈춥니다",
         "재 본 것만 적습니다 · 수치는 outputs/metrics.json 에 그대로 남습니다")
     add_image(sl, os.path.join(OUT, "02_pair_survey.png"), 0.72, 1.70, 11.89, 3.16)
     add_card(sl, 0.72, 5.02, 5.86, 1.86)
@@ -400,12 +409,12 @@ Chamfer 는 양방향으로 봐 주십시오. pred 에서 GT 가 {ch['pred_to_ta
         (("5cm 이내", f"{narrow['current']['within_5cm']*100:.1f}%",
           f"{narrow['narrowed']['within_5cm']*100:.1f}%"), "body"),
     ])
-    add_panel(sl, 6.96, 5.02, 5.65, 1.86, "다만 공짜가 아닙니다", [
-        b("다른 쌍에서는 커버리지만 오르고 정확도가 떨어집니다."),
-        b("탐색 후보가 줄면 uniquenessRatio 검사를 통과하기 쉬워져"),
-        b("원래는 기각됐을 애매한 대응이 살아남기 때문입니다."),
+    add_panel(sl, 6.96, 5.02, 5.65, 1.86, "쌍을 늘려도 벽이 있습니다", [
+        b(f"후보를 {cov_fuse['candidates']}쌍으로 늘려도 {cov_fuse['pairs_used']}쌍만 복원됩니다."),
+        b("일관성 필터를 걸면 정밀도는 오르지만 커버리지가 무너집니다."),
         gap(),
-        k("트레이드오프라 채택하지 않고 측정값만 남겼습니다."),
+        k("원인은 쌍 개수가 아니라 무늬 부족입니다."),
+        b("그래서 전방위는 실루엣 기반으로 갔습니다 (앞 장)."),
     ])
     add_notes(sl, f"""
 개선점입니다. 재 본 것만 적었습니다.

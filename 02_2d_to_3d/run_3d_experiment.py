@@ -128,12 +128,102 @@ def run_synthetic():
 # 밀도에서 오는 오차가 있으므로 '정답'이 아니라 '기준'으로 부른다.
 
 
-def run_carving(model, mesh_points, num_views: int = 20, resolution: int = 128) -> dict:
-    """추가 실험 — 실루엣 기반 복원 (visual hull). README 11절.
+def surface_coverage(pred_body, mesh_points, threshold: float = 0.02) -> dict:
+    """복원한 점구름이 정답 표면을 얼마나 덮었는가.
 
-    스테레오가 후보 20 쌍 중 5 쌍만 쓸 수 있다는 점 때문에, 마스크와 자세만으로
-    동작하는 대안을 같은 지표로 재 둔다. 발표 범위 밖이지만 수치를 문서에만
-    적어 두면 근거를 추적할 수 없으므로 여기서 만들어 metrics.json 에 남긴다.
+    깊이 맵의 유효화소 비율과는 다른 것을 잰다. 유효화소는 '보이는 실루엣 안에서
+    값이 나온 비율' 이고, 이것은 '타겟 표면 전체 중 복원된 비율' 이다. 단일
+    시점 스테레오는 뒷면을 원리적으로 못 보므로 유효화소가 100% 여도 이 값은
+    절반을 넘을 수 없다. 3D 복원이라고 말하려면 이쪽을 보고해야 한다.
+
+    정규화 기준은 정답 메시로 잡는다 (SPE3R 논문과 같은 정의).
+    """
+    from scipy.spatial import cKDTree
+
+    gt, center, scale = pointcloud.normalize_scale(mesh_points)
+    pred = (np.asarray(pred_body, dtype=np.float64) - center) / scale
+    d_gt, _ = cKDTree(pred).query(gt, k=1)
+    d_pr, _ = cKDTree(gt).query(pred, k=1)
+    recall = float((d_gt < threshold).mean())
+    precision = float((d_pr < threshold).mean())
+    f = 0.0 if precision + recall == 0 else 2 * precision * recall / (precision + recall)
+    return {"n_points": int(len(pred)), "threshold": threshold,
+            "surface_coverage": recall, "precision": precision, "f_score": f}
+
+
+def run_multiview_fusion(model, mesh_points, target_radius,
+                         max_rotation_deg: float = 12.0,
+                         min_lateral_ratio: float = 1.5) -> dict:
+    """스테레오를 전방위로 밀면 어디까지 가는가.
+
+    과제는 영상 장수를 정해 주지 않았다. 깊이 맵을 거쳐 3D 로 가기만 하면 되므로
+    깊이 맵을 여러 장 만들어 융합하는 것도 같은 경로다. 단일 시점이 뒷면을 못
+    본다는 한계를 시점을 늘려 넘을 수 있는지 직접 확인한다.
+
+    쌍 선별 기준을 본 실험(8도/2.0)보다 풀어 후보를 늘리고, 복원된 점구름을 전부
+    동체 좌표계로 모은 뒤, 다중 뷰 일관성 필터를 단계별로 걸어 본다. 필터는
+    MVS 의 표준 후처리다 — 다른 쌍이 독립적으로 확인해 준 점만 남긴다.
+    """
+    from scipy.spatial import cKDTree
+
+    geos = stereo.find_pairs(model, max_rotation_deg, min_lateral_ratio)
+    clouds = []
+    for g in geos:
+        i, j = g["i"], g["j"]
+        try:
+            pair = stereo.RectifiedPair(model.camera, g["R_ij"], g["t_ij"])
+        except (ValueError, cv2.error):
+            continue
+        d0 = g["distance"]
+        if not (6.0 < pair.expected_disparity(d0) < 0.85 * pair.match_width):
+            continue
+        sil = cv2.erode(model.load_mask(i).astype(np.uint8),
+                        np.ones((3, 3), np.uint8), iterations=2) > 0
+        try:
+            out = stereo.reconstruct(pair, model.load_image(i, grayscale=True),
+                                     model.load_image(j, grayscale=True),
+                                     mask=sil, distance=d0,
+                                     depth_range=(d0 - target_radius,
+                                                  d0 + target_radius))
+        except (ValueError, cv2.error):
+            continue
+        if out["points"] is None or len(out["points"]) < 50:
+            continue
+        clouds.append(pair.to_body(out["points"], model.pose(i)))
+
+    if not clouds:
+        return {"candidates": len(geos), "pairs_used": 0, "stages": []}
+
+    allp = np.vstack(clouds)
+    src = np.concatenate([np.full(len(x), k) for k, x in enumerate(clouds)])
+    tree = cKDTree(allp)
+
+    stages = [{"filter": "없음", **surface_coverage(allp, mesh_points)}]
+    for radius, need in ((0.02, 1), (0.02, 2)):
+        keep = np.zeros(len(allp), dtype=bool)
+        for idx, nb in enumerate(tree.query_ball_point(allp, radius)):
+            if len(set(src[nb]) - {src[idx]}) >= need:
+                keep[idx] = True
+        if keep.sum() < 10:
+            continue
+        stages.append({"filter": f"다른 쌍 {need}개 이상이 확인 (반경 {radius})",
+                       **surface_coverage(allp[keep], mesh_points)})
+
+    return {"candidates": len(geos), "pairs_used": len(clouds),
+            "max_rotation_deg": max_rotation_deg,
+            "min_lateral_ratio": min_lateral_ratio, "stages": stages}
+
+
+def run_carving(model, mesh_points, num_views: int = 20, resolution: int = 128) -> dict:
+    """실루엣 기반 전방위 복원 (visual hull).
+
+    단일 시점 스테레오는 뒷면을 원리적으로 못 본다. 과제가 영상 장수를 정해 주지
+    않았으므로 전방위로 가는 것도 범위 안이고, 실제로 그렇게 해야 "3D 복원" 이라고
+    말할 수 있다. 실루엣과 자세만으로 동작하므로 무늬가 없어도 되고, 시점을 늘리면
+    닫힌 표면이 나온다.
+
+    스테레오와 약점이 상보적이다. 스테레오는 정확하지만 앞면만 보고, 카빙은
+    전방위지만 오목한 부분을 원리적으로 복원하지 못한다.
     """
     vertices, _ = model.load_mesh()
     views = model.select_views(num_views, seed=0)
@@ -155,8 +245,10 @@ def run_carving(model, mesh_points, num_views: int = 20, resolution: int = 128) 
     ch = metrics.chamfer_distance(pred, gt, norm=1)
     f = metrics.f_score(pred, gt, threshold=0.02)
     return {
+        "_points": pts,
         "num_views": num_views, "resolution": resolution,
         "n_points": int(len(pts)), "kept_ratio": res["kept_ratio"],
+        "surface_coverage": f["recall"],
         "chamfer_l1": ch["chamfer"],
         "chamfer_pred_to_gt": ch["pred_to_target"],
         "chamfer_gt_to_pred": ch["target_to_pred"],
@@ -521,14 +613,32 @@ def main() -> int:
             f"{r['valid_ratio']*100:8.1f}%")
     log("  샘플 수는 수렴했고, splat 과 침식량은 쌍마다 최적이 달라 고르지 않는다.")
 
-    log("\n[6] 추가 실험 — 실루엣 기반 복원 (발표 범위 밖)")
+    log("\n[6] 표면을 얼마나 덮었는가 — 전방위 복원")
+    log("  유효화소는 '보이는 실루엣 안에서 값이 나온 비율' 이고, 표면 커버리지는")
+    log("  '타겟 표면 전체 중 복원된 비율' 이다. 3D 복원이라면 뒤쪽을 봐야 한다.")
+    cov_single = surface_coverage(stereo_body, mesh_points)
+    fusion = run_multiview_fusion(model, mesh_points, target_radius)
     carved = run_carving(model, mesh_points)
-    log(f"  뷰 {carved['num_views']}개 · 복셀 {carved['resolution']}^3 → "
-        f"표면점 {carved['n_points']:,}개")
-    log(f"  Chamfer-L1 {carved['chamfer_l1']:.4f} "
-        f"(pred→GT {carved['chamfer_pred_to_gt']:.4f} / "
-        f"GT→pred {carved['chamfer_gt_to_pred']:.4f}) · "
-        f"F@0.02 {carved['f_score_002']:.3f}")
+    combined = surface_coverage(np.vstack([stereo_body, carved["_points"]]),
+                                mesh_points)
+
+    log(f"  {'':32s}{'점 수':>9s}{'정밀도':>9s}{'표면 커버리지':>13s}{'F':>8s}")
+
+    def cov_line(tag, r):
+        log(f"  {tag:32s}{r['n_points']:9,d}{r['precision']*100:8.1f}%"
+            f"{r['surface_coverage']*100:12.1f}%{r['f_score']*100:8.1f}")
+
+    cov_line("스테레오 1쌍 (과제 지정 경로)", cov_single)
+    for st in fusion["stages"]:
+        cov_line(f"스테레오 {fusion['pairs_used']}쌍 · {st['filter']}", st)
+    cov_line(f"실루엣 카빙 {carved['num_views']}뷰", {
+        "n_points": carved["n_points"], "precision": carved["precision"],
+        "surface_coverage": carved["surface_coverage"],
+        "f_score": carved["f_score_002"]})
+    cov_line("스테레오 + 카빙", combined)
+    log(f"  후보를 회전 {fusion['max_rotation_deg']:.0f}도까지 풀어 "
+        f"{fusion['candidates']}쌍을 훑어도 {fusion['pairs_used']}쌍만 복원된다.")
+    log("  쌍 개수가 아니라 무늬 부족이 벽이다 (5-1절과 같은 결론).")
 
     log("\n그림 생성")
     figures.figure_concept(best, os.path.join(OUT, "00_concept.png"))
@@ -536,8 +646,11 @@ def main() -> int:
     figures.figure_survey(results, os.path.join(OUT, "02_pair_survey.png"))
     best["_example_median"] = ex["full"]["median_abs"]
     figures.figure_spe3r(best, ex_depth, os.path.join(OUT, "03_spe3r_stereo.png"))
-    figures.figure_pointclouds(mesh_points, stereo_body, ex_cloud,
-                       os.path.join(OUT, "04_pointclouds.png"))
+    figures.figure_pointclouds(
+        mesh_points, stereo_body, carved["_points"], ex_cloud,
+        os.path.join(OUT, "04_pointclouds.png"),
+        coverage={"stereo": cov_single["surface_coverage"],
+                  "carving": carved["surface_coverage"]})
 
     log("PLY 저장")
     pointcloud.write_ply(os.path.join(OUT, "pointcloud_ground_truth.ply"),
@@ -576,7 +689,11 @@ def main() -> int:
         "best_pair_points": int(len(stereo_body)),
         "filter_ablation": ablation,
         "disparity_range_ablation": narrow,
-        "silhouette_carving": carved,
+        "silhouette_carving": {kk: vv for kk, vv in carved.items()
+                               if not kk.startswith("_")},
+        "surface_coverage": {"stereo_single_pair": cov_single,
+                             "multiview_stereo_fusion": fusion,
+                             "stereo_plus_carving": combined},
         "reference_sensitivity": sens,
     }
     with open(os.path.join(OUT, "metrics.json"), "w", encoding="utf-8") as f:

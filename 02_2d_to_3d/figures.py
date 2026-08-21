@@ -343,22 +343,34 @@ def _scatter3d(ax, pts, color, title, lim, size=0.5, title_size=18):
     ax.set_box_aspect((1, 1, 1))
 
 
-def figure_pointclouds(mesh_points, stereo_body, example_cloud, path):
+def figure_pointclouds(mesh_points, stereo_body, carved_body, example_cloud, path,
+                       coverage=None):
+    """정답 · 스테레오(단일 시점) · 카빙(전방위) · 과제 예시를 나란히 놓는다.
+
+    스테레오만 보이면 "3D 복원했다" 로 읽히는데 실제로 덮은 것은 앞면뿐이다.
+    전방위 복원을 옆에 두어야 무엇이 빠졌는지 눈으로 보인다.
+    """
     def limits(p):
         c = (p.min(axis=0) + p.max(axis=0)) / 2
         h = float((p.max(axis=0) - p.min(axis=0)).max()) / 2 * 1.1
         return ((c[0] - h, c[0] + h), (c[2] - h, c[2] + h), (-c[1] - h, -c[1] + h))
 
+    cov = coverage or {}
     lim = limits(mesh_points)
-    fig = plt.figure(figsize=(9.8, 3.3))
-    a1 = fig.add_subplot(1, 3, 1, projection="3d")
+    fig = plt.figure(figsize=(12.6, 3.3))
+    a1 = fig.add_subplot(1, 4, 1, projection="3d")
     _scatter3d(a1, mesh_points, "#1f77b4", "정답\n(메시 표면)", lim, 0.3)
-    a2 = fig.add_subplot(1, 3, 2, projection="3d")
+    a2 = fig.add_subplot(1, 4, 2, projection="3d")
     _scatter3d(a2, stereo_body, "#d62728",
-               f"스테레오 깊이 → 3D\n{len(stereo_body):,}점 · 단일 시점", lim)
-    a3 = fig.add_subplot(1, 3, 3, projection="3d")
+               f"스테레오 (단일 시점)\n{len(stereo_body):,}점 · 표면 "
+               f"{cov.get('stereo', 0) * 100:.0f}%", lim)
+    a3 = fig.add_subplot(1, 4, 3, projection="3d")
+    _scatter3d(a3, carved_body, "#2ca02c",
+               f"실루엣 카빙 (전방위)\n{len(carved_body):,}점 · 표면 "
+               f"{cov.get('carving', 0) * 100:.0f}%", lim, 0.4)
+    a4 = fig.add_subplot(1, 4, 4, projection="3d")
     norm, _, _ = pointcloud.normalize_scale(example_cloud)
-    _scatter3d(a3, norm, "#7f7f7f", "과제 예시 코드\n(픽셀, 픽셀, 밝기)",
+    _scatter3d(a4, norm, "#7f7f7f", "과제 예시 코드\n(픽셀, 픽셀, 밝기)",
                limits(norm), 0.2)
     # 3D 축은 제목이 축 상자보다 위로 크게 벗어나므로 전체 제목을 두지 않는다.
     # 그림이 무엇인지는 슬라이드와 README 의 설명이 맡는다.
