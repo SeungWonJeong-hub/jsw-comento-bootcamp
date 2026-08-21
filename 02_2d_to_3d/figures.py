@@ -166,15 +166,35 @@ def figure_concept(best, path):
     plt.close(fig)
 
 
-def crop_box(mask, margin=0.18):
-    """마스크를 감싸는 정사각 영역을 구한다. 물체가 화면에서 작을 때 쓴다."""
+#: 슬라이드의 그림 자리 한 칸(3패널 중 하나)의 가로세로 비. 카드가
+#: 11.89 x 3.16 인치이고 안쪽 여백을 빼면 11.59 x 2.86 이므로 (11.59/3)/2.86.
+SLIDE_PANEL_ASPECT = 1.35
+
+
+def crop_box(mask, margin=0.18, aspect=None):
+    """마스크를 감싸는 영역을 구한다. 물체가 화면에서 작을 때 쓴다.
+
+    정사각으로 자르지 않는다. 물체마다 생김새가 달라서다. 합성 위성은 태양
+    전지판 때문에 가로가 세로의 세 배쯤이고, SPE3R aqua 는 반대로 세로가 길다.
+    정사각으로 맞추면 어느 한쪽이 통째로 비어 슬라이드에서 물체가 작아진다.
+
+    aspect 를 주면 짧은 쪽을 늘려 그 가로세로 비를 맞춘다. 슬라이드의 그림
+    자리는 가로로 넓으므로, 물체를 꽉 채우되 자리 비율과 맞춰야 가장 크게
+    보인다. 늘리기만 하고 줄이지 않으므로 물체가 잘리는 일은 없다.
+    """
     ys, xs = np.nonzero(mask)
     if len(xs) == 0:
         return slice(None), slice(None)
+    hy = (ys.max() - ys.min()) / 2 * (1 + margin)
+    hx = (xs.max() - xs.min()) / 2 * (1 + margin)
+    if aspect:
+        if hx / hy < aspect:
+            hx = hy * aspect
+        else:
+            hy = hx / aspect
     cy, cx = (ys.min() + ys.max()) / 2, (xs.min() + xs.max()) / 2
-    half = max(ys.max() - ys.min(), xs.max() - xs.min()) / 2 * (1 + margin)
-    y0 = max(0, int(cy - half)); y1 = min(mask.shape[0], int(cy + half) + 1)
-    x0 = max(0, int(cx - half)); x1 = min(mask.shape[1], int(cx + half) + 1)
+    y0 = max(0, int(cy - hy)); y1 = min(mask.shape[0], int(cy + hy) + 1)
+    x0 = max(0, int(cx - hx)); x1 = min(mask.shape[1], int(cx + hx) + 1)
     return slice(y0, y1), slice(x0, x1)
 
 
@@ -186,6 +206,9 @@ def figure_synthetic(art, res, path):
 
     gt = left["depth"][cy, cx]
     lo, hi = np.nanmin(gt[m]), np.nanmax(gt[m])
+    # 슬라이드용 3패널은 그림 자리 비율에 맞춰 따로 자른다. 상세 6패널은
+    # 물체에 바싹 붙인 크롭 그대로 둔다.
+    sy, sx = crop_box(mask, aspect=SLIDE_PANEL_ASPECT)
 
     fig, ax = plt.subplots(1, 6, figsize=(16.2, 3.6))
     ax[0].imshow(left["image"][cy, cx], cmap="gray")
@@ -216,12 +239,13 @@ def figure_synthetic(art, res, path):
     fig.savefig(path); plt.close(fig)
 
     figure_depth_triptych(
-        [(f"정답 깊이 [m]\n깊이 폭 {res['gt_span_m']:.3f} m", gt, "viridis", lo, hi),
+        [(f"정답 깊이 [m]\n깊이 폭 {res['gt_span_m']:.3f} m",
+          left["depth"][sy, sx], "viridis", lo, hi),
          (f"스테레오  Z = f·B/d\n깊이 폭 {res['stereo']['span_m']:.3f} m",
-          art["z_stereo"][cy, cx], "viridis", lo, hi),
+          art["z_stereo"][sy, sx], "viridis", lo, hi),
          (f"과제 예시 코드 (최적 정렬)\n깊이 폭 "
           f"{res['example_code']['full']['span_m']:.3f} m",
-          art["z_bright"][cy, cx], "viridis", lo, hi)],
+          art["z_bright"][sy, sx], "viridis", lo, hi)],
         path.replace(".png", "_slide.png"))
 
 
@@ -235,14 +259,24 @@ def figure_depth_triptych(panels, path):
 
     panels : (제목, 배열, 색상표, vmin, vmax) 3개
     """
-    # 가로로 길게 잡는다. 슬라이드의 그림 자리가 가로로 넓어서, 세로로 긴
-    # 그림을 넣으면 높이에 걸려 카드의 절반만 차고 작아 보인다. suptitle 은
-    # 빼고 슬라이드 부제에 맡긴다 - 같은 말을 두 번 적을 자리가 아니다.
-    fig, ax = plt.subplots(1, 3, figsize=(13.6, 3.5))
-    for a, (title, arr, cmap, lo, hi) in zip(ax, panels):
+    # 캔버스 비율을 그림 내용에 맞춘다. 잘라낸 영역이 가로로 길면(이 위성은
+    # 태양전지판 때문에 3:1 쯤이다) 캔버스를 고정해 두면 축 상자 안에서 이미지가
+    # 위아래로 letterbox 되고 컬러바만 길어져 어색해진다. 내용 비율에서 높이를
+    # 역산하고, 컬러바는 축 상자에 붙여 같은 높이로 만든다.
+    #
+    # suptitle 은 빼고 슬라이드 부제에 맡긴다 - 같은 말을 두 번 적을 자리가 아니다.
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+    h, w = panels[0][1].shape[:2]
+    width = 13.6
+    panel_w = width / len(panels)
+    fig_h = panel_w * (h / w) + 0.85          # 제목 자리를 더한다
+    fig, ax = plt.subplots(1, len(panels), figsize=(width, fig_h))
+    for a, (title, arr, cmap, lo, hi) in zip(np.atleast_1d(ax), panels):
         im = a.imshow(arr, cmap=cmap, vmin=lo, vmax=hi)
         a.set_title(title, fontsize=13)
-        cb = fig.colorbar(im, ax=a, fraction=0.040, pad=0.02)
+        cax = make_axes_locatable(a).append_axes("right", size="3%", pad=0.08)
+        cb = fig.colorbar(im, cax=cax)
         cb.ax.tick_params(labelsize=10)
         a.set_xticks([]); a.set_yticks([]); a.grid(False)
     fig.tight_layout(pad=0.4)
@@ -291,6 +325,9 @@ def figure_spe3r(best, example_depth, path):
     lo, hi = np.nanpercentile(ref[finite], [1, 99])
     cy, cx = crop_box(finite)
     m = mask[cy, cx]
+    # 슬라이드용 3패널은 그림 자리 비율에 맞춰 따로 자른다.
+    sy, sx = crop_box(finite, aspect=SLIDE_PANEL_ASPECT)
+    sm = mask[sy, sx]
 
     fig, ax = plt.subplots(1, 6, figsize=(16.2, 3.6))
     ax[0].imshow(L[cy, cx], cmap="gray")
@@ -321,13 +358,13 @@ def figure_spe3r(best, example_depth, path):
 
     figure_depth_triptych(
         [("기준 깊이 [m]\n(동봉 메시 z-buffer)",
-          np.where(m, ref[cy, cx], np.nan), "viridis", lo, hi),
+          np.where(sm, ref[sy, sx], np.nan), "viridis", lo, hi),
          (f"스테레오  Z = f·B/d\n오차 중앙값 {best['median_abs']*100:.1f} cm · "
           f"5cm 이내 {best['within_5cm']*100:.0f}%",
-          dep[cy, cx], "viridis", lo, hi),
+          dep[sy, sx], "viridis", lo, hi),
          (f"과제 예시 코드 (밝기, 최적 정렬)\n오차 중앙값 "
           f"{best['_example_median']*100:.1f} cm",
-          np.where(m, example_depth[cy, cx], np.nan), "viridis", lo, hi)],
+          np.where(sm, example_depth[sy, sx], np.nan), "viridis", lo, hi)],
         path.replace(".png", "_slide.png"))
 
 
