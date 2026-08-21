@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import io
 import json
 import os
 import sys
@@ -42,6 +43,20 @@ SANS_SB = "Pretendard SemiBold"
 SANS_MD = "Pretendard Medium"
 
 TOTAL_PAGES = 3
+
+
+def test_count() -> int:
+    """실행된 테스트 개수를 pytest 리포트에서 읽는다.
+
+    발표자료에 숫자를 직접 적어 두면 테스트를 늘렸을 때 조용히 어긋난다.
+    """
+    import re
+    path = os.path.join(OUT, "pytest_report.txt")
+    if not os.path.exists(path):
+        return 0
+    text = io.open(path, encoding="utf-8", errors="replace").read()
+    hit = re.search(r"(\d+) passed", text)
+    return int(hit.group(1)) if hit else 0
 
 
 def set_font(run, name, size, color, bold=False):
@@ -210,6 +225,7 @@ def build(prs, s):
     # 대조군은 스테레오가 값을 낸 화소에서만 채점한 'common' 을 쓴다. 실루엣
     # 전체에서 채점한 'full' 과 나란히 놓으면 두 방법이 서로 다른 화소에서
     # 채점되기 때문이다. 발표 표는 같은 화소 비교만 싣는다.
+    tc = test_count()
     se = syn["example_code"]["common"]
     bex = s["best_pair_example_code"]["common"]
 
@@ -272,7 +288,8 @@ def build(prs, s):
         (("과제 예시", f"{se['span_m']:.3f} m", f"{se['median_abs']*100:.1f} cm",
           f"{se['within_5cm']*100:.1f}%"), "body"),
     ])
-    add_panel(sl, 6.96, 4.78, 5.65, 2.07, "Unit Test 65개로 수식을 검증", [
+    add_panel(sl, 6.96, 4.78, 5.65, 2.07,
+              f"Unit Test {test_count()}개로 수식을 검증", [
         b("출력 크기와 자료형만 보면 수식이 틀려도 통과합니다."),
         b("손으로 풀 수 있는 조건을 만들어 수치까지 확인했습니다."),
         gap(),
@@ -296,7 +313,7 @@ def build(prs, s):
 5센티미터 안에 든 화소는 {ss['within_5cm']*100:.1f} 퍼센트 대 {se['within_5cm']*100:.1f} 퍼센트입니다.
 예시 코드에는 정답에 맞춘 최적 정렬까지 해 준 결과입니다.
 
-Unit Test 는 65개입니다. 출력 크기와 자료형만 보면 수식이 틀려도 통과하기 때문에,
+Unit Test 는 {tc}개입니다. 출력 크기와 자료형만 보면 수식이 틀려도 통과하기 때문에,
 손으로 풀 수 있는 조건을 만들어 수치까지 대조했습니다.
 """)
 
@@ -319,10 +336,12 @@ Unit Test 는 65개입니다. 출력 크기와 자료형만 보면 수식이 틀
     ])
     add_text(sl, 0.98, 5.85, 6.10, 0.92, [
         k(f"포인트 클라우드 {s['best_pair_points']:,}점 · 메시 대비 Chamfer "
-          f"{s['best_pair_chamfer_pred_to_gt']:.4f}  →"),
+          f"{s['best_pair_chamfer']['pred_to_target']:.4f}  →"),
         gap(),
-        b(f"한계 — 쓸 만한 쌍이 후보 20개 중 {sur['pairs_within_10cm']}개, "
-          f"유효화소 {best['valid_ratio']*100:.0f}%, 단일 시점이라 뒷면은 복원 불가,"),
+        b(f"세로 쌍 unrotate 누락 버그를 찾아 고쳐 쓸 만한 쌍이 3 → "
+          f"{sur['pairs_within_10cm']}개 (후보 20쌍 중 10쌍이 세로였습니다)"),
+        b(f"한계 — 유효화소 {best['valid_ratio']*100:.0f}%, 단일 시점이라 뒷면은 복원 불가"
+          f"(Chamfer GT→pred {s['best_pair_chamfer']['target_to_pred']:.3f}),"),
         b(f"정답 자세를 그대로 사용, 깊이 분해능 하한 "
           f"{best['depth_resolution_m_per_px']*100:.1f} cm/px (dZ = Z²/fB)"),
     ], spacing=1.3)
@@ -346,7 +365,18 @@ Unit Test 는 65개입니다. 출력 크기와 자료형만 보면 수식이 틀
 그것입니다. 실루엣 전체 기준 수치는 metrics.json 의 full 항목에 함께 남겨 두었습니다.
 
 이 깊이 맵을 역투영하면 오른쪽 아래 포인트 클라우드가 나옵니다. {s['best_pair_points']:,}점이고
-정답 메시 대비 Chamfer 거리는 {s['best_pair_chamfer_pred_to_gt']:.4f} 입니다.
+정답 메시 대비 Chamfer 는 pred→GT {s['best_pair_chamfer']['pred_to_target']:.4f},
+GT→pred {s['best_pair_chamfer']['target_to_pred']:.4f} 입니다. 양방향을 함께 보는 이유는 한쪽만으로는
+무엇이 틀렸는지 구분되지 않기 때문입니다. pred→GT 가 작다는 것은 복원한 점이 전부 표면
+근처에 있다는 뜻이고, GT→pred 가 그 3.7배라는 것은 정답 표면의 상당 부분이 복원되지
+않았다는 뜻입니다. 단일 시점이라 뒷면이 비어 있는 것이 숫자로 드러난 것입니다.
+
+한 가지 더 말씀드리면, 세로 스테레오 경로에 버그가 있었습니다. 베이스라인이 세로면 영상을
+90도 돌려 매칭하는데 되돌리지 않고 반환하고 있었습니다. 후보 20쌍 중 10쌍이 세로라 절반을
+못 쓰고 있었습니다. 영상이 정사각이라 크기가 같아 예외도 나지 않았고, 그 경로를 검증하는
+테스트도 없었습니다. 고친 뒤 쓸 만한 쌍이 4개가 됐고 되살아난 쌍의 유효화소 77퍼센트가
+전체에서 가장 높습니다. 회귀 테스트를 붙이고, 수정을 되돌려 실제로 실패하는지까지
+확인했습니다.
 
 한계도 말씀드리겠습니다. 조건을 만족하는 쌍이 후보 20개 중 {sur['pairs_within_10cm']}개뿐이고,
 유효 화소는 {best['valid_ratio']*100:.0f} 퍼센트입니다. 단일 시점이라 타겟 뒷면은 원리적으로

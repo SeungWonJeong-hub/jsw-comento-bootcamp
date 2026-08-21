@@ -178,6 +178,68 @@ def test_rectified_pair_rejects_zero_baseline(cam):
         stereo.RectifiedPair(cam, np.eye(3), np.array([0.0, 0.0, 0.0]))
 
 
+# --------------------------------------------------------------------------
+# 3-1. 세로 스테레오 — 돌려서 매칭하고 되돌리는 경로
+#
+# 후보 20 쌍 중 절반이 세로다. 이 경로가 조용히 틀리면 후보의 절반을 통째로
+# 잃는데, 영상이 정사각(256x256)이면 shape 이 같아 예외가 나지 않는다.
+# --------------------------------------------------------------------------
+
+def test_vertical_baseline_is_detected(cam):
+    """세로 이동이면 horizontal 이 False 여야 하고 베이스라인은 그대로다."""
+    B = 0.4
+    pair = stereo.RectifiedPair(cam, np.eye(3), np.array([0.0, -B, 0.0]))
+
+    assert not pair.horizontal
+    assert pair.baseline == pytest.approx(B, rel=1e-6)
+
+
+def test_vertical_remap_rotates_and_unrotate_restores(wide_cam):
+    """remap 은 90도 돌려 가로로 만들고, unrotate 는 정확히 되돌려야 한다."""
+    pair = stereo.RectifiedPair(wide_cam, np.eye(3), np.array([0.0, -0.4, 0.0]))
+    rng = np.random.default_rng(11)
+    img = rng.integers(0, 255, size=wide_cam.shape, dtype=np.uint8)
+
+    L, _, _ = pair.remap(img, img)
+    # 돌린 뒤에는 세로/가로가 뒤바뀌고, 되돌리면 카메라 크기로 돌아온다.
+    assert L.shape == wide_cam.shape[::-1]
+    assert pair.unrotate(L).shape == wide_cam.shape
+    # 왕복이 항등이어야 한다.
+    np.testing.assert_array_equal(np.rot90(pair.unrotate(L)), L)
+
+
+def test_vertical_reconstruct_returns_unrotated_maps(wide_cam):
+    """reconstruct 는 세로 쌍에서도 정렬된 왼쪽 카메라 좌표계로 돌려줘야 한다.
+
+    돌아간 채로 반환하면 호출부가 똑바로 선 기준 깊이와 비교하게 되고,
+    pair.camera 는 돌리기 전 카메라라 unproject 도 틀린 광선을 쓴다.
+    정사각 영상에서는 shape 이 같아 예외 없이 조용히 틀린다.
+    """
+    B = 0.4
+    prims = scene.default_satellite()
+    pose_l = Pose(quaternion_to_rotation([0.94, 0.0, 0.342, 0.0]), (0.0, 0.0, 5.0))
+    # 타겟을 세로로 옮기면 카메라가 세로로 움직인 것과 같다.
+    pose_r = Pose(pose_l.R, pose_l.t - np.array([0.0, B, 0.0]))
+    left = scene.render(wide_cam, pose_l, prims, texture_strength=0.35)
+    right = scene.render(wide_cam, pose_r, prims, texture_strength=0.35)
+
+    pair = stereo.RectifiedPair(wide_cam, np.eye(3), np.array([0.0, -B, 0.0]))
+    assert not pair.horizontal
+    out = stereo.reconstruct(pair, left["image"], right["image"],
+                             mask=left["mask"], distance=5.0)
+
+    # 반환된 마스크가 입력 마스크와 같은 방향이어야 한다. 돌아간 채로 나오면
+    # 두 마스크의 겹침이 무너진다.
+    inter = (out["mask"] & left["mask"]).sum()
+    union = (out["mask"] | left["mask"]).sum()
+    assert inter / union > 0.9, "반환 마스크가 입력과 같은 방향이 아니다"
+
+    # 깊이도 같은 방향이어야 한다. 정답 깊이와 비교해 확인한다.
+    v = np.isfinite(out["depth"]) & left["mask"]
+    assert v.sum() > 500
+    assert float(np.median(np.abs(out["depth"][v] - left["depth"][v]))) < 0.05
+
+
 def test_to_body_roundtrip_for_identity_rectification(cam):
     """정렬 회전이 항등이면 동체 변환은 자세의 역적용과 같아야 한다."""
     pair = stereo.RectifiedPair(cam, np.eye(3), np.array([-0.4, 0.0, 0.0]))

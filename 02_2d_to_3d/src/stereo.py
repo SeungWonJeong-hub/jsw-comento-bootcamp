@@ -233,13 +233,15 @@ def filter_disparity(disparity, max_speckle_size: int = 400,
         작은 덩어리로 만들어낸다. 화소 수는 적지만 시차가 조금만 틀려도 깊이는
         Z = f·B/d 를 따라 크게 튀므로 RMSE 를 지배해 버린다.
 
-    측정 효과 (SPE3R aqua, img000638/img000784 기준)
+    측정 효과 (SPE3R aqua, img000638/img000784 기준. 나머지 조건은 고정하고
+    필터만 바꾼 값이며 run_3d_experiment.py 의 filter_ablation() 이 만든다)
         필터 없음                RMSE 0.1239  중앙값 0.0101  5cm이내 87.0%
         filterSpeckles(400, 1)   RMSE 0.0679  중앙값 0.0096  5cm이내 89.9%
-        + median 3x3             RMSE 0.0677  중앙값 0.0093  5cm이내 90.3%
+        + median 3x3             RMSE 0.0675  중앙값 0.0093  5cm이내 90.4%
 
-        중앙값은 거의 그대로인데 RMSE 가 절반으로 준다. 즉 이 필터는 정상 화소를
-        건드리지 않고 소수의 심한 오정합만 걷어낸다.
+        효과는 거의 전부 filterSpeckles 에서 나온다. 중앙값 필터가 더하는 것은
+        RMSE 0.0004 뿐이지만, 아래 주석대로 경계 편향을 없애 두어야 정상 화소를
+        건드리지 않는다는 말이 실제로 성립한다.
 
     Parameters
     ----------
@@ -263,10 +265,20 @@ def filter_disparity(disparity, max_speckle_size: int = 400,
         out = np.where(buf > 0, buf.astype(np.float64) / 16.0, np.nan)
 
     if median_kernel and median_kernel >= 3:
+        k = int(median_kernel)
         keep = np.isfinite(out)
+        # 무효 화소를 0 으로 채우고 median 을 돌리면, 경계에서 창의 절반 가까이가
+        # 0 이 되어 중앙값이 0 쪽으로 끌려간다. 시차 0 은 무한원점이므로 깊이가
+        # 밀려난다. 실측하면 경계 화소(3x3 안에 무효가 있는 화소)만 평균
+        # -10.9 px 편향됐고 내부 화소는 -0.019 px 로 영향이 없었다. 즉 이 편향은
+        # 전적으로 0 채움에서 온다. 유효 이웃이 창의 과반일 때만 median 을
+        # 적용하고, 그렇지 않으면 원래 값을 둔다.
         filled = np.where(keep, out, 0.0).astype(np.float32)
-        smoothed = cv2.medianBlur(filled, int(median_kernel))
-        out = np.where(keep, smoothed.astype(np.float64), np.nan)
+        smoothed = cv2.medianBlur(filled, k)
+        enough = cv2.medianBlur((keep.astype(np.uint8) * 255), k) > 127
+        out = np.where(keep,
+                       np.where(enough, smoothed.astype(np.float64), out),
+                       np.nan)
 
     return out
 
@@ -312,7 +324,9 @@ def reconstruct(pair: "RectifiedPair", left, right, mask=None,
     Returns
     -------
     dict(left, right, mask, disparity, depth, points, valid, num_disparities)
-        points 는 정렬된 왼쪽 카메라 좌표계 (N, 3) 이다.
+        화소 맵은 모두 **정렬된 왼쪽 카메라 좌표계**로 돌려준다. 세로 스테레오
+        에서 매칭을 위해 돌렸던 것은 반환 전에 되돌리므로, 호출부는 가로/세로를
+        구분할 필요가 없다. points 는 그 좌표계의 (N, 3) 이다.
     """
     L, R, M = pair.remap(left, right, mask)
 
@@ -333,6 +347,17 @@ def reconstruct(pair: "RectifiedPair", left, right, mask=None,
     if depth_range is not None:
         lo, hi = depth_range
         depth = np.where((depth >= lo) & (depth <= hi), depth, np.nan)
+
+    # 세로 스테레오는 remap() 에서 90도 돌려 매칭했다. 반환하기 전에 되돌려
+    # 놓아야 한다. 그러지 않으면 호출부가 돌아간 깊이 맵을 똑바로 선 기준
+    # 깊이와 비교하게 되고, pair.camera 는 돌리기 전 정렬 카메라이므로
+    # unproject() 도 틀린 광선을 쓴다. 영상이 정사각이면 shape 이 같아서
+    # 예외 없이 조용히 틀린다.
+    if not pair.horizontal:
+        L, R = pair.unrotate(L), pair.unrotate(R)
+        disparity, depth = pair.unrotate(disparity), pair.unrotate(depth)
+        if M is not None:
+            M = pair.unrotate(M)
 
     points = pair.camera.unproject(depth)
     valid = np.isfinite(depth)

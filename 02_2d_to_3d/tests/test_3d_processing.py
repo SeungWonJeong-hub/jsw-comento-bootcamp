@@ -555,7 +555,10 @@ def test_spe3r_pose_convention_matches_ground_truth_mask():
     model = SPE3RModel(DATA_DIR, "aqua")
     vertices, _ = model.load_mesh()
 
-    ious = []
+    # IoU 가 아니라 정밀도(예측 실루엣 안에 정답이 든 비율)를 잰다. 정점만
+    # 투영하면 실루엣이 성겨서 합집합 기준 IoU 는 낮게 나온다. 규약이 틀리면
+    # 이 값이 0.3 아래로 떨어지므로 판별에는 충분하다.
+    precisions = []
     for i in (0, 250, 500, 750):
         pose = model.pose(i)
         p_cam = pose.apply(vertices)
@@ -568,10 +571,9 @@ def test_spe3r_pose_convention_matches_ground_truth_mask():
         pred[vi, ui] = True
 
         gt = model.load_mask(i)
-        # 정점만 찍은 실루엣은 성기므로 정답 안에 들어가는 비율로 본다.
-        ious.append(float((pred & gt).sum() / max(1, pred.sum())))
+        precisions.append(float((pred & gt).sum() / max(1, pred.sum())))
 
-    assert np.mean(ious) > 0.9
+    assert np.mean(precisions) > 0.9
 
 
 @needs_spe3r

@@ -32,7 +32,8 @@ import matplotlib.pyplot as plt  # noqa: E402
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from src import baseline, depth as depth_mod, metrics, pointcloud, scene, stereo  # noqa: E402
+from src import (baseline, carving, depth as depth_mod, metrics, pointcloud,  # noqa: E402
+                 scene, stereo)
 from src.camera import PinholeCamera, Pose, quaternion_to_rotation  # noqa: E402
 from src.spe3r import SPE3RModel  # noqa: E402
 
@@ -144,6 +145,113 @@ def reference_depth(mesh_points_body, pose, pair):
     return pair.unrotate(d) if not pair.horizontal else d
 
 
+def run_carving(model, mesh_points, num_views: int = 20, resolution: int = 128) -> dict:
+    """추가 실험 — 실루엣 기반 복원 (visual hull). README 10절.
+
+    스테레오가 후보 20 쌍 중 3 쌍만 쓸 수 있다는 점 때문에, 마스크와 자세만으로
+    동작하는 대안을 같은 지표로 재 둔다. 발표 범위 밖이지만 수치를 문서에만
+    적어 두면 근거를 추적할 수 없으므로 여기서 만들어 metrics.json 에 남긴다.
+    """
+    vertices, _ = model.load_mesh()
+    views = model.select_views(num_views, seed=0)
+    masks = [model.load_mask(v) for v in views]
+    poses = [model.pose(v) for v in views]
+
+    res = carving.carve(model.camera, masks, poses,
+                        bounds=carving.bounds_from_mesh(vertices),
+                        resolution=resolution)
+    pts = carving.surface_points(res["occupancy"], res["centers"])
+    if len(pts) == 0:
+        return {"num_views": num_views, "resolution": resolution, "n_points": 0}
+
+    # Chamfer 는 정규화 좌표계에서 잰다 (SPE3R 논문과 같은 정의). 정규화 기준은
+    # 예측이 아니라 정답 메시로 잡는다. 예측의 자기 크기로 맞추면 균일하게
+    # 부푼 복원이 다시 줄어들어 실제보다 좋게 나온다.
+    gt, center, scale = pointcloud.normalize_scale(mesh_points)
+    pred = (pts - center) / scale
+    ch = metrics.chamfer_distance(pred, gt, norm=1)
+    f = metrics.f_score(pred, gt, threshold=0.02)
+    return {
+        "num_views": num_views, "resolution": resolution,
+        "n_points": int(len(pts)), "kept_ratio": res["kept_ratio"],
+        "chamfer_l1": ch["chamfer"],
+        "chamfer_pred_to_gt": ch["pred_to_target"],
+        "chamfer_gt_to_pred": ch["target_to_pred"],
+        "f_score_002": f["f_score"],
+        "precision": f["precision"], "recall": f["recall"],
+    }
+
+
+def filter_ablation(raw, pair, ref, mask, depth_range) -> list:
+    """이상치 필터를 단계별로 켜 가며 효과를 분리한다 (README 5-2 절 표).
+
+    입력은 필터를 끄고 복원한 결과의 시차 맵이다. 나머지 조건(침식, 마스크,
+    depth_range, 기준 깊이)은 전부 고정하고 필터만 바꾼다.
+    """
+    lo, hi = depth_range
+    rows = []
+    for tag, disparity in (
+            ("필터 없음", raw["disparity"]),
+            ("filterSpeckles(400, 1px)",
+             stereo.filter_disparity(raw["disparity"], median_kernel=0)),
+            ("+ 중앙값 3x3", stereo.filter_disparity(raw["disparity"]))):
+        z = stereo.disparity_to_depth(disparity, pair.focal, pair.baseline)
+        z = np.where(mask, z, np.nan)
+        z = np.where((z >= lo) & (z <= hi), z, np.nan)
+        m = metrics.depth_metrics(z, ref, mask=mask)
+        rows.append({"stage": tag, "rmse": m["rmse"],
+                     "median_abs": m["median_abs"],
+                     "within_5cm": within(z, ref, mask),
+                     "valid_ratio": m["valid_ratio"]})
+    return rows
+
+
+def disparity_range_ablation(model, results, target_radius=0.8, erode_px=2) -> list:
+    """시차 탐색 범위를 물리적으로 가능한 구간으로 좁히면 어떻게 되는가.
+
+    현재는 minDisparity=0 에서 기대 시차의 1.6 배까지 훑는다. 그런데 타겟의
+    경계 반지름 R 을 알면 깊이가 [d0-R, d0+R] 안이므로 시차도
+    [f·B/(d0+R), f·B/(d0-R)] 안이다. 최적 쌍에서는 이 폭이 24 px 인데 144 px
+    를 훑고 있다.
+
+    좁히면 커버리지가 오르지만 정확도가 함께 오르지는 않는다. 탐색 후보가
+    줄면 uniquenessRatio 검사를 통과하기 쉬워져, 원래는 기각됐을 애매한
+    대응이 살아남기 때문이다. 개선이 아니라 트레이드오프이므로 채택하지 않고
+    측정값만 남긴다 (README 8절).
+    """
+    rows = []
+    for r in results:
+        pair, ref, mask = r["_pair"], r["_ref"], r["_mask"]
+        lo, hi = r["_depth_range"]
+        L, R_img, _ = pair.remap(model.load_image(r["i"], grayscale=True),
+                                 model.load_image(r["j"], grayscale=True))
+        d_lo = pair.focal * pair.baseline / hi
+        d_hi = pair.focal * pair.baseline / lo
+        mind = max(0, int(np.floor(d_lo / 16)) * 16)
+        nd = max(16, int(np.ceil((d_hi - mind) / 16)) * 16)
+
+        disparity = stereo.compute_disparity(L, R_img, num_disparities=nd,
+                                             min_disparity=mind)
+        disparity = stereo.filter_disparity(disparity)
+        if not pair.horizontal:
+            disparity = pair.unrotate(disparity)
+        z = stereo.disparity_to_depth(disparity, pair.focal, pair.baseline)
+        z = np.where(mask, z, np.nan)
+        z = np.where((z >= lo) & (z <= hi), z, np.nan)
+        m = metrics.depth_metrics(z, ref, mask=mask)
+        rows.append({
+            "i": r["i"], "j": r["j"],
+            "current": {"min_disparity": 0, "num_disparities": r["num_disparities"],
+                        "median_abs": r["median_abs"], "within_5cm": r["within_5cm"],
+                        "valid_ratio": r["valid_ratio"]},
+            "narrowed": {"min_disparity": mind, "num_disparities": nd,
+                         "median_abs": m["median_abs"],
+                         "within_5cm": within(z, ref, mask),
+                         "valid_ratio": m["valid_ratio"]},
+        })
+    return rows
+
+
 def evaluate_pair(model, geo, mesh_points, target_radius=0.8, erode_px=2):
     """뷰 쌍 하나에 대해 스테레오 복원을 수행하고 기준 깊이와 비교한다.
 
@@ -175,9 +283,12 @@ def evaluate_pair(model, geo, mesh_points, target_radius=0.8, erode_px=2):
                              model.load_image(j, grayscale=True),
                              mask=silhouette > 0, distance=d0,
                              depth_range=(d0 - target_radius, d0 + target_radius))
+    # 이상치 필터의 효과만 분리하려면 나머지 조건이 전부 같아야 한다. 침식과
+    # depth_range 까지 함께 빼면 필터가 아니라 그 셋의 합을 재게 된다.
     raw = stereo.reconstruct(pair, model.load_image(i, grayscale=True),
                              model.load_image(j, grayscale=True),
-                             mask=model.load_mask(i), distance=d0,
+                             mask=silhouette > 0, distance=d0,
+                             depth_range=(d0 - target_radius, d0 + target_radius),
                              postfilter=False)
 
     ref = reference_depth(mesh_points, model.pose(i), pair)
@@ -202,12 +313,15 @@ def evaluate_pair(model, geo, mesh_points, target_radius=0.8, erode_px=2):
         "rmse": m["rmse"], "median_abs": m["median_abs"],
         "valid_ratio": m["valid_ratio"],
         "within_5cm": within(out["depth"], ref, mask),
-        "rmse_unfiltered": m_raw["rmse"],
-        "median_abs_unfiltered": m_raw["median_abs"],
-        "within_5cm_unfiltered": within(raw["depth"], ref, raw_mask),
+        # 필터만 끈 값. 나머지 조건(침식, depth_range)은 위와 동일하다.
+        "rmse_nofilter": m_raw["rmse"],
+        "median_abs_nofilter": m_raw["median_abs"],
+        "within_5cm_nofilter": within(raw["depth"], ref, raw_mask),
+        "valid_ratio_nofilter": m_raw["valid_ratio"],
         "depth_resolution_m_per_px": stereo.depth_resolution(
             d0, pair.focal, pair.baseline),
-        "_pair": pair, "_out": out, "_ref": ref, "_mask": mask,
+        "_pair": pair, "_out": out, "_ref": ref, "_mask": mask, "_raw": raw,
+        "_depth_range": (d0 - target_radius, d0 + target_radius),
     }
 
 
@@ -249,8 +363,8 @@ def run_example_code(model, best):
     아핀 정렬도 채점 집합마다 따로 맞춘다. 각 집합에서 대조군에게 가능한
     가장 유리한 스케일·오프셋을 준 뒤에도 지는지를 봐야 하기 때문이다.
     """
-    pair, out, ref, mask = best["_pair"], best["_out"], best["_ref"], best["_mask"]
-    left_rect = pair.unrotate(out["left"]) if not pair.horizontal else out["left"]
+    out, ref, mask = best["_out"], best["_ref"], best["_mask"]
+    left_rect = out["left"]
     common = mask & np.isfinite(out["depth"])
 
     def score(domain):
@@ -487,10 +601,11 @@ def figure_survey(results, path):
 
 
 def figure_spe3r(best, example_depth, path):
-    pair, out = best["_pair"], best["_out"]
-    unrot = (lambda a: pair.unrotate(a)) if not pair.horizontal else (lambda a: a)
-    L, R = unrot(out["left"]), unrot(out["right"])
-    disp, dep = unrot(out["disparity"]), unrot(out["depth"])
+    out = best["_out"]
+    # reconstruct() 가 정렬된 왼쪽 카메라 좌표계로 되돌려 주므로 여기서 방향을
+    # 다시 맞출 필요가 없다.
+    L, R = out["left"], out["right"]
+    disp, dep = out["disparity"], out["depth"]
     ref, mask = best["_ref"], best["_mask"]
 
     finite = np.isfinite(ref) & mask
@@ -620,8 +735,38 @@ def main() -> int:
     pair = best["_pair"]
     stereo_body = pair.to_body(best["_out"]["points"], model.pose(best["i"]))
     chamfer = metrics.chamfer_distance(stereo_body, mesh_points, norm=1)
-    log(f"  포인트 클라우드 {len(stereo_body):,}점 · 단방향 Chamfer(pred→GT) "
-        f"{chamfer['pred_to_target']:.4f}")
+    log(f"  포인트 클라우드 {len(stereo_body):,}점 · Chamfer pred→GT "
+        f"{chamfer['pred_to_target']:.4f} / GT→pred {chamfer['target_to_pred']:.4f}")
+    log("  GT→pred 가 큰 것은 단일 뷰라 뒷면이 비어 있기 때문이다.")
+
+    log("\n[3] 이상치 필터 단계별 효과 (최적 쌍, 나머지 조건 고정)")
+    ablation = filter_ablation(best["_raw"], pair, best["_ref"], best["_mask"],
+                               best["_depth_range"])
+    log(f"  {'':26s}{'RMSE':>9s}{'중앙값':>10s}{'<5cm':>9s}{'유효화소':>9s}")
+    for r in ablation:
+        log(f"  {r['stage']:26s}{r['rmse']:9.4f}{r['median_abs']:10.4f}"
+            f"{r['within_5cm']*100:8.1f}%{r['valid_ratio']*100:8.1f}%")
+
+    log("\n[4] 시차 탐색 범위를 좁히면 (개선 후보, 채택하지 않음)")
+    narrow = disparity_range_ablation(model, results)
+    log(f"  {'쌍':22s}{'탐색범위':16s}{'중앙값':>10s}{'<5cm':>9s}{'유효화소':>9s}")
+    for r in narrow:
+        for tag, key in (("현재", "current"), ("좁힘", "narrowed")):
+            c = r[key]
+            rng = f"{c['min_disparity']}~{c['min_disparity']+c['num_disparities']}"
+            name = f"img{r['i']+1:06d}/img{r['j']+1:06d}" if tag == "현재" else ""
+            log(f"  {name:22s}{tag+' '+rng:16s}{c['median_abs']:10.4f}"
+                f"{c['within_5cm']*100:8.1f}%{c['valid_ratio']*100:8.1f}%")
+    log("  커버리지는 오르지만 정확도가 함께 오르지는 않는다. 트레이드오프다.")
+
+    log("\n[5] 추가 실험 — 실루엣 기반 복원 (발표 범위 밖)")
+    carved = run_carving(model, mesh_points)
+    log(f"  뷰 {carved['num_views']}개 · 복셀 {carved['resolution']}^3 → "
+        f"표면점 {carved['n_points']:,}개")
+    log(f"  Chamfer-L1 {carved['chamfer_l1']:.4f} "
+        f"(pred→GT {carved['chamfer_pred_to_gt']:.4f} / "
+        f"GT→pred {carved['chamfer_gt_to_pred']:.4f}) · "
+        f"F@0.02 {carved['f_score_002']:.3f}")
 
     log("\n그림 생성")
     figure_concept(best, os.path.join(OUT, "00_concept.png"))
@@ -664,8 +809,11 @@ def main() -> int:
         },
         "best_pair": {k: v for k, v in best.items() if not k.startswith("_")},
         "best_pair_example_code": ex,
-        "best_pair_chamfer_pred_to_gt": chamfer["pred_to_target"],
+        "best_pair_chamfer": chamfer,
         "best_pair_points": int(len(stereo_body)),
+        "filter_ablation": ablation,
+        "disparity_range_ablation": narrow,
+        "silhouette_carving": carved,
     }
     with open(os.path.join(OUT, "metrics.json"), "w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2, ensure_ascii=False)

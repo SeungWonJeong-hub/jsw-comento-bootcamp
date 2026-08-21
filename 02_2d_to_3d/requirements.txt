@@ -1,8 +1,6 @@
+# 2차 업무: Unit Test 및 2D -> 3D 변환
 opencv-python>=4.8
 numpy>=1.24
-datasets>=2.14
-
-# 2차 업무: Unit Test 및 2D -> 3D 변환
 pytest>=8.0
 scipy>=1.11
 matplotlib>=3.8
