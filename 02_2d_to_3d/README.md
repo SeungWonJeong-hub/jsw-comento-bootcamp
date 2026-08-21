@@ -21,7 +21,7 @@ pip install -r requirements.txt
 py -3 tools/get_spe3r_aqua.py          # 데이터 준비 (약 18 MB, 최초 1회)
 py -3 tools/verify_pose_convention.py  # 자세 규약 실측 검증
 py -3 -m pytest tests/ -v              # Unit Test 70개
-py -3 run_3d_experiment.py             # 실험 실행 → outputs/
+py -3 run_3d_experiment.py             # 실험 실행 → outputs/ (약 1분)
 py -3 tools/build_report.py            # 발표자료 생성 → report/
 ```
 

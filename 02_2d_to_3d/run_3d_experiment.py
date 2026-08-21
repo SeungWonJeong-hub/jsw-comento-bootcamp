@@ -21,7 +21,6 @@ from __future__ import annotations
 import json
 import os
 import sys
-import time
 
 import cv2
 import matplotlib
@@ -373,10 +372,12 @@ def run_spe3r(model, mesh_points):
     log(f"  회전 {MAX_ROTATION_DEG:.0f}도 이내 · 횡방향비 {MIN_LATERAL_RATIO:.0f} 이상 "
         f"후보 {len(geos)}쌍")
 
-    t0 = time.perf_counter()
+    # 걸린 시간은 로그에 적지 않는다. 실행할 때마다 달라져서 저장소에 남는
+    # run_log.txt 가 재현되지 않는 유일한 원인이었다. 로컬 경로를 빼는 것과 같은
+    # 이유다. 대략적인 소요 시간은 README 1절에 적어 둔다.
     results = [r for r in (evaluate_pair(model, g, mesh_points) for g in geos)
                if r is not None]
-    log(f"  복원 성공 {len(results)}쌍  ({time.perf_counter() - t0:.1f}s)")
+    log(f"  복원 성공 {len(results)}쌍")
     if not results:
         return [], None
 
