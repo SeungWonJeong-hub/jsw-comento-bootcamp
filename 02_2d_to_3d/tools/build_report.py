@@ -273,7 +273,7 @@ def build(prs, s):
         f"정답 깊이 폭 {syn['gt_span_m']:.2f} m 를 {ss['span_m']:.2f} m 로 복원",
         "구와 직육면체로 위성을 세우고 광선 교차를 해석적으로 풀면 정답 깊이에 "
         "오차가 없다 · 남는 오차는 전부 정합에서 온다")
-    add_image(sl, os.path.join(OUT, "01_synthetic_validation.png"),
+    add_image(sl, os.path.join(OUT, "01_synthetic_validation_slide.png"),
               0.72, 1.78, 11.89, 2.75)
     add_panel(sl, 0.72, 4.78, 5.86, 2.07, "같은 영상, 두 가지 방법", [
         b("왼쪽·오른쪽 영상을 만들고 두 방법으로 깊이를 구했습니다."),
@@ -324,7 +324,7 @@ Unit Test 는 {tc}개입니다. 출력 크기와 자료형만 보면 수식이 �
         "기준 깊이 = 동봉 메시 40만 점을 z-buffer 로 투영 · 대조군에는 정답에 맞춘 "
         f"최적 정렬을 적용해 유리한 조건을 부여 · 스테레오가 값을 낸 "
         f"{best['valid_ratio']*100:.0f}% 화소에서 둘 다 채점")
-    add_image(sl, os.path.join(OUT, "03_spe3r_stereo.png"), 0.72, 1.78, 11.89, 2.55)
+    add_image(sl, os.path.join(OUT, "03_spe3r_stereo_slide.png"), 0.72, 1.78, 11.89, 2.55)
     add_card(sl, 0.72, 4.56, 6.62, 2.29)
     add_text(sl, 0.98, 4.75, 6.10, 0.24, [("결과", SANS_SB, 10.5, INK)])
     add_matrix(sl, 0.98, 5.05, [1.55, 1.40, 1.40, 1.15], [

@@ -565,6 +565,37 @@ def figure_synthetic(art, res, path):
     fig.tight_layout()
     fig.savefig(path); plt.close(fig)
 
+    figure_depth_triptych(
+        [(f"정답 깊이 [m]\n깊이 폭 {res['gt_span_m']:.3f} m", gt, "viridis", lo, hi),
+         (f"스테레오  Z = f·B/d\n깊이 폭 {res['stereo']['span_m']:.3f} m",
+          art["z_stereo"][cy, cx], "viridis", lo, hi),
+         (f"과제 예시 코드 (최적 정렬)\n깊이 폭 "
+          f"{res['example_code']['full']['span_m']:.3f} m",
+          art["z_bright"][cy, cx], "viridis", lo, hi)],
+        path.replace(".png", "_slide.png"),
+        "합성 장면 — 같은 색 범위에서 나란히 놓으면 차이가 보인다")
+
+
+def figure_depth_triptych(panels, path, suptitle):
+    """발표 슬라이드용 3패널 비교 그림.
+
+    상세 그림은 6패널이라 슬라이드에서 하나하나가 너무 작아진다. 논증에 실제로
+    쓰이는 것은 '기준 깊이 / 스테레오 / 과제 예시' 세 장뿐이고, 원본 좌우 영상과
+    시차 맵은 근거를 따라가려는 사람에게 필요한 자료다. 슬라이드에는 세 장만
+    싣고 여섯 장짜리는 README 와 outputs/ 에 남긴다.
+
+    panels : (제목, 배열, 색상표, vmin, vmax) 3개
+    """
+    fig, ax = plt.subplots(1, 3, figsize=(10.8, 3.9))
+    for a, (title, arr, cmap, lo, hi) in zip(ax, panels):
+        im = a.imshow(arr, cmap=cmap, vmin=lo, vmax=hi)
+        a.set_title(title, fontsize=12.5)
+        fig.colorbar(im, ax=a, fraction=0.046)
+        a.set_xticks([]); a.set_yticks([]); a.grid(False)
+    fig.suptitle(suptitle, fontsize=13.5)
+    fig.tight_layout()
+    fig.savefig(path); plt.close(fig)
+
 
 def figure_survey(results, path):
     rot = np.array([r["rotation_deg"] for r in results])
@@ -634,6 +665,18 @@ def figure_spe3r(best, example_depth, path):
         a.set_xticks([]); a.set_yticks([]); a.grid(False)
     fig.suptitle("SPE3R aqua — 회전하는 타겟을 찍은 두 시점에서 복원", fontsize=13)
     fig.tight_layout(); fig.savefig(path); plt.close(fig)
+
+    figure_depth_triptych(
+        [("기준 깊이 [m]\n(동봉 메시 z-buffer)",
+          np.where(m, ref[cy, cx], np.nan), "viridis", lo, hi),
+         (f"스테레오  Z = f·B/d\n오차 중앙값 {best['median_abs']*100:.1f} cm · "
+          f"5cm 이내 {best['within_5cm']*100:.0f}%",
+          dep[cy, cx], "viridis", lo, hi),
+         (f"과제 예시 코드 (밝기, 최적 정렬)\n오차 중앙값 "
+          f"{best['_example_median']*100:.1f} cm",
+          np.where(m, example_depth[cy, cx], np.nan), "viridis", lo, hi)],
+        path.replace(".png", "_slide.png"),
+        f"SPE3R aqua img{best['i']+1:06d}/img{best['j']+1:06d} — 같은 색 범위로 비교")
 
 
 def _scatter3d(ax, pts, color, title, lim, size=0.5, title_size=18):
@@ -767,6 +810,7 @@ def main() -> int:
     figure_concept(best, os.path.join(OUT, "00_concept.png"))
     figure_synthetic(art, synth, os.path.join(OUT, "01_synthetic_validation.png"))
     figure_survey(results, os.path.join(OUT, "02_pair_survey.png"))
+    best["_example_median"] = ex["full"]["median_abs"]
     figure_spe3r(best, ex_depth, os.path.join(OUT, "03_spe3r_stereo.png"))
     figure_pointclouds(mesh_points, stereo_body, ex_cloud,
                        os.path.join(OUT, "04_pointclouds.png"))

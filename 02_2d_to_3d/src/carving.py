@@ -78,6 +78,9 @@ def carve(camera, masks, poses, bounds, resolution: int = 128,
     resolution : 복셀 해상도
     mask_margin : 마스크 경계를 이 픽셀만큼 넓힌다 (음수면 줄인다).
 
+    화면 밖으로 나가는 복셀
+        관측되지 않은 것으로 보고 깎지 않는다. 자세한 근거는 아래 구현의 주석.
+
     mask_margin 이 왜 필요한가
         visual hull 은 실루엣이 물체의 참 투영을 '포함'해야 성립한다. 실루엣이
         조금이라도 작으면 그 부족분이 시점마다 다른 방향에서 물체를 깎아내고,
@@ -129,7 +132,17 @@ def carve(camera, masks, poses, bounds, resolution: int = 128,
         vi = np.round(v).astype(np.int64)
         inside_image = ok & (ui >= 0) & (ui < camera.width) & (vi >= 0) & (vi < camera.height)
 
-        keep = np.zeros(idx.size, dtype=bool)
+        # 화면 밖으로 투영된 복셀은 '관측되지 않음'이지 '물체 아님'이 아니다.
+        # 깎아 버리면 visual hull 이 참 형상을 포함한다는 성질이 깨진다. 실제로
+        # SPE3R 은 1,000 뷰 중 552 뷰에서 실루엣이 화면 테두리에 닿고, 카빙에
+        # 쓰는 20 뷰 중에도 15 뷰가 그렇다. 합성 장면에서 타겟이 모든 뷰에서
+        # 잘리게 만들면 복원 반지름이 0.300 -> 0.252 로 깎여 나갔다.
+        #
+        # 대신 유지하면 그 방향으로는 아무 제약이 걸리지 않으므로, 뷰가 전부
+        # 잘려 있으면 hull 이 격자 경계까지 부푼다(같은 실험에서 0.866).
+        # 과하게 깎는 것은 틀린 답이고 과하게 남기는 것은 느슨한 답이라,
+        # 포함 성질을 지키는 쪽을 택한다.
+        keep = np.ones(idx.size, dtype=bool)
         sel = np.flatnonzero(inside_image)
         keep[sel] = mask[vi[sel], ui[sel]]
 

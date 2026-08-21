@@ -429,13 +429,13 @@
   "silhouette_carving": {
     "num_views": 20,
     "resolution": 128,
-    "n_points": 8465,
-    "kept_ratio": 0.010283946990966797,
-    "chamfer_l1": 0.017507927404332924,
-    "chamfer_pred_to_gt": 0.00796279226634005,
-    "chamfer_gt_to_pred": 0.027053062542325798,
-    "f_score_002": 0.8777947635799416,
-    "precision": 0.919669226225635,
-    "recall": 0.8395675
+    "n_points": 9762,
+    "kept_ratio": 0.011275291442871094,
+    "chamfer_l1": 0.009281111465937911,
+    "chamfer_pred_to_gt": 0.008996223273156124,
+    "chamfer_gt_to_pred": 0.0095659996587197,
+    "f_score_002": 0.9471586276757965,
+    "precision": 0.9287031346035648,
+    "recall": 0.9663625
   }
 }

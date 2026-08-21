@@ -186,6 +186,30 @@ def test_carving_shrinks_monotonically(cam):
     assert all(b <= a for a, b in zip(history, history[1:]))
 
 
+def test_cropped_views_do_not_over_carve(cam):
+    """타겟이 화면 밖으로 잘리는 뷰가 있어도 참 형상을 깎아내면 안 된다.
+
+    화면 밖으로 투영된 복셀은 '관측되지 않음'이지 '물체 아님'이 아니다. 깎아
+    버리면 visual hull 의 포함 성질이 깨진다. SPE3R 은 1,000 뷰 중 552 뷰에서
+    실루엣이 화면 테두리에 닿으므로 실제로 걸리는 조건이다.
+    """
+    R_true = 0.30
+    sphere = [scene.Sphere((0, 0, 0), R_true)]
+    # 초점거리를 키워 구가 화면을 넘치게 만든다.
+    tight = PinholeCamera(64, 64, 700.0)
+    poses = scene.orbit_poses(32, distance=5.0, seed=0)
+    masks = [scene.render_mask(tight, p, sphere) for p in poses]
+    assert all(m[0].any() or m[-1].any() or m[:, 0].any() or m[:, -1].any()
+               for m in masks), "이 테스트는 모든 뷰가 잘린 상황을 전제로 한다"
+
+    res = carving.carve(tight, masks, poses, bounds=0.5, resolution=48,
+                        mask_margin=0)
+    pts = carving.surface_points(res["occupancy"], res["centers"])
+    assert len(pts) > 0
+    # 느슨해지는 것은 괜찮지만 참 형상보다 작아지면 안 된다.
+    assert float(np.linalg.norm(pts, axis=1).max()) >= R_true
+
+
 def test_visual_hull_contains_true_shape(cam):
     """visual hull 은 실제 형상을 포함한다 (원리적으로 항상 참).
 
