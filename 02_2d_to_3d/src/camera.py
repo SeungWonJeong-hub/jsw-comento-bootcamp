@@ -4,7 +4,7 @@
     x : 오른쪽,  y : 아래,  z : 광축 방향(카메라 앞이 양수)
     깊이(depth)는 광축 방향 성분 Z 를 뜻하며 광선 길이가 아니다.
 
-SPE3R 자세 라벨
+자세 라벨
     q_vbs2tango_true : 카메라(vbs) 좌표계 벡터를 타겟 동체(tango) 좌표계로
                        옮기는 쿼터니언. 스칼라가 앞에 오는 [w, x, y, z] 순서.
     r_Vo2To_vbs_true : 카메라 좌표계에서 본 타겟 중심 위치 [m].
@@ -37,13 +37,6 @@ class PinholeCamera:
     def __repr__(self):
         return (f"PinholeCamera({self.width}x{self.height}, "
                 f"f=({self.fx:.2f}, {self.fy:.2f}), c=({self.cx:.1f}, {self.cy:.1f}))")
-
-    @classmethod
-    def from_spe3r(cls, camera_json: dict) -> "PinholeCamera":
-        """SPE3R 의 camera.json 에서 카메라를 만든다."""
-        K = np.asarray(camera_json["cameraMatrix"], dtype=np.float64)
-        return cls(width=int(camera_json["Nu"]), height=int(camera_json["Nv"]),
-                   fx=K[0, 0], fy=K[1, 1], cx=K[0, 2], cy=K[1, 2])
 
     @property
     def K(self) -> np.ndarray:
@@ -109,7 +102,6 @@ def quaternion_to_rotation(q, scalar_first: bool = True) -> np.ndarray:
     """단위 쿼터니언 -> 3x3 회전 행렬.
 
     반환되는 R 은 q 가 표현하는 좌표계 변환을 그대로 따른다.
-    SPE3R 의 q_vbs2tango 를 넣으면  v_tango = R @ v_vbs  가 된다.
     """
     q = np.asarray(q, dtype=np.float64).reshape(4)
     n = np.linalg.norm(q)
@@ -151,25 +143,6 @@ class Pose:
 
     def __repr__(self):
         return f"Pose(t={np.round(self.t, 4).tolist()})"
-
-    @classmethod
-    def from_spe3r_label(cls, label: dict, scalar_first: bool = True) -> "Pose":
-        """SPE3R labels.json 의 한 항목에서 동체 -> 카메라 자세를 만든다.
-
-        규약은 문서가 아니라 실측으로 확정했다. 메시 표면 40만 점을 투영해
-        z-buffer 로 채운 실루엣과 데이터셋의 정답 마스크를 IoU 로 비교한
-        결과다 (100 뷰 평균, tools/verify_pose_convention.py):
-
-            scalar_first=True,  전치 없음   IoU 0.8282   <- 채택
-            scalar_first=True,  전치        IoU 0.3572
-            scalar_first=False, 전치 없음   IoU 0.2564
-            scalar_first=False, 전치        IoU 0.2126
-
-        즉 q_vbs2tango_true 를 스칼라 우선으로 읽어 만든 행렬이 그대로
-        동체 -> 카메라 회전이다.
-        """
-        R = quaternion_to_rotation(label["q_vbs2tango_true"], scalar_first)
-        return cls(R=R, t=label["r_Vo2To_vbs_true"])
 
     def apply(self, points_body: np.ndarray) -> np.ndarray:
         """동체 좌표계 점 (N, 3) -> 카메라 좌표계 점 (N, 3)."""

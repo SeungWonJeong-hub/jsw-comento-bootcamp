@@ -149,7 +149,7 @@ def bounding_radius(vertices: np.ndarray, margin: float = 0.05) -> float:
         정당한 시차까지 잘려 나간다. aqua 에서 실측하면 여유 없이 0.6895 를
         쓸 때 최적 쌍의 유효화소가 80.8% 에서 78.9% 로 떨어진다(오차 중앙값은
         0.00743 으로 같다). 5% 여유(0.7240)면 기존 상수 0.8 과 결과가 같으면서
-        위성 종류가 바뀌어도 따라간다.
+        타겟이 바뀌어도 따라간다.
     """
     v = np.asarray(vertices, dtype=np.float64)
     if v.ndim != 2 or v.shape[1] != 3:

@@ -1,5 +1,7 @@
 """2차 업무 발표자료(PPT 4페이지) 생성기.
 
+    달 지형 스테레오 실험의 결과를 4장으로 정리한다.
+
 1차 업무 자료와 같은 디자인 규격을 따른다.
     배경 #FAFAFA · 카드 흰색 + #EBEBEB 0.75pt 테두리 · 모서리 반경 0.125in
     제목 Pretendard SemiBold 27pt · 본문 Pretendard 9.5pt · 라벨 Cascadia Mono 8.5pt
@@ -77,14 +79,14 @@ def josa(n, pair):
     return f"{n}{with_batchim if closed else without}"
 
 
-def code_lines(name="test_relative_pose_maps_view_i_to_view_j"):
+def code_lines(name="test_stereo_baseline_matches_the_convergence_formula"):
     """테스트 파일에서 함수 하나를 원문 그대로 읽어 온다.
 
     과제 요청이 "Unit Test 코드 및 실행 결과 문서화" 이므로 슬라이드에 코드를
     직접 싣는다. 슬라이드에 손으로 옮겨 적으면 코드가 바뀌었을 때 조용히
     어긋나므로 파일에서 읽는다.
     """
-    path = os.path.join(ROOT, "tests", "test_stereo.py")
+    path = os.path.join(ROOT, "tests", "test_terrain.py")
     src = io.open(path, encoding="utf-8").read().splitlines()
     start = next(i for i, l in enumerate(src) if l.startswith(f"def {name}("))
     end = start + 1
@@ -133,13 +135,11 @@ def report_lines():
     total = re.search(r"(\d+) passed", text)
 
     picked = [n for n in (
-        "test_disparity_to_depth_matches_formula",
-        "test_relative_pose_maps_view_i_to_view_j",
-        "test_brightness_depth_confuses_albedo_with_distance",
-        "test_vertical_reconstruct_returns_unrotated_maps",
-        "test_fit_window_keeps_geometry_and_contains_the_source",
-        "test_reference_depth_lands_in_the_same_frame_as_reconstruct",
-        "test_unlit_surfaces_break_matching",
+        "test_nadir_view_of_flat_ground_has_constant_depth_equal_to_altitude",
+        "test_stereo_baseline_matches_the_convergence_formula",
+        "test_rendered_depth_recovers_the_original_elevation",
+        "test_rendered_pair_aligns_at_the_disparity_the_geometry_predicts",
+        "test_full_pipeline_recovers_the_terrain_within_one_pixel",
     ) if n in names]
 
     out = [f"collected {len(hits)} items", ""]
@@ -342,95 +342,45 @@ def gap():
 
 
 def build(prs, s):
-    """4 페이지. 과제 결과물 형식(업무.pdf p.16)에 맞춰 자리를 나눈다.
-
-        1. 방법          - 카메라가 고정인데 어떻게 깊이를 재는가
-        2. Unit Test     - 코드 및 실행 결과 문서화 (p.16 요구)
-        3. 2D -> 3D 변환 - 변환 결과 이미지 첨부 (p.16 요구)
-        4. 개선점        - 요청내용 3번 "개선점을 도출"
-
-    쓰는 방침
-        한 장에 카드 두 개, 카드 하나에 문장 세 줄까지만 둔다. 발표에서 듣는
-        사람이 읽을 수 있는 양이 그 정도다. 자세한 수치와 근거는 README 와
-        metrics.json 에 있고 슬라이드는 그중 결론만 옮긴다.
-
-        전문 용어는 처음 나올 때 한 번만 풀어 준다. '정합' 대신 '같은 지점
-        찾기', 'blockSize' 대신 '오려서 비교하는 네모의 크기' 로 쓴다.
-
-        길이는 전부 m 으로 적는다. 한 화면에 cm 와 m 이 섞이면 값을
-        비교할 때마다 100을 곱하고 나눠야 한다.
-
-        다만 풀어 쓴 말이 다른 말과 겹치면 원래 용어를 쓴다. '시차' 를 '밀린
-        거리' 로 바꿔 봤더니 재려는 대상인 깊이(거리)와 헷갈렸다. 지금은
-        '시차 d' 를 쓰고 '옆으로 밀린 픽셀 수' 라고 한 번만 덧붙인다.
-
-        그림은 한 장에 하나만 넣고, 4 장은 표만 둔다.
-    """
-    syn = s["synthetic_validation"]
-    ss = syn["stereo"]
-    best = s["best_pair"]
+    """4 페이지. 과제 결과물 형식(업무.pdf p.16)에 맞춰 자리를 나눈다."""
+    sc, best = s["scene"], s["best"]
+    conv = s["convergence_sweep"]
+    blocks = s["block_size_sweep"]
     tc = test_count()
-    # 대조군은 스테레오가 값을 낸 화소에서만 채점한 'common' 을 쓴다. 실루엣
-    # 전체에서 채점한 'full' 과 나란히 놓으면 두 방법이 서로 다른 화소에서
-    # 채점되기 때문이다.
-    se = syn["example_code"]["common"]
-    bex = s["best_pair_example_code"]["common"]
-    narrow = s["disparity_range_ablation"][0]
-    cov = s["surface_coverage"]
-    cov_one = cov["stereo_single_pair"]
-    cov_fuse = cov["multiview_stereo_fusion"]
-    fuse0 = cov_fuse["stages"][0]
-    blocks = s["block_size_ablation"]
-    blk_old = blocks[0]
-    spread = cov_fuse["view_spread"]
-    posesens = s["pose_error_sensitivity"]
-    inc = cov_fuse["incremental"]
-    top2 = sorted(inc, key=lambda r: -r["gain"])[:2]
-    top2_share = sum(r["gain"] for r in top2) / inc[-1]["cumulative_coverage"]
-    blk_new = next(x for x in blocks
-                   if x["best_pair"]["valid_ratio"] == best["valid_ratio"])
-    gap_ratio = bex["median_abs"] / best["median_abs"]
+    res = sc["altitude_m"] ** 2 / (sc["focal_px"] * sc["baseline_m"])
+    chosen = next(c for c in conv
+                  if abs(c["convergence_deg"] - sc["convergence_deg"]) < 1e-9)
+    widest = conv[-1]
 
-    # 식은 설명 안에 넣지 않고 아래 '쓰는 식' 으로 뺀다. 줄바꿈이 식
-    # 한가운데를 자르면 읽는 사람이 다시 이어 붙여야 한다.
     VARS[:] = [
-        ("R1, t1 / R2, t2", "사진 1·2 의 자세. R 은 회전, t 는 위치."),
-        ("", "데이터셋이 준 값이다."),
-        ("R, t", "두 사진 사이의 상대 자세. 우리가 계산한다."),
-        ("B", f"베이스라인 = t 중 화면과 나란한 성분. "
-              f"{best['baseline_m']:.3f} m."),
-        ("f", f"초점거리. {best['focal_px']:,.0f} 픽셀."),
+        ("H", f"촬영 고도. {sc['altitude_m']/1000:.1f} km."),
+        ("B", f"베이스라인 = 두 촬영 지점 사이 거리. "
+              f"{sc['baseline_m']/1000:.1f} km."),
+        ("수렴각", f"두 시선이 벌어진 각. {sc['convergence_deg']:.0f}도."),
+        ("f", f"초점거리. {sc['focal_px']:,.0f} 픽셀."),
         ("d", "시차 = 같은 지점이 두 사진에서 옆으로 밀린 픽셀 수."),
-        ("", f"이 쌍에서 약 {best['expected_disparity_px']:.0f} 픽셀."),
-        ("Z", "깊이 = 그 화소가 보는 표면까지의 거리."),
-        ("u, v / cx, cy", "화소의 가로·세로 위치 / 화면 중심."),
+        ("Z", "깊이 = 그 화소가 보는 지면까지의 거리."),
+        ("고도", "Z 를 지형 좌표로 되돌린 값. 정답은 레이저 고도계 측정치."),
     ]
 
     # ---------------- 1. 방법 ----------------
-    # 스테레오가 무엇인지는 설명하지 않는다. 이 장에서 남겨야 할 것은
-    # "이 데이터에 어떻게 적용했고, 어떤 식을 거쳐, 무슨 값이 나왔는가" 다.
     sl = new_slide(
         prs, 1, "01 / 방법",
-        "카메라는 그대로인데, 위성이 돌아서 깊이를 쟀습니다",
-        "SPE3R 위성 근접 영상 1,000장 · 256×256 · 카메라 병진은 항상 (0, 0, Z)")
-    add_image(sl, os.path.join(OUT, "00_concept.png"), 0.72, 1.70, 11.89, 3.16)
+        "달 사진 두 장으로 지형의 높낮이를 복원했습니다",
+        f"티코 크레이터 · LOLA 레이저 고도 모델 {sc['gsd_m']:.0f} m/화소 · "
+        f"{sc['grid'][0]}×{sc['grid'][1]}")
+    add_image(sl, os.path.join(OUT, "00_overview.png"), 0.72, 1.70, 11.89, 3.16)
 
     add_card(sl, 0.72, 5.02, 6.60, 1.86)
-    add_text(sl, 0.98, 5.21, 6.08, 0.24,
-             [("Z 를 뽑기까지", SANS_SB, 10.5, INK)])
+    add_text(sl, 0.98, 5.21, 6.08, 0.24, [("Z 를 뽑기까지", SANS_SB, 10.5, INK)])
     add_text(sl, 0.98, 5.48, 6.08, 0.20, [
         ("시차 d = 같은 지점이 두 사진에서 옆으로 밀린 픽셀 수",
          SANS, 9.5, MUTED)])
-    # 첨자는 i, j 가 아니라 1, 2 를 쓴다. i 와 j 는 생김새가 비슷해 어느 쪽이
-    # 어느 사진인지 한눈에 안 들어온다. 상대 자세에는 첨자를 아예 붙이지
-    # 않는다 - 뒤에서 R, t 로만 쓰이므로 이름이 짧을수록 식이 읽힌다.
-    # 전치는 유니코드 위첨자 대신 ^T 로 쓴다. 등폭 글꼴에 없으면 다른 글꼴로
-    # 대체돼 줄이 어긋나기 때문이다.
     add_text(sl, 0.98, 5.72, 6.08, 1.10, [
         (x, MONO, 9.5, BODY) for x in (
-            "R1, t1 / R2, t2 = 사진 1·2 의 자세 (데이터셋이 준 값)",
+            "R1, t1 / R2, t2 = 두 촬영 지점의 자세 (우리가 정한 값)",
             "① 상대 자세   R = R2 · R1^T,    t = t2 − R · t1",
-            "② 베이스라인  B = t 중 화면과 나란한 성분",
+            "② 베이스라인  B = 2 · H · tan(수렴각/2)",
             "③ 정렬·정합   stereoRectify(R, t) → StereoSGBM → 시차 d",
             "④ 깊이        Z = f · B / d",
             "⑤ 3D 좌표     X = (u−cx)·Z/f,    Y = (v−cy)·Z/f",
@@ -438,41 +388,35 @@ def build(prs, s):
 
     add_card(sl, 7.45, 5.02, 5.16, 1.86)
     add_text(sl, 7.71, 5.21, 4.64, 0.24,
-             [("식에 들어간 값과 나온 값 (최적 쌍)", SANS_SB, 10.5, INK)])
+             [("식에 들어간 값과 나온 값", SANS_SB, 10.5, INK)])
     add_matrix(sl, 7.71, 5.57, [2.80, 1.84], [
-        (("초점거리 f", f"{best['focal_px']:,.0f} px"), "body"),
-        (("베이스라인 B", f"{best['baseline_m']:.3f} m"), "body"),
-        (("시차 d (기대)", f"{best['expected_disparity_px']:.1f} px"), "body"),
-        (("d 1픽셀이 바꾸는 깊이",
-          f"{best['depth_resolution_m_per_px']:.3f} m"), "body"),
-        # '거리 오차' 라고 부르지 않는다. Z 는 광축 방향 깊이이고, 카메라에서
-        # 점까지의 실제 거리는 sqrt(X^2+Y^2+Z^2) 라 화면 가장자리에서 갈린다.
-        # 우리가 재는 것은 Z 이므로 Z 라고 부르는 편이 짧고 정확하다.
-        (("→ Z 오차 (중앙값)", f"{best['median_abs']:.4f} m"), "key"),
+        (("촬영 고도 H", f"{sc['altitude_m']/1000:.1f} km"), "body"),
+        (("베이스라인 B", f"{sc['baseline_m']/1000:.1f} km"), "body"),
+        (("초점거리 f", f"{sc['focal_px']:,.0f} px"), "body"),
+        (("d 1픽셀이 바꾸는 Z", f"{res:.0f} m"), "body"),
+        (("→ Z 오차 (중앙값)", f"{best['median_abs']:.0f} m"), "key"),
     ])
-
     add_notes(sl, f"""
-· 이 데이터는 카메라가 고정입니다. 위치 값 천 개를 봐도 옆으로 1 mm 도 안 움직입니다.
-· 대신 위성이 매 장면 돌아갑니다. 위성을 세워 놓고 보면 카메라가 그 주위를 돈 셈이라, 두 사진의 각도 차이가 곧 베이스라인이 됩니다.
-· 회전 {best['rotation_deg']:.1f}도짜리 쌍에서 {best['baseline_m']:.3f} m 가 나왔습니다.
-· 그 다음은 교과서대로입니다. 두 사진을 평행하게 편 뒤 시차 d 를 찾고, Z = f·B/d 로 깊이를 구합니다.
-· 결과는 Z 오차 중앙값 {best['median_abs']:.4f} m 입니다. 시차 1픽셀이 {best['depth_resolution_m_per_px']:.3f} m 이니 그 10분의 1 수준입니다.
+· 달에 착륙하려면 어디가 평평한지 알아야 합니다. 사진은 색만 있고 높낮이가 없습니다.
+· 그래서 같은 지역을 각도를 바꿔 두 번 찍고, 같은 지점이 두 사진에서 얼마나 밀렸는지로 거리를 계산했습니다.
+· 촬영 고도 {sc['altitude_m']/1000:.0f} km, 두 촬영 지점 사이 {sc['baseline_m']/1000:.1f} km, 시선이 벌어진 각 {sc['convergence_deg']:.0f}도입니다.
+· 나머지는 교과서대로입니다. 두 사진을 평행하게 편 뒤 시차 d 를 찾고 Z = f·B/d 로 나눕니다.
+· 여기서 시차 1픽셀이 {res:.0f} m 입니다. 이보다 미세한 높낮이는 원리적으로 구분되지 않습니다.
+· 결과는 Z 오차 중앙값 {best['median_abs']:.0f} m 입니다. 시차로 {best['median_abs']/res:.2f} 픽셀이니 부화소 수준입니다.
 """)
 
     # ---------------- 2. Unit Test ----------------
-    # 과제 요청은 "Unit Test 코드 및 실행 결과 문서화" 다. 설계 설명만 적으면
-    # 요구를 반만 채우므로, 실제 테스트 코드 한 조각과 실제 실행 결과를 그대로
-    # 싣는다. 둘 다 파일에서 읽어 오므로 코드가 바뀌면 슬라이드도 따라간다.
     sl = new_slide(
         prs, 2, "02 / Unit Test",
         "크기와 자료형만 확인하면, 식이 틀려도 통과합니다",
-        "실제 테스트 코드와 실행 결과 · tests/ · outputs/pytest_report.txt")
+        "실제 테스트 코드와 실행 결과 · tests/test_terrain.py · "
+        "outputs/pytest_report.txt")
 
     add_card(sl, 0.72, 1.70, 7.35, 3.30)
     add_text(sl, 0.98, 1.89, 6.83, 0.24, [
-        ("테스트 코드 — tests/test_stereo.py", SANS_SB, 10.5, INK)])
+        ("테스트 코드 — tests/test_terrain.py", SANS_SB, 10.5, INK)])
     add_text(sl, 0.98, 2.24, 6.83, 0.22, [
-        ("1장에서 말한 '돌아간 각도가 두 번째 눈이 된다' 를 식으로 확인합니다",
+        ("베이스라인이 B = 2·H·tan(수렴각/2) 를 정확히 만족해야 합니다",
          SANS, 10, MUTED)])
     add_text(sl, 0.98, 2.58, 6.83, 2.30,
              [(x, MONO, 9.5, BODY) for x in code_lines()], spacing=1.3)
@@ -485,120 +429,101 @@ def build(prs, s):
     add_text(sl, 8.57, 2.58, 3.78, 2.20,
              [(x, MONO, 8.5, BODY) for x in report_lines()], spacing=1.2)
 
-    # 라벨을 붙여 나열하지 않는다. 세 문장이 문제 -> 그래서 한 일 -> 그
-    # 결과로 이어지게 두면 읽는 사람이 순서를 스스로 안 맞춰도 된다.
     add_card(sl, 0.72, 5.18, 11.89, 1.64)
     add_text(sl, 0.98, 5.62, 11.37, 0.90, [
         ("크기와 자료형만 보는 테스트는 계산식이 틀려도 통과합니다.",
          SANS, 11.5, BODY),
-        ("그래서 정답을 손으로 풀 수 있는 장면을 만들어, 숫자를 소수점 "
-         "12자리까지 대조했습니다.", SANS, 11.5, BODY),
-        (f"그 결과 {test_count()}개가 전부 통과했고, 테스트가 없던 자리에서 "
-         f"버그 4건을 찾아 고쳤습니다.", SANS_MD, 11.5, INK),
+        ("그래서 손으로 답을 낼 수 있는 조건을 만들어 숫자까지 대조했습니다.",
+         SANS, 11.5, BODY),
+        (f"그 결과 {tc}개가 전부 통과했고, 렌더링이 시차를 밀어내던 버그를 "
+         f"찾아 고쳤습니다.", SANS_MD, 11.5, INK),
     ], spacing=1.55)
-
     add_notes(sl, f"""
 · 과제 예시 테스트는 크기와 자료형만 봅니다. 그러면 계산식이 틀려도 통과합니다.
-· 그래서 공과 상자로 정답을 손으로 풀 수 있는 장면을 만들었습니다. 정답에 오차가 0 이라 틀린 만큼이 그대로 알고리즘의 오차입니다.
-· 왼쪽이 실제 코드입니다. 1장에서 구한 상대 자세가 맞는지, 위성 위의 점 200개로 소수점 12자리까지 확인합니다.
-· 오른쪽이 실행 결과입니다. {tc}개 전부 통과하고 파일로 남아 있습니다.
-· 이렇게까지 한 이유는, 이번에 찾은 버그 4건이 전부 테스트가 없던 자리에서 나왔기 때문입니다.
+· 그래서 손으로 답을 낼 수 있는 조건을 만들었습니다. 평지를 수직으로 내려다보면 모든 화소의 깊이가 촬영 고도와 같아야 합니다. 광축에 수직인 평면이기 때문입니다.
+· 왼쪽이 그 테스트 코드입니다. 오른쪽이 실행 결과, {tc}개 전부 통과입니다.
+· 이 테스트들이 실제로 버그를 잡았습니다. 지형을 그릴 때 점을 화소에 던지면서 위치를 반올림했는데, 그 오차가 경사 방향으로 쏠렸습니다.
+· 두 촬영 지점은 서로 반대로 기울어 있어 좌우가 반대로 쏠렸고, 시차가 2.6 픽셀 치우쳐 고도가 1.2 km 틀렸습니다.
+· 화소마다 광선을 쏘는 방식으로 바꿔 0.1 픽셀로 줄였습니다. 고도 오차는 1245 m 에서 {best['median_abs']:.0f} m 가 됐습니다.
 """)
 
     # ---------------- 3. 2D -> 3D 변환 결과 ----------------
     sl = new_slide(
         prs, 3, "03 / 2D → 3D 변환 결과",
-        "앞면은 정확하고, 뒷면이 비어 있습니다",
-        f"왼쪽부터 정답 · 사진 2장으로 만든 결과 · "
-        f"사진 {cov_fuse['pairs_used']}쌍을 합친 결과")
-    add_image(sl, os.path.join(OUT, "04_pointclouds_slide.png"),
-              0.72, 1.70, 11.89, 3.16)
+        "레이저로 잰 고도와 중앙값 66 m 안에서 일치합니다",
+        f"복원한 점 {s['n_points']:,}개 · 정답은 LOLA 레이저 고도계 측정치")
+    add_image(sl, os.path.join(OUT, "02_pointcloud.png"), 3.30, 1.70, 6.73, 3.16)
+
     add_card(sl, 0.72, 5.02, 4.30, 1.86)
     add_text(sl, 0.98, 5.21, 3.78, 0.24, [("결과", SANS_SB, 10.5, INK)])
     add_matrix(sl, 0.98, 5.60, [2.34, 1.44], [
-        (("Z 오차 (중앙값)", f"{best['median_abs']:.4f} m"), "key"),
-        (("0.05 m 안에 든 비율", f"{best['within_5cm']*100:.1f}%"), "key"),
-        (("과제 예시 코드보다", f"{gap_ratio:.1f}배 정확"), "key"),
-        (("겉면을 덮은 비율 · 2장", f"{cov_one['surface_coverage']*100:.1f}%"), "body"),
-        ((f"겉면을 덮은 비율 · {cov_fuse['pairs_used']}쌍",
-          f"{fuse0['surface_coverage']*100:.1f}%"), "body"),
+        (("Z 오차 (중앙값)", f"{best['median_abs']:.0f} m"), "key"),
+        (("시차 단위로", f"{best['median_abs']/res:.2f} px"), "key"),
+        (("지형 기복 대비", f"{best['median_abs']/sc['relief_m']*100:.1f}%"), "body"),
+        (("값이 나온 픽셀", f"{best['valid_ratio']*100:.0f}%"), "body"),
     ])
-    # 카드 제목은 "무엇을 보라" 가 아니라 "여기서 하려는 말" 이어야 한다.
-    # 각 줄도 결론이 되는 말을 앞에 두고 근거를 뒤에 붙인다.
     add_panel(sl, 5.26, 5.02, 7.35, 1.86,
-              "깊이는 정확합니다 · 남은 문제는 덮는 범위입니다", [
-        tk(f"Z 는 정확합니다 — 100번 중 {best['within_5cm']*100:.0f}번이 "
-           f"0.05 m 안에 들어옵니다."),
-        tk("뒷면은 원리적으로 안 보입니다 — 알고리즘이 부족해서가 아니라 "
-           "한 방향에서는 가려지기 때문입니다."),
-        tk(f"넓히면 정확도를 내줍니다 — {cov_fuse['pairs_used']}쌍을 합쳐 겉면 "
-           f"{cov_one['surface_coverage']*100:.0f} → "
-           f"{fuse0['surface_coverage']*100:.0f}%, 정확한 점 "
-           f"{cov_one['precision']*100:.0f} → {fuse0['precision']*100:.0f}%."),
+              "높낮이는 살렸고, 남은 문제는 빈 곳입니다", [
+        tk(f"기복 {sc['relief_m']:,.0f} m 인 크레이터를 오차 {best['median_abs']:.0f} m 로 "
+           f"복원했습니다 — 기복의 {best['median_abs']/sc['relief_m']*100:.1f}% 입니다."),
+        t(f"시차로는 {best['median_abs']/res:.2f} 픽셀이라 부화소 수준입니다."),
+        t(f"대신 {100-best['valid_ratio']*100:.0f}% 의 픽셀에서는 값이 나오지 않습니다. "
+          f"그늘진 곳과 크레이터 안쪽 벽입니다."),
     ])
     add_notes(sl, f"""
-· 왼쪽부터 정답, 사진 2장으로 만든 결과, 사진 {cov_fuse['pairs_used']}쌍을 합친 결과입니다.
-· 가운데를 정답과 견줘 보시면 한쪽 면만 있습니다. 알고리즘이 부족해서가 아니라 한 방향에서는 뒷면이 가려서 안 보이기 때문입니다.
-· 그래서 사진을 더 모아 오른쪽을 만들었습니다. 반대편이 채워집니다.
-· 다만 정확한 점의 비율이 {cov_one['precision']*100:.0f}에서 {fuse0['precision']*100:.0f}퍼센트로 떨어집니다. 사진이 늘면 어긋난 점도 같이 늘기 때문입니다.
-· 넓게 덮는 것과 정확한 것을 동시에 얻을 수는 없었고, 어느 쪽을 쓸지는 용도가 정할 문제라고 봅니다.
-· 과제 예시 코드에는 정답에 맞춘 최적 눈금까지 주고 채점했습니다. 그러고도 {gap_ratio:.1f}배 차이입니다.
+· 왼쪽이 정답 지형, 오른쪽이 사진 두 장으로 복원한 점 {s['n_points']:,}개입니다. 색은 고도입니다.
+· 크레이터 바닥과 테두리, 가운데 봉우리가 그대로 살아 있습니다.
+· 숫자로는 Z 오차 중앙값 {best['median_abs']:.0f} m 입니다. 기복이 {sc['relief_m']:,.0f} m 인 지형이니 그 {best['median_abs']/sc['relief_m']*100:.1f}퍼센트입니다.
+· 시차로 환산하면 {best['median_abs']/res:.2f} 픽셀입니다. 시차 1픽셀이 {res:.0f} m 이니 부화소까지 맞춘 셈입니다.
+· 정답은 LOLA 레이저 고도계로 실제로 잰 값입니다. 제가 만든 근사가 아닙니다.
+· 다만 {100-best['valid_ratio']*100:.0f}퍼센트의 픽셀에서는 값이 나오지 않았습니다. 그늘져서 두 사진에 같은 무늬가 안 보이는 곳입니다.
 """)
 
     # ---------------- 4. 개선점 ----------------
-    # 이미 고친 것은 3 장까지의 수치에 반영돼 있다. 여기 또 적으면 "무엇이
-    # 남았는가" 가 흐려지므로 남은 것만 둔다. 항목마다 지금 무엇이 문제인지를
-    # 측정값으로 먼저 대고, 그래서 무엇을 할 것인지를 붙인다. 왜 그런지는
-    # 슬라이드에 적지 않고 대본에서 말한다.
     sl = new_slide(
         prs, 4, "04 / 개선점",
-        "실제로 쓰려면 남은 것 네 가지",
-        "각 항목의 앞줄이 지금 잰 값입니다 · outputs/metrics.json 에 그대로 남습니다")
+        "정밀도와 덮는 범위가 맞바뀝니다",
+        "각 항목의 앞줄이 지금 잰 값입니다 · outputs/metrics.json 에 남습니다")
+    add_image(sl, os.path.join(OUT, "01_tradeoff.png"), 0.72, 1.70, 11.89, 2.60)
 
-    p025 = next(r for r in posesens if abs(r["degrees"] - 0.25) < 1e-9)
     items = [
-        ("1", "자세가 조금만 틀려도 무너집니다",
-         f"자세에 0.25도 오차를 주면 0.05 m 안에 드는 비율이 "
-         f"{best['within_5cm']*100:.1f}% 에서 {p025['within_5cm']*100:.1f}% 로 "
-         f"떨어집니다.",
-         "→ 자세를 그대로 받지 말고, 영상의 대응점으로 상대 자세를 다시 맞춰야 "
-         "합니다."),
-        ("2", "보는 방향이 한쪽에 몰려 있습니다",
-         f"시점 간 최대각은 {spread['max_angle_deg']:.0f}도인데 구면 "
-         f"{spread['sphere_cells_total']}칸 중 {spread['sphere_cells_filled']}칸에만 "
-         f"있고, 상위 2쌍이 겉면의 {top2_share*100:.0f}% 를 만듭니다.",
-         "→ 조건에 맞는 사진을 전부 쓰지 말고, 빈 방향을 채우는 쪽으로 골라야 "
-         "합니다."),
-        ("3", "넓게 덮으면 정확한 점의 비율이 떨어집니다",
-         f"{cov_fuse['pairs_used']}쌍을 합치면 겉면은 "
-         f"{cov_one['surface_coverage']*100:.0f} → {fuse0['surface_coverage']*100:.0f}% "
-         f"로 늘지만 정확한 점의 비율이 {cov_one['precision']*100:.0f} → "
-         f"{fuse0['precision']*100:.0f}% 로 떨어집니다.",
-         "→ 값을 버리거나 남기거나로 나누지 말고, 점마다 신뢰도를 함께 내야 "
-         "합니다."),
-        ("4", "화면의 대부분이 빈 우주입니다",
-         f"위성은 화면의 일부만 차지하는데 전체를 그대로 봅니다. 깊이 분해능이 "
-         f"{best['depth_resolution_m_per_px']:.3f} m/픽셀에서 막힙니다.",
-         "→ 위성이 있는 부분만 잘라 같은 계산량으로 더 조밀하게 봐야 합니다."),
+        ("1", "시선을 더 벌리면 정밀해지고, 빈 곳이 늘어납니다",
+         f"수렴각 {chosen['convergence_deg']:.0f}도에서 오차 "
+         f"{chosen['median_abs']:.0f} m · 값이 나온 픽셀 "
+         f"{chosen['valid_ratio']*100:.0f}%. "
+         f"{widest['convergence_deg']:.0f}도로 벌리면 오차는 "
+         f"{widest['median_abs']:.0f} m 로 줄지만 픽셀은 "
+         f"{widest['valid_ratio']*100:.0f}% 로 떨어집니다.",
+         "→ 용도에 따라 골라야 합니다. 착륙 지점 판정은 정밀도, 지도 제작은 범위."),
+        ("2", "그늘진 곳은 원리적으로 복원할 수 없습니다",
+         f"값이 안 나온 {100-best['valid_ratio']*100:.0f}% 는 대부분 크레이터 "
+         f"안쪽 그늘입니다. 두 사진에 같은 무늬가 안 보입니다.",
+         "→ 태양 각도가 다른 시점을 더 모으거나, 빈 곳을 메우지 말고 "
+         "'모름' 으로 남겨야 합니다."),
+        ("3", "정합 설정은 데이터마다 다시 골라야 합니다",
+         f"무늬가 넉넉한 달 지형에서는 작은 블록이 정확합니다"
+         f"(블록 {blocks[0]['block_size']}에서 {blocks[0]['median_abs']:.0f} m, "
+         f"{blocks[-1]['block_size']}에서 {blocks[-1]['median_abs']:.0f} m).",
+         "→ 무늬가 적은 장면에서는 정반대가 됩니다. 설정을 옮겨 쓰면 안 됩니다."),
     ]
-
-    add_card(sl, 0.72, 1.70, 11.89, 5.12)
-    y = 2.14
+    y = 4.46
     for num, head, now, todo in items:
-        add_text(sl, 0.98, y, 0.40, 0.28, [(num, SANS_SB, 15, FAINT)])
-        add_text(sl, 1.42, y, 10.93, 0.28, [(head, SANS_SB, 14, INK)],
-                 tracking=-14 * 0.02)
-        add_text(sl, 1.42, y + 0.40, 10.93, 0.46,
-                 [(now, SANS, 11, BODY), (todo, SANS_MD, 11, INK)], spacing=1.3)
-        y += 1.24
-
+        add_text(sl, 0.98, y, 0.40, 0.26, [(num, SANS_SB, 14, FAINT)])
+        add_text(sl, 1.42, y, 10.93, 0.26, [(head, SANS_SB, 13, INK)],
+                 tracking=-13 * 0.02)
+        add_text(sl, 1.42, y + 0.36, 10.93, 0.44,
+                 [(now, SANS, 10.5, BODY), (todo, SANS_MD, 10.5, INK)],
+                 spacing=1.3)
+        y += 0.78
     add_notes(sl, f"""
-· 앞줄이 지금 잰 값이고 뒷줄이 할 일입니다.
-· 1번이 가장 큽니다. 지금은 위성 자세를 데이터셋이 준 정답으로 받아 쓰는데, 실제로는 그 자세도 추정해야 합니다.
-· 자세를 0.25도만 틀어도 무너지는 이유는 베이스라인이 짧아서입니다. 0.25도면 타겟이 0.025 m 옮겨 앉는데, 베이스라인 {best['baseline_m']:.3f} m 의 7퍼센트라 깊이가 통째로 그만큼 밀립니다.
-· 2번은 3장에서 {cov_fuse['pairs_used']}쌍을 합쳐도 {fuse0['surface_coverage']*100:.0f}퍼센트에서 멈춘 이유입니다. 조건에 맞는 사진을 전부 쓰다 보니 보는 방향이 한쪽에 몰립니다.
-· 3번은 지금 자신 없는 값을 그냥 버려서 "모른다" 와 "틀렸다" 가 구분되지 않는다는 것입니다.
-· 이 밖에 시차 찾는 범위 좁히기는 재 봤지만, 정확도를 내주는 쪽이라 쓰지 않고 값만 남겼습니다.
+· 개선점 셋입니다. 앞줄이 지금 잰 값이고 뒷줄이 할 일입니다.
+· 1번이 이 실험에서 가장 분명하게 나온 것입니다. 두 촬영 지점의 시선을 더 벌리면 삼각형이 뚱뚱해져 거리가 정밀해집니다.
+· 그런데 두 사진이 서로 달라 보여서 같은 지점을 찾기가 어려워집니다. {chosen['convergence_deg']:.0f}도에서 {widest['convergence_deg']:.0f}도로 벌리면 오차는 {chosen['median_abs']:.0f}에서 {widest['median_abs']:.0f} m 로 줄지만, 값이 나온 픽셀은 {chosen['valid_ratio']*100:.0f}에서 {widest['valid_ratio']*100:.0f}퍼센트로 떨어집니다.
+· 왼쪽 그래프의 두 선이 반대로 가는 것이 그것입니다. 어느 쪽을 쓸지는 용도가 정합니다.
+· 2번은 그늘입니다. 두 사진에 같은 무늬가 안 보이면 원리적으로 맞출 수가 없습니다. 태양 각도가 다른 시점을 더 모으는 것이 답인데, 아직 해 보지 않았습니다.
+· 3번은 정합 블록 크기입니다. 달 지형은 크레이터와 그림자로 무늬가 넉넉해 작은 블록이 정확합니다.
+· 무늬가 적은 장면이라면 반대로 큰 블록이 필요합니다. 설정은 쓸 데이터에서 다시 골라야 한다는 뜻입니다.
+· 한계도 말씀드리면, 사진은 실제 촬영본이 아니라 고도 모델에서 렌더링한 것입니다. 기하는 실제 달이지만 그림자와 반사 특성은 다릅니다.
 """)
 
 
@@ -618,7 +543,7 @@ def talk_script(width=46):
             out.append(f"{key:<{pad}}  {wrapped[0]}")
             out += [" " * (pad + 2) + x for x in wrapped[1:]]
         out += ["", "쓰는 식", "  R = R2 · R1^T,    t = t2 − R · t1",
-                "  Z = f · B / d",
+                "  B = 2 · H · tan(수렴각 / 2)", "  Z = f · B / d",
                 "  X = (u−cx)·Z/f,    Y = (v−cy)·Z/f", ""]
     for i, note in enumerate(TALK):
         out += [f"[{i + 1}] {titles[i]}", "-" * 50]
