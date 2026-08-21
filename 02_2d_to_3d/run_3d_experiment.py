@@ -177,6 +177,53 @@ def run_carving(model, mesh_points, num_views: int = 20, resolution: int = 128) 
     }
 
 
+def reference_sensitivity(model, mesh_points, best, vertices, faces) -> dict:
+    """기준 깊이를 만드는 선택들이 결과를 얼마나 흔드는지 잰다.
+
+    SPE3R 은 화소 단위 정답 깊이가 없어 메시를 투영해 기준을 만든다. 그 기준을
+    만드는 데 세 가지 임의 선택이 들어간다 - 메시 샘플 수, z-buffer 의 splat,
+    실루엣 침식량. "근사값이라 오차가 있다" 로 끝내면 그 오차가 결론을 뒤집을
+    크기인지 알 수 없으므로 직접 잰다.
+    """
+    i, j = best["i"], best["j"]
+    pair, out, mask = best["_pair"], best["_out"], best["_mask"]
+    d0 = best["distance_m"]
+    lo, hi = best["_depth_range"]
+
+    def score(ref, dmap, dmask):
+        mm = metrics.depth_metrics(dmap, ref, mask=dmask)
+        return {"n_domain": mm["n_domain"], "median_abs": mm["median_abs"],
+                "rmse": mm["rmse"], "within_5cm": within(dmap, ref, dmask),
+                "valid_ratio": mm["valid_ratio"]}
+
+    samples = []
+    for n_pt in (100_000, 200_000, 400_000, 800_000):
+        ref = stereo.reference_depth(
+            pair, model.pose(i),
+            pointcloud.sample_mesh_surface(vertices, faces, n_pt, seed=0))
+        samples.append({"n_samples": n_pt, **score(ref, out["depth"], mask)})
+
+    p_rect = model.pose(i).apply(mesh_points) @ pair.R1.T
+    splats = []
+    for sp in (0, 1, 2):
+        ref = pointcloud.zbuffer_depth(p_rect, pair.camera, splat=sp, fill_holes=True)
+        splats.append({"splat": sp, **score(ref, out["depth"], mask)})
+
+    ref = stereo.reference_depth(pair, model.pose(i), mesh_points)
+    erodes = []
+    for e in (0, 1, 2, 3, 4):
+        sil = model.load_mask(i).astype(np.uint8)
+        if e:
+            sil = cv2.erode(sil, np.ones((3, 3), np.uint8), iterations=e)
+        o = stereo.reconstruct(pair, model.load_image(i, grayscale=True),
+                               model.load_image(j, grayscale=True),
+                               mask=sil > 0, distance=d0, depth_range=(lo, hi))
+        erodes.append({"erode_px": e, **score(ref, o["depth"], o["mask"])})
+
+    return {"mesh_samples": samples, "zbuffer_splat": splats,
+            "silhouette_erosion": erodes}
+
+
 def filter_ablation(raw, pair, ref, mask, depth_range) -> list:
     """이상치 필터를 단계별로 켜 가며 효과를 분리한다 (README 5-2 절 표).
 
@@ -797,7 +844,24 @@ def main() -> int:
                 f"{c['within_5cm']*100:8.1f}%{c['valid_ratio']*100:8.1f}%")
     log("  커버리지는 오르지만 정확도가 함께 오르지는 않는다. 트레이드오프다.")
 
-    log("\n[5] 추가 실험 — 실루엣 기반 복원 (발표 범위 밖)")
+    log("\n[5] 기준 깊이를 만드는 선택이 결과를 얼마나 흔드는가")
+    sens = reference_sensitivity(model, mesh_points, best, vertices, faces)
+    log(f"  {'메시 샘플':>12s}  {'중앙값':>9s}{'5cm':>8s}")
+    for r in sens["mesh_samples"]:
+        log(f"  {format(r['n_samples'], ','):>11s}점  {r['median_abs']:9.5f}"
+            f"{r['within_5cm']*100:7.1f}%")
+    log(f"  {'z-buffer':>12s}  {'중앙값':>9s}{'5cm':>8s}{'RMSE':>9s}")
+    for r in sens["zbuffer_splat"]:
+        log(f"  {'splat=' + str(r['splat']):>12s}  {r['median_abs']:9.5f}"
+            f"{r['within_5cm']*100:7.1f}%{r['rmse']:9.5f}")
+    log(f"  {'실루엣 침식':>12s}  {'채점영역':>8s}{'중앙값':>10s}{'5cm':>8s}{'유효화소':>9s}")
+    for r in sens["silhouette_erosion"]:
+        log(f"  {'erode=' + str(r['erode_px']):>12s}  {r['n_domain']:8,d}"
+            f"{r['median_abs']:10.5f}{r['within_5cm']*100:7.1f}%"
+            f"{r['valid_ratio']*100:8.1f}%")
+    log("  샘플 수는 수렴했고, splat 과 침식량은 쌍마다 최적이 달라 고르지 않는다.")
+
+    log("\n[6] 추가 실험 — 실루엣 기반 복원 (발표 범위 밖)")
     carved = run_carving(model, mesh_points)
     log(f"  뷰 {carved['num_views']}개 · 복셀 {carved['resolution']}^3 → "
         f"표면점 {carved['n_points']:,}개")
@@ -853,6 +917,7 @@ def main() -> int:
         "filter_ablation": ablation,
         "disparity_range_ablation": narrow,
         "silhouette_carving": carved,
+        "reference_sensitivity": sens,
     }
     with open(os.path.join(OUT, "metrics.json"), "w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2, ensure_ascii=False)
