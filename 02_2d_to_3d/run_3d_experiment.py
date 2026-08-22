@@ -10,8 +10,8 @@
     안 된다. 알고리즘과 촬영 기하가 맞는지를 보는 실험이다.
 
 사용법
-    py -3 run_moon_experiment.py            # 합성 지형 (데이터 없이 실행)
-    py -3 run_moon_experiment.py DTM.tif    # 실제 고도 모델
+    py -3 run_3d_experiment.py              # 합성 지형 (데이터 없이 실행)
+    py -3 run_3d_experiment.py DTM.tif      # 실제 고도 모델
 """
 
 from __future__ import annotations
