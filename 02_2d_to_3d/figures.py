@@ -220,7 +220,7 @@ def figure_apollo(left, right, height, path):
 
     im = ax[2].imshow(height / 1000.0, cmap="terrain",
                       vmin=lo / 1000.0, vmax=hi / 1000.0)
-    ax[2].set_title(f"복원한 고도 · 기복 {(hi-lo)/1000:.2f} km", fontsize=12)
+    ax[2].set_title(f"복원한 고도 · 높낮이 차 {(hi-lo)/1000:.2f} km", fontsize=12)
     cb = fig.colorbar(im, ax=ax[2], fraction=0.046)
     cb.set_label("[km]", fontsize=10)
 
@@ -243,7 +243,7 @@ def figure_apollo_slide(photo, height, relief_km, path):
 
     im = ax[1].imshow(height / 1000.0, cmap="terrain",
                       vmin=lo / 1000.0, vmax=hi / 1000.0)
-    ax[1].set_title(f"그 두 장으로 복원한 고도 · 기복 {relief_km:.2f} km",
+    ax[1].set_title(f"그 두 장으로 복원한 고도 · 높낮이 차 {relief_km:.2f} km",
                     fontsize=12)
     cb = fig.colorbar(im, ax=ax[1], fraction=0.046)
     cb.set_label("[km]", fontsize=10)
