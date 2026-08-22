@@ -14,7 +14,7 @@ plt.rcParams["figure.dpi"] = 130
 plt.rcParams["savefig.bbox"] = "tight"
 
 __all__ = ["figure_overview", "figure_tradeoff", "figure_cloud",
-           "figure_fusion"]
+           "figure_fusion", "figure_result", "figure_method"]
 
 
 def figure_overview(elev, gsd, view, rec, scored, path):
@@ -140,3 +140,62 @@ def figure_fusion(truth, fused, per_angle, fused_score, gsd, path):
         a.set_xticks([]); a.set_yticks([])
     fig.suptitle("수렴각마다 덮는 곳이 다르다 — 합치면 둘 다 얻는다", fontsize=13)
     fig.savefig(path); plt.close(fig)
+
+
+def figure_result(truth, fused, cloud, gsd, score, path):
+    """발표 3장에 쓰는 결과 그림 — 정답 · 복원 고도 · 3D 점구름.
+
+    고도 지도만 보이면 "그림이 비슷하다" 로 끝나고, 점구름만 보이면 얼마나
+    맞았는지가 안 보인다. 셋을 나란히 놓아야 둘 다 읽힌다.
+    """
+    lo, hi = np.nanpercentile(truth, [2, 98])
+    fig = plt.figure(figsize=(13.0, 3.6))
+
+    a0 = fig.add_subplot(1, 3, 1)
+    im = a0.imshow(truth, cmap="terrain", vmin=lo, vmax=hi)
+    a0.set_title("정답 고도\n(레이저로 잰 값)")
+    fig.colorbar(im, ax=a0, fraction=0.046, label="[m]")
+
+    a1 = fig.add_subplot(1, 3, 2)
+    im = a1.imshow(fused, cmap="terrain", vmin=lo, vmax=hi)
+    a1.set_title(f"사진에서 복원한 고도\n덮은 셀 {score['coverage']*100:.0f}% · "
+                 f"오차 {score['median_abs']:.0f} m")
+    fig.colorbar(im, ax=a1, fraction=0.046, label="[m]")
+
+    a2 = fig.add_subplot(1, 3, 3, projection="3d")
+    step = max(1, len(cloud) // 40000)
+    p = cloud[::step]
+    a2.scatter(p[:, 0], p[:, 1], p[:, 2], c=p[:, 2], cmap="terrain",
+               s=0.4, linewidths=0, vmin=lo, vmax=hi)
+    a2.set_title(f"3D 포인트 클라우드\n{len(cloud):,}점")
+    a2.set_xticklabels([]); a2.set_yticklabels([]); a2.set_zticklabels([])
+    a2.set_box_aspect((1, 1, 0.35))
+
+    for a in (a0, a1):
+        a.set_xticks([]); a.set_yticks([])
+    fig.subplots_adjust(left=0.02, right=0.98, top=0.84, bottom=0.02, wspace=0.12)
+    fig.savefig(path, dpi=220); plt.close(fig)
+
+
+def figure_method(rec, path):
+    """발표 1장에 쓰는 그림 — 왼쪽 영상 · 오른쪽 영상 · 시차.
+
+    1장에서 보여야 할 것은 "같은 곳을 두 번 찍어 밀린 정도를 잰다" 하나다.
+    정답 깊이와 복원 깊이는 결과이므로 3장으로 보낸다. 다섯 칸을 한 줄에
+    욱여넣으면 각 칸이 작아 아무것도 안 보인다.
+    """
+    fig, ax = plt.subplots(1, 3, figsize=(12.6, 4.0), dpi=220)
+    ax[0].imshow(rec["left_rect"], cmap="gray")
+    ax[0].set_title("사진 1", fontsize=13)
+    ax[1].imshow(rec["right_rect"], cmap="gray")
+    ax[1].set_title("사진 2  (같은 곳을 다른 각도에서)", fontsize=13)
+
+    d = ax[2].imshow(rec["disparity"], cmap="magma")
+    ax[2].set_title("시차 d — 두 사진에서 밀린 픽셀 수", fontsize=13)
+    cb = fig.colorbar(d, ax=ax[2], fraction=0.046)
+    cb.set_label("[px]", fontsize=11)
+
+    for a in ax:
+        a.set_xticks([]); a.set_yticks([])
+    fig.subplots_adjust(left=0.02, right=0.98, top=0.88, bottom=0.02, wspace=0.08)
+    fig.savefig(path, dpi=220); plt.close(fig)

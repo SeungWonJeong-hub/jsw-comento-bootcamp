@@ -396,6 +396,9 @@ def main() -> int:
                                  os.path.join(OUT, "01_tradeoff.png"))
     figures.figure_cloud(view["points"], cloud,
                          os.path.join(OUT, "02_pointcloud.png"))
+    figures.figure_method(rec, os.path.join(OUT, "05_method.png"))
+    figures.figure_result(elev, fused, cloud, gsd, fused_score,
+                          os.path.join(OUT, "04_result.png"))
     figures.figure_fusion(elev, fused,
                           [(c, g, grid_score(g, elev))
                            for c, g in zip(FUSE_ANGLES, grids)],
