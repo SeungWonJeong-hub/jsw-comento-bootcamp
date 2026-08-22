@@ -214,7 +214,8 @@ def add_card(slide, x, y, w, h):
     return shape
 
 
-def add_matrix(slide, x, y, col_w, rows, row_h=0.235):
+def add_matrix(slide, x, y, col_w, rows, row_h=0.235, aligns=None,
+               spacing=1.45):
     """표를 그린다. 열마다 별도 텍스트 상자를 둔다.
 
     등폭 글꼴로 공백을 맞추는 방식은 쓸 수 없다. Cascadia Mono 에는 한글이 없어
@@ -223,13 +224,16 @@ def add_matrix(slide, x, y, col_w, rows, row_h=0.235):
 
     Parameters
     ----------
-    col_w : 열 너비 목록 [inch]. 첫 열은 왼쪽 정렬, 나머지는 오른쪽 정렬.
-    rows : (텍스트 튜플, 스타일) 목록. 스타일은 'head' | 'key' | 'body'.
+    col_w : 열 너비 목록 [inch]. 기본은 첫 열만 왼쪽, 나머지는 오른쪽 정렬.
+    rows : (텍스트 튜플, 스타일) 목록. 스타일은 'head' | 'key' | 'body' | 'small'.
+    aligns : 열별 정렬 목록. 설명이 들어가는 열은 오른쪽으로 밀면 안 읽힌다.
     """
     styles = {
         "head": (SANS, 9, MUTED),
         "key": (SANS_MD, 10, INK),
         "body": (SANS, 10, BODY),
+        "small": (SANS, 9, BODY),
+        "small_key": (SANS_MD, 9, INK),
     }
     for j, cw in enumerate(col_w):
         left = x + sum(col_w[:j])
@@ -240,8 +244,9 @@ def add_matrix(slide, x, y, col_w, rows, row_h=0.235):
         tf.margin_left = tf.margin_right = tf.margin_top = tf.margin_bottom = 0
         for i, (cells, style) in enumerate(rows):
             para = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
-            para.alignment = PP_ALIGN.LEFT if j == 0 else PP_ALIGN.RIGHT
-            para.line_spacing = 1.45
+            para.alignment = (aligns[j] if aligns else
+                              PP_ALIGN.LEFT if j == 0 else PP_ALIGN.RIGHT)
+            para.line_spacing = spacing
             name, size, color = styles[style]
             style_paragraph(para, name, size, color).text = cells[j]
 
@@ -371,31 +376,41 @@ def build(prs, s):
         f"{sc['grid'][0]}×{sc['grid'][1]}")
     add_image(sl, os.path.join(OUT, "05_method.png"), 0.72, 1.70, 11.89, 3.16)
 
-    add_card(sl, 0.72, 5.02, 6.60, 1.86)
-    add_text(sl, 0.98, 5.21, 6.08, 0.24, [("Z 를 뽑기까지", SANS_SB, 10.5, INK)])
-    add_text(sl, 0.98, 5.48, 6.08, 0.20, [
-        ("시차 d = 같은 지점이 두 사진에서 옆으로 밀린 픽셀 수",
-         SANS, 9.5, MUTED)])
-    add_text(sl, 0.98, 5.72, 6.08, 1.10, [
-        (x, MONO, 9.5, BODY) for x in (
-            "R1, t1 / R2, t2 = 두 촬영 지점의 자세 (우리가 정한 값)",
-            "① 상대 자세   R = R2 · R1^T,    t = t2 − R · t1",
-            "② 베이스라인  B = 2 · H · tan(수렴각/2)",
-            "③ 정렬·정합   stereoRectify(R, t) → StereoSGBM → 시차 d",
-            "④ 깊이        Z = f · B / d",
-            "⑤ 3D 좌표     X = (u−cx)·Z/f,    Y = (v−cy)·Z/f",
-        )], spacing=1.32)
+    # 왼쪽 — 식만. 라벨과 식을 열로 나눠야 식의 시작 위치가 맞는다.
+    add_card(sl, 0.72, 5.02, 6.10, 1.86)
+    add_text(sl, 0.98, 5.21, 5.58, 0.24, [("Z 를 뽑기까지", SANS_SB, 10.5, INK)])
+    steps = [
+        ("① 상대 자세", "R = R2 · R1^T,   t = t2 - R · t1"),
+        ("② 베이스라인", "B = 2 · H · tan(수렴각/2)"),
+        ("③ 정렬·정합", "stereoRectify(R, t) -> StereoSGBM -> d"),
+        ("④ 깊이", "Z = f · B / d"),
+        ("⑤ 3D 좌표", "X = (u-cx)·Z/f,   Y = (v-cy)·Z/f"),
+    ]
+    add_text(sl, 0.98, 5.52, 1.30, 0.94,
+             [(k, SANS, 9.5, MUTED) for k, _ in steps], spacing=1.28)
+    add_text(sl, 2.32, 5.52, 4.24, 0.94,
+             [(v, MONO, 9.5, BODY) for _, v in steps], spacing=1.28)
+    add_text(sl, 0.98, 6.58, 5.58, 0.22, [
+        (f"→ 이렇게 나온 Z 오차 중앙값 {best['median_abs']/1000:.3f} km "
+         f"(시차 {best['median_abs']/res:.2f} px)", SANS_MD, 9.5, INK)])
 
-    add_card(sl, 7.45, 5.02, 5.16, 1.86)
-    add_text(sl, 7.71, 5.21, 4.64, 0.24,
-             [("식에 들어간 값과 나온 값", SANS_SB, 10.5, INK)])
-    add_matrix(sl, 7.71, 5.57, [2.80, 1.84], [
-        (("촬영 고도 H", f"{sc['altitude_m']/1000:.1f} km"), "body"),
-        (("베이스라인 B", f"{sc['baseline_m']/1000:.1f} km"), "body"),
-        (("초점거리 f", f"{sc['focal_px']:,.0f} px"), "body"),
-        (("d 1픽셀이 바꾸는 Z", f"{res/1000:.2f} km"), "body"),
-        (("→ Z 오차 (중앙값)", f"{best['median_abs']/1000:.3f} km"), "key"),
-    ])
+    # 오른쪽 — 기호가 무슨 역할인지와 그 값.
+    add_card(sl, 7.05, 5.02, 5.56, 1.86)
+    add_text(sl, 7.31, 5.21, 5.04, 0.24,
+             [("각 기호가 하는 일", SANS_SB, 10.5, INK)])
+    add_matrix(sl, 7.31, 5.55, [0.68, 2.86, 1.50], [
+        (("H", "카메라가 떠 있는 높이",
+          f"{sc['altitude_m']/1000:.1f} km"), "small"),
+        (("B", "두 촬영 지점 사이 거리",
+          f"{sc['baseline_m']/1000:.1f} km"), "small"),
+        (("수렴각", "두 시선이 벌어진 각",
+          f"{sc['convergence_deg']:.0f} 도"), "small"),
+        (("f", "초점거리", f"{sc['focal_px']:,.0f} px"), "small"),
+        (("d", "두 사진에서 밀린 픽셀 수", "찾는 값"), "small_key"),
+        (("Z", "그 화소가 보는 지면까지 거리", "d 로 계산"), "small_key"),
+    ], row_h=0.19, spacing=1.36,
+        aligns=[PP_ALIGN.LEFT, PP_ALIGN.LEFT, PP_ALIGN.RIGHT])
+
     add_notes(sl, f"""
 · 달에 착륙하려면 어디가 평평한지 알아야 합니다. 사진은 색만 있고 높낮이가 없습니다.
 · 그래서 같은 지역을 각도를 바꿔 두 번 찍고, 같은 지점이 두 사진에서 얼마나 밀렸는지로 거리를 계산했습니다.
@@ -492,39 +507,39 @@ def build(prs, s):
     # 고친 것은 3장의 수치에 이미 들어가 있다. 여기는 남은 것만 번호로 둔다.
     sl = new_slide(
         prs, 4, "04 / 개선점",
-        "더 정확하게, 더 넓게 하려면",
-        "각 항목의 앞줄이 지금 잰 값입니다 · outputs/metrics.json 에 남습니다")
+        "만들면서 부족하다고 느낀 것들",
+        "앞줄이 무엇이 부족한지, 뒷줄이 왜 그것이 문제인지입니다")
 
     items = [
-        ("1", "실제로 찍은 사진으로 검증하기",
-         "지금 쓰는 두 장은 고도 모델에서 렌더링한 것입니다. 기하는 실제 "
-         "달이지만 그림자와 표면 반사 특성은 다릅니다.",
-         "→ LRO 궤도 영상을 그대로 넣어야 이 결과가 실제에서도 성립하는지 "
-         "말할 수 있습니다."),
-        ("2", "그늘진 곳 메우기",
-         f"값이 나오지 않는 {100-fz['coverage']*100:.0f}% 는 대부분 크레이터 "
-         f"안쪽 그늘입니다. 두 사진에 같은 무늬가 보이지 않습니다.",
-         "→ 태양 각도가 다른 시점을 더 모으면 줄어듭니다. 같은 지역을 여러 "
-         "조명 조건에서 찍은 실제 영상이 필요합니다."),
-        ("3", "시차가 정수에 몰리는 것 더 줄이기",
-         "가로 2배로 정합해 정수 부근 쏠림을 49 → 36% 까지 낮췄지만, 균일한 "
-         "20% 보다 아직 높습니다. 4배는 오히려 나빠집니다.",
-         "→ 비용 곡선에 대칭 보간을 다시 얹거나 WLS 후처리가 답인데, OpenCV "
-         "기본 배포에는 그 모듈이 없습니다."),
-        ("4", "더 촘촘한 고도 모델 쓰기",
-         "지금 고도 모델은 0.118 km/화소이고, 레이저 궤적을 격자로 편 것이라 "
-         "매끈해서 잔무늬가 적습니다.",
-         "→ 0.002~0.005 km/화소 모델을 쓰면 정합이 쉬워집니다. 전용 포맷과 도구 체계가 "
-         "필요합니다."),
+        ("1", "렌더링한 사진으로만 검증했다",
+         "두 장 모두 고도 모델에서 제가 그린 것이라 그림자와 표면 반사가 "
+         "실제 달 영상과 다릅니다.",
+         "이대로면 이 숫자가 검증한 것은 촬영 기하와 정합이지 촬영 자체가 "
+         "아닙니다."),
+        ("2", "믿을 수 있는 곳을 정답 없이 가려내지 못한다",
+         f"값이 나온 {fz['coverage']*100:.0f}% 안에서 어디가 맞았는지는 "
+         f"정답 고도와 비교해야만 알 수 있습니다.",
+         "실제 운용에는 정답이 없습니다. 각도 사이 편차를 대용으로 썼지만 "
+         "그게 맞는지는 확인하지 못했습니다."),
+        ("3", "파라미터를 지형마다 손으로 골라야 한다",
+         "수렴각·블록 크기·대비 하한은 티코에서 훑어 고른 값입니다. "
+         "코페르니쿠스에 그대로 쓰니 오차가 늘었습니다.",
+         "지형이 바뀔 때마다 다시 고르는 것은 자동으로 도는 파이프라인이 "
+         "아닙니다."),
+        ("4", "시차가 정수 부근에 몰리는 편향이 남아 있다",
+         "가로 2배로 정합해 49 → 36% 까지 낮췄지만 고르게 퍼졌을 때의 "
+         "20% 보다 아직 높습니다.",
+         "정합이 만든 편향을 뒤에서 덮고 있을 뿐, 원인을 정합 단계에서 "
+         "없애지는 못했습니다."),
     ]
     add_card(sl, 0.72, 1.70, 11.89, 5.12)
     y = 2.10
-    for num, head, now, todo in items:
+    for num, head, now, why in items:
         add_text(sl, 0.98, y, 0.40, 0.28, [(num, SANS_SB, 15, FAINT)])
         add_text(sl, 1.42, y, 10.93, 0.28, [(head, SANS_SB, 14, INK)],
                  tracking=-14 * 0.02)
         add_text(sl, 1.42, y + 0.40, 10.93, 0.46,
-                 [(now, SANS, 11, BODY), (todo, SANS_MD, 11, INK)], spacing=1.3)
+                 [(now, SANS, 11, BODY), (why, SANS_MD, 11, INK)], spacing=1.3)
         y += 1.22
     add_notes(sl, f"""
 · 개선점 넷입니다. 앞줄이 지금 잰 값이고 뒷줄이 할 일입니다.
