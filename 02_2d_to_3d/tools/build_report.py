@@ -251,6 +251,23 @@ def add_matrix(slide, x, y, col_w, rows, row_h=0.235, aligns=None,
             style_paragraph(para, name, size, color).text = cells[j]
 
 
+def add_strip(slide, x, y, w, items, label_pt=10, value_pt=17):
+    """숫자 몇 개를 가로로 늘어놓는다.
+
+    표로 쌓으면 슬라이드가 문서가 된다. 발표에서 눈이 머무는 숫자는 서넛뿐이고,
+    그것들은 한 줄에 나란히 있을 때 가장 빨리 읽힌다.
+    """
+    if not items:
+        return
+    step = w / len(items)
+    for i, (label, value) in enumerate(items):
+        left = x + step * i
+        add_text(slide, left, y, step - 0.2, 0.22,
+                 [(label, SANS, label_pt, MUTED)])
+        add_text(slide, left, y + 0.30, step - 0.2, 0.34,
+                 [(value, SANS_SB, value_pt, INK)], tracking=-value_pt * 0.02)
+
+
 def add_panel(slide, x, y, w, h, heading, lines):
     add_card(slide, x, y, w, h)
     add_text(slide, x + 0.26, y + 0.19, w - 0.52, 0.24,
@@ -480,56 +497,33 @@ def build(prs, s):
                if abs(p["convergence_deg"] - sc["convergence_deg"]) < 1e-9)
     widest = fu["per_angle"][-1]
     ap = load_apollo()
+    one = next(p for p in fu["per_angle"]
+               if abs(p["convergence_deg"] - sc["convergence_deg"]) < 1e-9)
     sl = new_slide(
         prs, 3, "03 / 2D → 3D 변환 결과",
         f"레이저로 잰 고도와 {fz['median_abs']/1000:.3f} km 안에서 일치",
         f"수렴각이 다른 네 쌍을 합친 결과 · 복원한 점 {s['n_points']:,}개"
-        + (" · 실제로 찍힌 사진으로도 확인" if ap else ""))
-    if ap:
-        add_image(sl, os.path.join(OUT, "04_result.png"), 0.72, 1.78, 7.30, 2.02)
-        add_image(sl, os.path.join(OUT, "08_apollo_slide.png"),
-                  8.35, 1.72, 4.26, 2.13)
-        top, tall = 4.12, 2.76
-    else:
-        add_image(sl, os.path.join(OUT, "04_result.png"), 0.72, 1.70, 11.89, 3.16)
-        top, tall = 5.02, 1.86
+        + (" · 마지막 칸은 실제로 찍힌 사진에서 복원한 것입니다" if ap else ""))
 
-    add_card(sl, 0.72, top, 4.30, tall)
-    add_text(sl, 0.98, top + 0.19, 3.78, 0.24, [("결과", SANS_SB, 10.5, INK)])
-    rows = [
-        (("고도 오차 (중앙값)", f"{fz['median_abs']/1000:.3f} km"), "key"),
-        (("90 퍼센타일", f"{fz['p90_abs']/1000:.3f} km"), "body"),
-        (("높낮이 차 대비", f"{fz['median_abs']/sc['relief_m']*100:.2f}%"), "key"),
-        (("값이 나온 셀", f"{fz['coverage']*100:.0f}%"), "body"),
+    # 3장이 요구하는 것은 변환 결과 이미지다. 크게 하나 두고, 숫자는 견줄 수
+    # 있을 만큼만 아래에 한 줄로 놓는다. 나머지 설명은 대본이 갖는다.
+    add_image(sl, os.path.join(OUT, "04_result.png"), 0.72, 1.76, 11.89, 3.16)
+
+    add_card(sl, 0.72, 5.30, 11.89, 1.36)
+    strip = [
+        ("고도 오차 (중앙값)", f"{fz['median_abs']/1000:.3f} km"),
+        ("높낮이 차 대비", f"{fz['median_abs']/sc['relief_m']*100:.2f}%"),
+        ("값이 나온 셀", f"{fz['coverage']*100:.0f}%"),
+        ("한 쌍만 썼다면", f"{one['median_abs']/1000:.3f} km · "
+                          f"{one['coverage']*100:.0f}%"),
     ]
     if ap:
-        rows += [
-            (("실제 사진 — 높낮이 차", f"{ap['relief_m']/1000:.2f} km"), "key"),
-            (("  레이저가 잰 높낮이 차", "2.72 km"), "body"),
-            (("  카메라까지 거리", "102.5 km"), "body"),
-            (("  적혀 있는 촬영 고도", f"{ap['altitude_m']/1000:.1f} km"), "body"),
-        ]
-    add_matrix(sl, 0.98, top + 0.58, [2.34, 1.44], rows)
-    add_panel(sl, 5.26, top, 7.35, tall,
-              "한 쌍보다 여러 쌍이 정확하고 넓습니다", [
-        tk(f"높낮이 차가 {sc['relief_m']/1000:.3f} km 인 크레이터를 오차 {fz['median_abs']/1000:.3f} km 로 "
-           f"복원했습니다 — 그 {fz['median_abs']/sc['relief_m']*100:.2f}% 입니다."),
-        t(f"한 쌍만 쓰면 {one['median_abs']/1000:.3f} km 에 {one['coverage']*100:.0f}%, "
-          f"각도를 벌린 한 쌍은 {widest['median_abs']/1000:.3f} km 에 "
-          f"{widest['coverage']*100:.0f}% 입니다. 합치면 둘 다 얻습니다."),
-        t(f"남은 {100-fz['coverage']*100:.0f}% 는 크레이터 안쪽 그늘입니다. "
-          f"두 사진에 같은 무늬가 보이지 않는 곳입니다."),
-    ] + ([gap(),
-          tk("실제로 찍힌 사진으로도 같은 결과가 나옵니다"),
-          t("1971년 아폴로 15호가 24초 간격으로 필름에 찍은 두 장을 같은 "
-            "파이프라인에 넣었습니다. 복원한 높낮이 차가 레이저로 잰 것과 "
-            f"{ap['relief_m']/2719:.2f} 배 안에서 맞습니다."),
-          t("사진에서 잰 것만으로 계산한 카메라까지의 거리도 아카이브에 적힌 "
-            "촬영 고도와 1.6% 안에서 맞습니다. 어느 쪽도 정답 고도를 보고 "
-            "맞춘 값이 아닙니다."),
-          ] if ap else []))
+        strip.append(("실제 사진 · 레이저 대비",
+                      f"{ap['relief_m']/2719:.2f} 배"))
+    add_strip(sl, 0.98, 5.62, 11.37, strip)
+
     add_notes(sl, f"""
-· 왼쪽이 정답 고도, 가운데가 사진에서 복원한 고도, 오른쪽이 3D 점구름 {s['n_points']:,}개입니다.
+· 왼쪽부터 정답 고도, 사진에서 복원한 고도, 3D 점구름 {s['n_points']:,}개입니다.
 · 크레이터 바닥과 테두리, 가운데 봉우리가 그대로 살아 있습니다.
 · 숫자로는 고도 오차 중앙값 {fz['median_abs']/1000:.3f} km 입니다. 가장 높은 곳과 낮은 곳의 차이가 {sc['relief_m']/1000:.3f} km 인 지형이니 그 {fz['median_abs']/sc['relief_m']*100:.2f}퍼센트입니다.
 · 정답은 레이저 고도계로 실제로 잰 값입니다. 제가 만든 근사가 아닙니다.
@@ -539,7 +533,7 @@ def build(prs, s):
 · 남은 {100-fz['coverage']*100:.0f}퍼센트는 크레이터 안쪽 그늘입니다.
 """ + (f"""
 · 그런데 지금까지 말씀드린 두 장은 제가 고도 모델에서 그린 것입니다. 그래서 실제로 찍힌 사진으로도 해 봤습니다.
-· 오른쪽이 그것입니다. 1971년 아폴로 15호가 24초 간격으로 필름에 찍은 두 장입니다.
+· 맨 오른쪽 칸이 그것입니다. 1971년 아폴로 15호가 24초 간격으로 필름에 찍은 두 장으로 복원한 고도입니다.
 · 달 궤도 스테레오는 거의 전부 푸시브룸이라 카메라 자세 커널이 있어야 풉니다. 아폴로 매핑 카메라는 프레임 카메라여서 이 파이프라인이 그대로 성립합니다.
 · 초점거리는 카메라 검정값이고 베이스라인은 두 프레임의 중심 좌표에서 나옵니다. 둘 다 아카이브에 적힌 값입니다. 정답 고도에서 가져온 것이 아닙니다.
 · 결과가 두 가지로 서로를 확인합니다. 사진에서 잰 것만으로 계산한 카메라까지의 거리가 102.5 km 인데, 아카이브에 적힌 촬영 고도가 100.9 km 입니다.

@@ -146,28 +146,33 @@ def figure_fusion(truth, fused, per_angle, fused_score, gsd, path):
     fig.savefig(path); plt.close(fig)
 
 
-def figure_result(truth, fused, cloud, gsd, score, path):
-    """발표 3장에 쓰는 결과 그림 — 정답 · 복원 고도 · 3D 점구름.
+def figure_result(truth, fused, cloud, gsd, score, path, apollo=None):
+    """발표 3장에 쓰는 결과 그림.
 
-    고도 지도만 보이면 "그림이 비슷하다" 로 끝나고, 점구름만 보이면 얼마나
-    맞았는지가 안 보인다. 셋을 나란히 놓아야 둘 다 읽힌다.
+    정답 고도 · 복원 고도 · 3D 점구름을 나란히 놓는다. 고도 지도만 보이면
+    "그림이 비슷하다" 로 끝나고, 점구름만 보이면 얼마나 맞았는지가 안 보인다.
+
+    apollo 를 주면 네 번째 칸에 **실제로 찍힌 사진에서 복원한 고도**를 붙인다.
+    앞의 셋은 렌더링한 두 장에서 나온 것이고 넷째만 실제 사진이라, 나란히
+    두어야 그 차이가 한눈에 들어온다.
     """
     truth, fused, cloud = truth / 1000.0, fused / 1000.0, cloud / 1000.0
     lo, hi = np.nanpercentile(truth, [2, 98])
-    fig = plt.figure(figsize=(13.0, 3.6))
+    n_panel = 4 if apollo is not None else 3
+    fig = plt.figure(figsize=(3.3 * n_panel, 3.5))
 
-    a0 = fig.add_subplot(1, 3, 1)
+    a0 = fig.add_subplot(1, n_panel, 1)
     im = a0.imshow(truth, cmap="terrain", vmin=lo, vmax=hi)
     a0.set_title("정답 고도\n(레이저로 잰 값)")
     fig.colorbar(im, ax=a0, fraction=0.046, label="[km]")
 
-    a1 = fig.add_subplot(1, 3, 2)
+    a1 = fig.add_subplot(1, n_panel, 2)
     im = a1.imshow(fused, cmap="terrain", vmin=lo, vmax=hi)
     a1.set_title(f"사진에서 복원한 고도\n덮은 셀 {score['coverage']*100:.0f}% · "
                  f"오차 {score['median_abs']/1000:.3f} km")
     fig.colorbar(im, ax=a1, fraction=0.046, label="[km]")
 
-    a2 = fig.add_subplot(1, 3, 3, projection="3d")
+    a2 = fig.add_subplot(1, n_panel, 3, projection="3d")
     step = max(1, len(cloud) // 40000)
     p = cloud[::step]
     a2.scatter(p[:, 0], p[:, 1], p[:, 2], c=p[:, 2], cmap="terrain",
@@ -176,9 +181,22 @@ def figure_result(truth, fused, cloud, gsd, score, path):
     a2.set_xticklabels([]); a2.set_yticklabels([]); a2.set_zticklabels([])
     a2.set_box_aspect((1, 1, 0.35))
 
-    for a in (a0, a1):
-        a.set_xticks([]); a.set_yticks([])
-    fig.subplots_adjust(left=0.02, right=0.98, top=0.84, bottom=0.02, wspace=0.12)
+    flat = [a0, a1]
+    if apollo is not None:
+        height, relief_km = apollo
+        a3 = fig.add_subplot(1, n_panel, 4)
+        klo, khi = np.nanpercentile(height, [2, 98])
+        im = a3.imshow(height / 1000.0, cmap="terrain",
+                       vmin=klo / 1000.0, vmax=khi / 1000.0)
+        a3.set_title(f"실제로 찍힌 사진에서 복원한 고도\n"
+                     f"아폴로 15호 · 높낮이 차 {relief_km:.2f} km")
+        fig.colorbar(im, ax=a3, fraction=0.046, label="[km]")
+        flat.append(a3)
+
+    for ax in flat:
+        ax.set_xticks([]); ax.set_yticks([])
+    fig.subplots_adjust(left=0.02, right=0.98, top=0.84, bottom=0.02,
+                        wspace=0.14)
     fig.savefig(path, dpi=220); plt.close(fig)
 
 

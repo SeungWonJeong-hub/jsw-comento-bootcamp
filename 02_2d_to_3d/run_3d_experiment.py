@@ -431,6 +431,27 @@ def to_elevation(rec, view, camera):
     return world
 
 
+def load_apollo_height():
+    """실제 사진 실험의 결과가 있으면 읽는다. 없으면 그 칸을 빼고 그린다.
+
+    run_apollo_stereo.py 를 돌려야 생기는 파일이라, 없다고 해서 이 실험이
+    멈추면 안 된다.
+    """
+    path = os.path.join(OUT, "apollo_height.tif")
+    meta = os.path.join(OUT, "apollo_metrics.json")
+    if not (os.path.exists(path) and os.path.exists(meta)):
+        return None
+    try:
+        import rasterio
+        with rasterio.open(path) as src:
+            height = src.read(1).astype(np.float64)
+        with open(meta, encoding="utf-8") as f:
+            relief = json.load(f)["relief_m"] / 1000.0
+    except Exception:
+        return None
+    return height, relief
+
+
 def main() -> int:
     os.makedirs(OUT, exist_ok=True)
     dtm_path = sys.argv[1] if len(sys.argv) > 1 else None
@@ -771,7 +792,8 @@ def main() -> int:
                          os.path.join(OUT, "02_pointcloud.png"))
     figures.figure_method(rec, os.path.join(OUT, "05_method.png"))
     figures.figure_result(elev, fused, cloud, gsd, fused_score,
-                          os.path.join(OUT, "04_result.png"))
+                          os.path.join(OUT, "04_result.png"),
+                          apollo=load_apollo_height())
     figures.figure_fusion(elev, fused,
                           [(c, g, grid_score(g, elev))
                            for c, g in zip(FUSE_ANGLES, grids)],

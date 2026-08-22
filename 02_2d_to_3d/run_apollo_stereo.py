@@ -309,6 +309,18 @@ def main() -> int:
 
     import figures
     shown = np.where(ok, height, np.nan)
+
+    # 본 실험의 결과 그림이 이 고도를 네 번째 칸으로 함께 그린다. 좌표계가
+    # 없는 배열이므로 GeoTIFF 로만 저장한다.
+    try:
+        import rasterio
+        with rasterio.open(os.path.join(OUT, "apollo_height.tif"), "w",
+                           driver="GTiff", height=shown.shape[0],
+                           width=shown.shape[1], count=1, dtype="float32",
+                           nodata=float("nan"), compress="deflate") as f:
+            f.write(shown.astype("float32"), 1)
+    except Exception as exc:                       # 저장 실패가 실험을 막지 않는다
+        log(f"  (고도 배열 저장 실패: {exc})")
     figures.figure_apollo(L, Rr, shown, os.path.join(OUT, "07_apollo.png"))
     figures.figure_apollo_slide(L, shown, (hi - lo) / 1000.0,
                                 os.path.join(OUT, "08_apollo_slide.png"))
