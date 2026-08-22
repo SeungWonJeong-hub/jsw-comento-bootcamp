@@ -791,9 +791,11 @@ def main() -> int:
     figures.figure_cloud(view["points"], cloud,
                          os.path.join(OUT, "02_pointcloud.png"))
     figures.figure_method(rec, os.path.join(OUT, "05_method.png"))
+    # 발표 3장은 세 칸으로 둔다. 네 칸이면 각 칸이 작아지고, 실제 사진은
+    # 다른 지역이라 색 범위도 달라 나란히 놓으면 읽는 쪽이 한 번 멈춘다.
+    # 실제 사진 결과는 outputs/07_apollo.png 에 따로 있다.
     figures.figure_result(elev, fused, cloud, gsd, fused_score,
-                          os.path.join(OUT, "04_result.png"),
-                          apollo=load_apollo_height())
+                          os.path.join(OUT, "04_result.png"), apollo=None)
     figures.figure_fusion(elev, fused,
                           [(c, g, grid_score(g, elev))
                            for c, g in zip(FUSE_ANGLES, grids)],

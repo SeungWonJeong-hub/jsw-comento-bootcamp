@@ -46,7 +46,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from src import stereo  # noqa: E402
+from src import pointcloud, stereo  # noqa: E402
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(ROOT, "outputs")
@@ -307,6 +307,22 @@ def main() -> int:
         log("  두 값이 자릿수까지 맞으면, 어긋남이 실제로 지형의 높낮이에서")
         log("  왔다는 뜻이다. 복원 쪽은 화소가 잘아 잔무늬가 더 많이 잡힌다.")
 
+    # 고도 맵을 3D 점으로 편다. 화소의 행과 열이 지상 좌표가 되고 값이 높이다.
+    # 정렬된 영상의 화소 크기는 원본과 같다고 본다 — alpha 기본값에서 정렬은
+    # 초점거리를 거의 바꾸지 않는다(2701 -> 2773).
+    rows, cols = np.mgrid[0:h, 0:w]
+    cloud = np.column_stack([
+        (cols[ok] - w / 2.0) * gsd,
+        (h / 2.0 - rows[ok]) * gsd,
+        height[ok]])
+    # 1000만 점을 그대로 쓰면 파일이 40 MB 를 넘는다. 저장소에 두려면
+    # 솎아야 하고, 형태를 보는 데는 10만 점이면 충분하다.
+    step = max(1, len(cloud) // 120000)
+    pointcloud.write_ply(os.path.join(OUT, "pointcloud_apollo.ply"),
+                         cloud[::step])
+    log(f"  3D 포인트 클라우드 {len(cloud):,}점 "
+        f"(PLY 에는 {len(cloud[::step]):,}점만 솎아 저장)")
+
     import figures
     shown = np.where(ok, height, np.nan)
 
@@ -335,6 +351,7 @@ def main() -> int:
         "matches": len(good), "essential_inliers": int(inl.sum()),
         "radial_k1": k1, "bowl_before": before, "bowl_after": after,
         "coverage": float(ok.mean()),
+        "n_points": int(ok.sum()),
         "relief_m": float(hi - lo),
         "noise_sigma": float(sigma), "contrast_floor": float(floor),
         "lrc_pass": float(lrc.mean()),
