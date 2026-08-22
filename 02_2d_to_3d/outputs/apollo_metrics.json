@@ -1,0 +1,25 @@
+{
+  "source": "Apollo 15 Metric (Mapping) Camera, ASU Apollo Image Archive",
+  "frames": [
+    "AS15-M-1000",
+    "AS15-M-1001"
+  ],
+  "focal_mm": 76.054,
+  "focal_px": 2700.584140350877,
+  "altitude_m": 100860.0,
+  "baseline_m": 36282.2897196023,
+  "gsd_m": 37.34747549354105,
+  "convergence_deg": 20.392919758538774,
+  "depth_resolution_m_per_px": 103.82107654698041,
+  "matches": 5043,
+  "essential_inliers": 4936,
+  "radial_k1": -0.025625000000000016,
+  "bowl_before": 0.7721967515439548,
+  "bowl_after": 0.0019907526875418643,
+  "coverage": 0.6556873960107172,
+  "n_points": 10744293,
+  "relief_m": 2740.227466476368,
+  "noise_sigma": 1.4782113438242033,
+  "contrast_floor": 2.9564226876484065,
+  "lrc_pass": 0.7081670155759346
+}

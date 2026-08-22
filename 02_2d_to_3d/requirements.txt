@@ -1,0 +1,7 @@
+# 2차 업무: Unit Test 및 2D -> 3D 변환
+opencv-python>=4.8
+numpy>=1.24
+pytest>=8.0
+scipy>=1.11
+matplotlib>=3.8
+python-pptx>=1.0
