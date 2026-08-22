@@ -257,7 +257,7 @@ def figure_apollo_slide(photo, height, relief_km, path):
     lo, hi = np.nanpercentile(height, [2, 98])
     fig, ax = plt.subplots(1, 2, figsize=(9.0, 4.6), dpi=200)
     ax[0].imshow(photo, cmap="gray")
-    ax[0].set_title("실제로 찍힌 사진 (아폴로 15호, 1971)", fontsize=12)
+    ax[0].set_title("실제로 찍힌 사진 (아폴로 15호 · 1971)", fontsize=12)
 
     im = ax[1].imshow(height / 1000.0, cmap="terrain",
                       vmin=lo / 1000.0, vmax=hi / 1000.0)
