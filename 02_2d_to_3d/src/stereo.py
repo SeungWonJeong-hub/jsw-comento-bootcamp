@@ -510,3 +510,371 @@ def reconstruct(pair: "RectifiedPair", left, right, mask=None,
         "points": points, "valid": valid,
         "num_disparities": num_disp,
     }
+
+
+# ---------------------------------------------------------------------------
+# 정답 없이 쓰는 신뢰도
+#
+# 지금까지는 어느 화소가 맞았는지를 정답 고도와 비교해야만 알 수 있었다.
+# 실제 운용에는 정답이 없으므로, 두 영상만으로 계산되는 단서가 필요하다.
+# 아래 셋은 모두 정답을 쓰지 않는다.
+# ---------------------------------------------------------------------------
+
+
+def compute_disparity_both(left, right, num_disparities: int,
+                           block_size: int = DEFAULT_BLOCK_SIZE,
+                           min_disparity: int = 0, uniqueness: int = 5):
+    """왼쪽 기준 시차와 오른쪽 기준 시차를 함께 구한다.
+
+    오른쪽 기준 시차는 두 영상을 좌우로 뒤집어 역할을 맞바꾼 뒤 정합하고
+    결과를 다시 뒤집으면 얻어진다. 뒤집으면 시차의 방향도 뒤집히므로 같은
+    부호 규약으로 돌아온다. StereoSGBM 을 한 번 더 돌리는 것 말고는 새로
+    필요한 것이 없다.
+    """
+    dl = compute_disparity(left, right, num_disparities, block_size,
+                           min_disparity, uniqueness)
+    dr = compute_disparity(right[:, ::-1], left[:, ::-1], num_disparities,
+                           block_size, min_disparity, uniqueness)[:, ::-1]
+    return dl, dr
+
+
+def left_right_consistency(disparity_left, disparity_right,
+                           max_diff_px: float = 1.0) -> np.ndarray:
+    """좌우 일관성 검사 — 두 기준의 시차가 서로를 가리키는 화소만 True.
+
+    왜 이것이 필요한가
+        한쪽 영상에서만 보이는 곳(가림)에서 매처는 반드시 무언가를 고른다.
+        고를 대상이 없는데도 값을 내므로, 그 값이 틀렸다는 사실을 매처 자신은
+        알려 주지 않는다. 왼쪽 기준으로 x 가 x-d 에 대응한다면, 오른쪽 기준
+        으로도 x-d 가 x 를 가리켜야 한다. 가림에서는 이 왕복이 깨진다.
+
+        크레이터 안쪽 그늘처럼 한쪽에만 보이는 곳이 정확히 여기서 걸린다.
+        정답 고도를 전혀 쓰지 않는다는 점이 핵심이다.
+
+    Parameters
+    ----------
+    max_diff_px : 왕복했을 때 허용할 시차 차이 [pixel]
+    """
+    if disparity_left.shape != disparity_right.shape:
+        raise ValueError("좌우 시차 맵의 크기가 다릅니다: "
+                         f"{disparity_left.shape} vs {disparity_right.shape}")
+    h, w = disparity_left.shape
+    cols = np.arange(w, dtype=np.float64)[None, :] - disparity_left
+    inside = np.isfinite(disparity_left) & (cols >= 0) & (cols <= w - 1)
+
+    idx = np.clip(np.nan_to_num(np.round(cols)), 0, w - 1).astype(np.intp)
+    mate = np.take_along_axis(disparity_right, idx, axis=1)
+    agree = np.isfinite(mate) & (np.abs(disparity_left - mate) <= max_diff_px)
+    return inside & agree
+
+
+def photometric_residual(left, right, disparity, ksize: int = 7) -> np.ndarray:
+    """시차대로 오른쪽 영상을 옮겨 놓고 남는 밝기 차이.
+
+    잘 맞춘 화소는 두 영상의 같은 지점을 겹치므로 잔차가 잡음 수준에
+    머문다. 틀린 화소는 다른 지점을 겹치므로 잔차가 크다. 정답이 아니라
+    입력 영상 두 장만 쓴다.
+
+    Returns
+    -------
+    ksize x ksize 창에서 평균한 절대 잔차. 시차가 없는 곳은 NaN.
+    """
+    if ksize < 1 or ksize % 2 == 0:
+        raise ValueError(f"ksize 는 1 이상의 홀수여야 합니다: {ksize}")
+    h, w = left.shape
+    map_x = (np.arange(w, dtype=np.float32)[None, :]
+             - np.nan_to_num(disparity).astype(np.float32))
+    map_y = np.repeat(np.arange(h, dtype=np.float32)[:, None], w, axis=1)
+    warped = cv2.remap(right.astype(np.float32), map_x, map_y,
+                       cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT,
+                       borderValue=float("nan"))
+
+    diff = np.abs(left.astype(np.float32) - warped)
+    ok = np.isfinite(diff) & np.isfinite(disparity)
+    # 상자 필터는 NaN 을 퍼뜨린다. 유효한 값만 더하고 그 개수로 나눈다.
+    total = cv2.boxFilter(np.where(ok, diff, 0.0), -1, (ksize, ksize),
+                          normalize=False)
+    count = cv2.boxFilter(ok.astype(np.float32), -1, (ksize, ksize),
+                          normalize=False)
+    out = np.where(count > 0, total / np.maximum(count, 1e-9), np.nan)
+    return np.where(ok, out, np.nan)
+
+
+def sparsification(error, confidence, steps: int = 20):
+    """신뢰도가 진짜 오차를 예측하는지 재는 자 (희소화 곡선 · AUSE).
+
+    무엇을 하는가
+        신뢰도가 낮은 화소부터 일정 비율씩 버리면서, 남은 화소의 오차
+        중앙값을 기록한다. 신뢰도가 쓸모 있다면 버릴수록 오차가 빠르게
+        떨어진다. 같은 일을 **실제 오차 순서로** 하면 이론상 가장 빠르게
+        떨어지는 곡선(오라클)이 나온다. 두 곡선 사이의 넓이가 AUSE 다.
+
+        0 에 가까울수록 그 신뢰도가 오차를 잘 예측한다는 뜻이다. 신뢰도와
+        오차가 무관하면 곡선이 평평해져 넓이가 커진다.
+
+    여기서 정답을 쓰는 것은 **채점할 때뿐**이다. 신뢰도 자체는 정답 없이
+    계산된 값이어야 하며, 그것이 이 함수를 쓰는 이유다.
+
+    Returns
+    -------
+    dict : fractions, curve(신뢰도 순), oracle(실제 오차 순), ause
+    """
+    if steps < 2:
+        raise ValueError(f"steps 는 2 이상이어야 합니다: {steps}")
+    err = np.asarray(error, dtype=np.float64).ravel()
+    conf = np.asarray(confidence, dtype=np.float64).ravel()
+    ok = np.isfinite(err) & np.isfinite(conf)
+    err, conf = err[ok], conf[ok]
+    if len(err) < steps:
+        raise ValueError(f"유효한 화소가 너무 적습니다: {len(err)}")
+
+    by_conf = np.argsort(-conf, kind="stable")     # 신뢰도 높은 순
+    by_err = np.argsort(err, kind="stable")        # 오차 작은 순
+    fractions = np.linspace(0.0, 0.9, steps)
+
+    def curve(order):
+        # 평균 절대오차로 그린다. 중앙값으로 그리면 크게 틀린 소수를 버리는
+        # 효과가 곡선에 거의 나타나지 않아, 신뢰도가 하는 일을 과소평가한다.
+        out = []
+        for f in fractions:
+            keep = order[:max(1, int(round(len(order) * (1.0 - f))))]
+            out.append(float(np.mean(err[keep])))
+        return out
+
+    got, oracle = curve(by_conf), curve(by_err)
+    base = got[0] if got[0] > 0 else 1.0
+    # numpy 2 에서 trapz 가 사라졌다. 사다리꼴 적분을 직접 쓴다.
+    gap = np.array(got) - np.array(oracle)
+    ause = float(np.sum((gap[:-1] + gap[1:]) / 2.0 * np.diff(fractions)) / base)
+    return {"fractions": [float(f) for f in fractions], "curve": got,
+            "oracle": oracle, "ause": ause,
+            "spearman": rank_correlation(-conf, err)}
+
+
+def rank_correlation(a, b) -> float:
+    """스피어만 순위 상관. 두 값의 순서가 얼마나 같이 가는지만 본다.
+
+    신뢰도와 오차의 관계는 직선이 아니므로 피어슨 상관은 뜻이 흐리다.
+    순위로 바꾸면 "신뢰도가 낮은 화소가 실제로도 더 틀리는가" 라는 질문에
+    바로 답한다. 1 에 가까울수록 그렇다는 뜻이다.
+    """
+    x = np.asarray(a, dtype=np.float64).ravel()
+    y = np.asarray(b, dtype=np.float64).ravel()
+    ok = np.isfinite(x) & np.isfinite(y)
+    x, y = x[ok], y[ok]
+    if len(x) < 3:
+        return float("nan")
+
+    def ranks(v):
+        order = np.argsort(v, kind="stable")
+        r = np.empty(len(v), dtype=np.float64)
+        r[order] = np.arange(len(v), dtype=np.float64)
+        return r
+
+    rx, ry = ranks(x), ranks(y)
+    rx -= rx.mean()
+    ry -= ry.mean()
+    den = np.sqrt((rx ** 2).sum() * (ry ** 2).sum())
+    return float((rx * ry).sum() / den) if den > 0 else float("nan")
+
+
+# ---------------------------------------------------------------------------
+# 촬영 조건에서 스스로 정하는 파라미터
+#
+# 상수로 박아 둔 값은 그 지형에서 훑어 고른 값이다. 지형이 바뀌면 다시
+# 골라야 하는데, 그러면 자동으로 도는 파이프라인이 아니다. 영상 자체에서
+# 유도하면 따라온다.
+# ---------------------------------------------------------------------------
+
+
+def estimate_noise_sigma(image) -> float:
+    """영상의 잡음 표준편차를 추정한다 (Immerkaer 1996).
+
+    라플라시안을 두 번 겹친 마스크는 완만한 밝기 변화와 일정한 기울기를
+    모두 지운다. 남는 것은 잡음뿐이므로, 그 응답의 평균 절대값에서 잡음
+    크기를 되돌릴 수 있다. 지형이 무엇이든 영상 한 장이면 된다.
+
+        sigma = sqrt(pi/2) / (6 (W-2) (H-2)) * sum |I * N|
+        N = [[1, -2, 1], [-2, 4, -2], [1, -2, 1]]
+    """
+    img = np.asarray(image, dtype=np.float64)
+    if img.ndim != 2:
+        raise ValueError(f"2차원 영상이어야 합니다: {img.shape}")
+    h, w = img.shape
+    if h < 3 or w < 3:
+        raise ValueError(f"3x3 마스크를 걸 수 없습니다: {img.shape}")
+    mask = np.array([[1.0, -2.0, 1.0], [-2.0, 4.0, -2.0], [1.0, -2.0, 1.0]])
+    r = cv2.filter2D(img, -1, mask, borderType=cv2.BORDER_REPLICATE)
+    return float(np.sqrt(np.pi / 2.0) / (6.0 * (w - 2) * (h - 2))
+                 * np.abs(r[1:-1, 1:-1]).sum())
+
+
+def autocorrelation_length(image, max_lag: int = 32) -> float:
+    """가로 방향 자기상관이 절반으로 떨어지는 지연 [pixel].
+
+    무늬가 잘면 자기상관이 금방 떨어지고, 밋밋하면 오래 간다. 정합 블록은
+    "무늬 하나가 들어갈 만큼" 이어야 하므로 이 길이가 블록 크기의 기준이
+    된다. 창 안에 무늬가 하나도 없으면 어디에 맞춰도 비슷해 보이고, 너무
+    크면 경사면에서 깊이가 뭉개진다.
+    """
+    img = np.asarray(image, dtype=np.float64)
+    if img.ndim != 2:
+        raise ValueError(f"2차원 영상이어야 합니다: {img.shape}")
+    x = img - img.mean(axis=1, keepdims=True)
+    n = img.shape[1]
+    f = np.fft.rfft(x, n=2 * n, axis=1)
+    ac = np.fft.irfft(f * np.conj(f), axis=1)[:, :min(max_lag + 1, n)]
+    ac = ac.mean(axis=0)
+    if ac[0] <= 0:
+        return 1.0
+    ac = ac / ac[0]
+    below = np.flatnonzero(ac < 0.5)
+    if not len(below):
+        return float(len(ac) - 1)
+    k = int(below[0])
+    if k == 0:
+        return 0.0
+    # 0.5 를 지나는 지점을 두 표본 사이에서 선형으로 찾는다.
+    a, b = ac[k - 1], ac[k]
+    return float(k - 1 + (a - 0.5) / max(a - b, 1e-12))
+
+
+def suggest_block_size(image, min_block: int = 3, max_block: int = 15) -> int:
+    """무늬의 크기에서 정합 블록 크기를 정한다. 항상 홀수."""
+    lag = autocorrelation_length(image)
+    block = int(2.0 * lag + 1.0) | 1
+    return int(np.clip(block, min_block, max_block)) | 1
+
+
+def contrast_floor(image, k: float = 2.0) -> float:
+    """대비 하한을 잡음 크기의 배수로 정한다.
+
+    지금까지 쓰던 "회색조 2단계" 는 이 영상에서 훑어 고른 절대값이라,
+    밝기 분포가 다른 영상에 그대로 쓰면 뜻이 달라진다. 잡음의 k 배로 두면
+    "잡음보다 이만큼은 뚜렷한 무늬" 라는 같은 뜻이 어디서나 유지된다.
+    """
+    if k <= 0:
+        raise ValueError(f"k 는 양수여야 합니다: {k}")
+    return float(k * estimate_noise_sigma(image))
+
+
+def _windowed_zncc(a, b, valid, ksize):
+    """창 안에서 두 영상의 정규화 상관. 평균과 분산을 빼고 재므로 밝기
+    차이에 흔들리지 않는다 — 시점에 따라 밝기가 달라지는 달 표면에서 중요하다."""
+    a = np.where(valid, a, 0.0).astype(np.float32)
+    b = np.where(valid, b, 0.0).astype(np.float32)
+    w = valid.astype(np.float32)
+    k = (ksize, ksize)
+
+    n = cv2.boxFilter(w, -1, k, normalize=False)
+    n = np.maximum(n, 1.0)
+    ma = cv2.boxFilter(a, -1, k, normalize=False) / n
+    mb = cv2.boxFilter(b, -1, k, normalize=False) / n
+    saa = cv2.boxFilter(a * a, -1, k, normalize=False) / n - ma * ma
+    sbb = cv2.boxFilter(b * b, -1, k, normalize=False) / n - mb * mb
+    sab = cv2.boxFilter(a * b, -1, k, normalize=False) / n - ma * mb
+    return sab / np.sqrt(np.maximum(saa * sbb, 1e-9))
+
+
+def matching_margin(left, right, disparity, ksize: int = 9):
+    """이긴 시차가 이웃보다 얼마나 뚜렷하게 이겼는지 잰다.
+
+    왜 이것이 가장 강한 단서인가
+        매처는 탐색 구간에서 비용이 가장 낮은 시차를 고른다. 그 최소가
+        **뾰족하면** 다른 후보와 확실히 구별된 것이고, **평평하면** 아무
+        데나 골라도 비슷했다는 뜻이다. 정합기 안에서 실제로 일어난 일에
+        가장 가까운 단서이며, 정답을 쓰지 않는다.
+
+        OpenCV 의 StereoSGBM 은 비용 부피를 밖으로 내주지 않는다. 그래서
+        이긴 시차와 그 양옆에서 상관을 **다시 재서** 봉우리 모양을 복원한다.
+
+    Returns
+    -------
+    dict : margin(1등과 2등의 차), curvature(봉우리의 뾰족함), score(1등 점수)
+    """
+    if ksize < 3 or ksize % 2 == 0:
+        raise ValueError(f"창 크기는 3 이상 홀수여야 합니다: {ksize}")
+    h, w = left.shape
+    L = left.astype(np.float32)
+    R = right.astype(np.float32)
+    base = np.arange(w, dtype=np.float32)[None, :]
+    rows = np.repeat(np.arange(h, dtype=np.float32)[:, None], w, axis=1)
+    d = np.nan_to_num(disparity).astype(np.float32)
+    have = np.isfinite(disparity)
+
+    out = []
+    for offset in (-1.0, 0.0, 1.0):
+        x = base - d - offset
+        inside = have & (x >= 0) & (x <= w - 1)
+        warped = cv2.remap(R, np.clip(x, 0, w - 1), rows, cv2.INTER_LINEAR,
+                           borderMode=cv2.BORDER_REPLICATE)
+        out.append(np.where(inside, _windowed_zncc(L, warped, inside, ksize),
+                            np.nan))
+
+    lo, mid, hi = out
+    second = np.fmax(lo, hi)
+    return {"margin": mid - second,
+            "curvature": 2.0 * mid - lo - hi,
+            "score": mid}
+
+
+def rank_fuse(*signals):
+    """여러 신호를 순위로 바꿔 평균한다.
+
+    단위도 분포도 다른 신호를 그냥 더할 수는 없다. 각각을 순위(0~1)로 바꾸면
+    같은 자 위에 놓인다. 하나가 놓치는 것을 다른 하나가 잡을 때 합이 각각보다
+    나아진다 — 실제로 그런지는 재 봐야 안다.
+    """
+    if not signals:
+        raise ValueError("합칠 신호가 없습니다.")
+    shape = np.asarray(signals[0]).shape
+    total = np.zeros(shape, dtype=np.float64)
+    count = np.zeros(shape, dtype=np.float64)
+    for sig in signals:
+        v = np.asarray(sig, dtype=np.float64)
+        if v.shape != shape:
+            raise ValueError(f"신호 크기가 다릅니다: {v.shape} vs {shape}")
+        ok = np.isfinite(v)
+        flat = v[ok]
+        order = np.argsort(flat, kind="stable")
+        r = np.empty(len(flat), dtype=np.float64)
+        r[order] = np.arange(len(flat), dtype=np.float64)
+        if len(flat) > 1:
+            r /= len(flat) - 1
+        norm = np.full(shape, np.nan)
+        norm[ok] = r
+        total = np.where(ok, total + np.nan_to_num(norm), total)
+        count = count + ok
+    return np.where(count > 0, total / np.maximum(count, 1), np.nan)
+
+
+def blunder_auc(error, confidence, threshold: float) -> float:
+    """크게 틀린 화소를 신뢰도가 얼마나 잘 골라내는가 (ROC 아래 넓이).
+
+    왜 채점 대상을 바꾸는가
+        오차의 대부분은 부화소 잡음이고, 그것은 원리적으로 예측할 수 없다.
+        실제로 필요한 판단은 "이 값을 버릴까 말까" 이므로, **크게 틀린 화소를
+        골라내는가** 를 물어야 한다. 희소화 곡선이 잘 안 나오는 것과 이 질문에
+        잘 답하는 것은 동시에 성립할 수 있다.
+
+        0.5 가 무작위, 1.0 이 완벽이다. 순위 통계로 계산하므로 문턱값을
+        훑을 필요가 없다.
+    """
+    err = np.asarray(error, dtype=np.float64).ravel()
+    conf = np.asarray(confidence, dtype=np.float64).ravel()
+    ok = np.isfinite(err) & np.isfinite(conf)
+    err, conf = err[ok], conf[ok]
+
+    bad = err > threshold
+    n_bad, n_good = int(bad.sum()), int((~bad).sum())
+    if n_bad == 0 or n_good == 0:
+        return float("nan")
+
+    # 신뢰도가 낮을수록 크게 틀렸다고 예측하는 것이므로 부호를 뒤집는다.
+    pred = -conf
+    order = np.argsort(pred, kind="stable")
+    ranks = np.empty(len(pred), dtype=np.float64)
+    ranks[order] = np.arange(1, len(pred) + 1, dtype=np.float64)
+    return float((ranks[bad].sum() - n_bad * (n_bad + 1) / 2.0)
+                 / (n_bad * n_good))
+

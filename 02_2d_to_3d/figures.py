@@ -14,7 +14,7 @@ plt.rcParams["figure.dpi"] = 130
 plt.rcParams["savefig.bbox"] = "tight"
 
 __all__ = ["figure_overview", "figure_tradeoff", "figure_cloud",
-           "figure_fusion", "figure_result", "figure_method"]
+           "figure_fusion", "figure_result", "figure_method", "figure_apollo", "figure_apollo_slide"]
 
 
 def figure_overview(elev, gsd, view, rec, scored, path):
@@ -204,3 +204,51 @@ def figure_method(rec, path):
         a.set_xticks([]); a.set_yticks([])
     fig.subplots_adjust(left=0.02, right=0.98, top=0.88, bottom=0.02, wspace=0.08)
     fig.savefig(path, dpi=220); plt.close(fig)
+
+
+def figure_apollo(left, right, height, path):
+    """1971년에 필름에 찍힌 두 장과, 거기서 복원한 고도.
+
+    렌더링이 아니라 실제로 찍힌 사진이라는 점이 이 그림의 전부다.
+    """
+    lo, hi = np.nanpercentile(height, [2, 98])
+    fig, ax = plt.subplots(1, 3, figsize=(13.2, 4.6), dpi=200)
+    ax[0].imshow(left, cmap="gray")
+    ax[0].set_title("아폴로 15호 매핑 카메라 · AS15-M-1000", fontsize=12)
+    ax[1].imshow(right, cmap="gray")
+    ax[1].set_title("24초 뒤 · AS15-M-1001", fontsize=12)
+
+    im = ax[2].imshow(height / 1000.0, cmap="terrain",
+                      vmin=lo / 1000.0, vmax=hi / 1000.0)
+    ax[2].set_title(f"복원한 고도 · 기복 {(hi-lo)/1000:.2f} km", fontsize=12)
+    cb = fig.colorbar(im, ax=ax[2], fraction=0.046)
+    cb.set_label("[km]", fontsize=10)
+
+    for a in ax:
+        a.set_xticks([]); a.set_yticks([])
+    fig.subplots_adjust(left=0.02, right=0.97, top=0.9, bottom=0.02, wspace=0.08)
+    fig.savefig(path, dpi=200); plt.close(fig)
+
+
+def figure_apollo_slide(photo, height, relief_km, path):
+    """발표 3장용 — 실제로 찍힌 사진 한 장과 거기서 복원한 고도.
+
+    발표에서 이 그림이 하는 말은 하나다. 왼쪽은 1971년에 필름에 찍힌 사진이고,
+    오른쪽은 그 사진 두 장만으로 복원한 높낮이다.
+    """
+    lo, hi = np.nanpercentile(height, [2, 98])
+    fig, ax = plt.subplots(1, 2, figsize=(9.0, 4.6), dpi=200)
+    ax[0].imshow(photo, cmap="gray")
+    ax[0].set_title("실제로 찍힌 사진 (아폴로 15호, 1971)", fontsize=12)
+
+    im = ax[1].imshow(height / 1000.0, cmap="terrain",
+                      vmin=lo / 1000.0, vmax=hi / 1000.0)
+    ax[1].set_title(f"그 두 장으로 복원한 고도 · 기복 {relief_km:.2f} km",
+                    fontsize=12)
+    cb = fig.colorbar(im, ax=ax[1], fraction=0.046)
+    cb.set_label("[km]", fontsize=10)
+
+    for a in ax:
+        a.set_xticks([]); a.set_yticks([])
+    fig.subplots_adjust(left=0.02, right=0.95, top=0.9, bottom=0.02, wspace=0.06)
+    fig.savefig(path, dpi=200); plt.close(fig)

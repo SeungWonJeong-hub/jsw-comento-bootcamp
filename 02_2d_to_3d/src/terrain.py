@@ -23,13 +23,21 @@
 
 from __future__ import annotations
 
+import cv2
 import numpy as np
 
 from .camera import Pose
 
 __all__ = ["load_dtm", "synthetic_dtm", "surface_normals", "surface_points",
            "shade", "render", "render_heightfield", "look_at",
-           "stereo_cameras"]
+           "stereo_cameras", "camera_center", "sensor_image",
+           "load_image", "estimate_illumination", "derive_albedo",
+           "LUNAR_LAMBERT_COEFFS"]
+
+#: 위상각에 따른 Lunar-Lambert 계수 L(g) 의 다항식 계수 (McEwen 1991).
+#: g 는 도 단위이며, L(0)=1 에서 시작해 위상각이 커질수록 0 쪽으로 간다.
+#: NASA Ames Stereo Pipeline 과 ISIS 가 달에 쓰는 값과 같다.
+LUNAR_LAMBERT_COEFFS = (-1.9e-2, 2.42e-4, -1.46e-6)
 
 
 def load_dtm(path: str, crop: int = None):
@@ -127,20 +135,116 @@ def surface_points(elev: np.ndarray, gsd: float) -> np.ndarray:
 
 
 def shade(elev: np.ndarray, gsd: float, sun_elevation_deg: float = 25.0,
-          sun_azimuth_deg: float = 135.0, albedo=0.12, ambient: float = 0.06):
-    """램버트 반사로 밝기를 만든다.
+          sun_azimuth_deg: float = 135.0, albedo=0.12, ambient: float = 0.06,
+          viewer=None):
+    """지형의 밝기를 만든다.
 
     태양 고도를 낮게 두는 것이 기본값인 이유는, 그림자가 길어야 지형의
     무늬가 살아나기 때문이다. 실제 달 영상도 태양이 낮을 때 찍은 것이
     지형 판독에 쓰인다. 태양이 머리 위면 표면이 밋밋해져 정합이 어려워진다.
+
+    viewer 를 주면 달 광도함수 (Lunar-Lambert) 를 쓴다
+        램버트 반사는 밝기가 태양 방향에만 의존한다. 그러면 같은 지면
+        조각이 두 사진에서 **정확히 같은 밝기**로 찍힌다. 수렴각을 아무리
+        벌려도 밝기는 변하지 않으므로, 정합기 입장에서는 실제보다 훨씬 쉬운
+        문제가 된다.
+
+        실제 달 표면은 후방산란이 강해서 보는 방향에 따라 밝기가 달라진다.
+        그래서 수렴 촬영의 두 사진은 같은 조각을 다른 밝기로 담는다. 이
+        차이가 정합의 진짜 난이도이며, viewer 를 주지 않으면 그 난이도가
+        실험에서 통째로 빠진다.
+
+            I = A [ 2 L(g) mu0 / (mu0 + mu) + (1 - L(g)) mu0 ]
+
+            mu0 = cos(입사각)   법선과 태양 방향의 사이각
+            mu  = cos(방출각)   법선과 카메라 방향의 사이각
+            g   = 위상각        태양 방향과 카메라 방향의 사이각
+            L(g) = 1 + A1 g + A2 g^2 + A3 g^3   (McEwen 1991, 도 단위)
+
+        L=0 이면 램버트, L=1 이면 Lommel-Seeliger 가 되는 보간식이다.
+        위상각이 커질수록 L 이 작아지며 램버트 쪽으로 간다.
+
+    Parameters
+    ----------
+    viewer : 카메라 위치 (3,) [m]. 지형 좌표계. None 이면 램버트.
     """
     az = np.radians(sun_azimuth_deg)
     el = np.radians(sun_elevation_deg)
     sun = np.array([np.sin(az) * np.cos(el), np.cos(az) * np.cos(el),
                     np.sin(el)])
     n = surface_normals(elev, gsd)
-    lit = np.clip(n @ sun, 0.0, None)
-    return np.clip(np.asarray(albedo) * lit + ambient, 0.0, 1.0)
+    mu0 = np.clip(n @ sun, 0.0, None)
+    if viewer is None:
+        return np.clip(np.asarray(albedo) * mu0 + ambient, 0.0, 1.0)
+
+    viewer = np.asarray(viewer, dtype=np.float64).reshape(3)
+    pts = surface_points(elev, gsd).reshape(elev.shape + (3,))
+    v = viewer - pts
+    norm = np.linalg.norm(v, axis=2, keepdims=True)
+    if np.any(norm <= 0):
+        raise ValueError("카메라가 지형면 위에 놓여 있습니다.")
+    v = v / norm
+    mu = np.clip((n * v).sum(axis=2), 0.0, None)
+
+    g = np.degrees(np.arccos(np.clip(v @ sun, -1.0, 1.0)))
+    a1, a2, a3 = LUNAR_LAMBERT_COEFFS
+    L = np.clip(1.0 + a1 * g + a2 * g ** 2 + a3 * g ** 3, 0.0, 1.0)
+
+    denom = mu0 + mu
+    # 입사와 방출이 모두 스치는 각이면 두 항이 함께 0 이라 값이 없다.
+    lommel = np.where(denom > 1e-9, 2.0 * mu0 / np.maximum(denom, 1e-9), 0.0)
+    refl = L * lommel + (1.0 - L) * mu0
+    return np.clip(np.asarray(albedo) * refl + ambient, 0.0, 1.0)
+
+
+def camera_center(pose) -> np.ndarray:
+    """카메라 중심을 지형 좌표계에서 구한다.
+
+    자세는 p_cam = R p + t 이므로 p_cam = 0 인 점이 중심이고, 곧 -R^T t 다.
+    """
+    return -pose.R.T @ pose.t
+
+
+def sensor_image(intensity, snr: float = 100.0, blur_px: float = 0.7,
+                 bits: int = 8, read_noise_e: float = 20.0, seed: int = 0):
+    """렌더링한 밝기를 실제 카메라가 찍은 것처럼 망가뜨린다.
+
+    왜 필요한가
+        렌더링 영상은 잡음이 0 이고 초점이 완벽하다. 그런 영상에서 정합이
+        잘 되는 것은 당연하며, 그 성적을 실제 영상에 옮겨 말할 수 없다.
+        실제 궤도 카메라에는 광학 흐림(PSF)이 있고, 빛은 광자 단위로 오므로
+        밝기에 따라 커지는 산탄 잡음이 있으며, 읽어 낼 때 잡음이 더해지고,
+        마지막에 정해진 비트 수로 잘린다. 넷을 모두 넣는다.
+
+    Parameters
+    ----------
+    snr : 최대 밝기에서의 신호 대 잡음비. 광자 수 N 의 잡음이 sqrt(N) 이므로
+          가득 찬 우물의 광자 수를 snr^2 으로 잡는 것과 같다. LROC NAC 이
+          대략 100 수준이다.
+    blur_px : 광학 흐림의 표준편차 [pixel]
+    bits : 양자화 비트 수
+    read_noise_e : 읽기 잡음 [전자]
+    """
+    if snr <= 0:
+        raise ValueError(f"snr 은 양수여야 합니다: {snr}")
+    if not 1 <= bits <= 16:
+        raise ValueError(f"bits 는 1~16 이어야 합니다: {bits}")
+    if blur_px < 0:
+        raise ValueError(f"blur_px 는 0 이상이어야 합니다: {blur_px}")
+
+    img = np.asarray(intensity, dtype=np.float64) / 255.0
+    if blur_px > 0:
+        img = cv2.GaussianBlur(img, (0, 0), blur_px,
+                               borderType=cv2.BORDER_REPLICATE)
+
+    rng = np.random.default_rng(seed)
+    full_well = float(snr) ** 2
+    electrons = rng.poisson(np.clip(img, 0.0, 1.0) * full_well)
+    electrons = electrons + rng.normal(0.0, read_noise_e, electrons.shape)
+
+    levels = 2 ** bits - 1
+    dn = np.clip(electrons / full_well, 0.0, 1.0)
+    return (np.round(dn * levels) / levels * 255.0).astype(np.uint8)
 
 
 def look_at(position, target, up_hint=(0.0, 1.0, 0.0)) -> Pose:
@@ -361,3 +465,95 @@ def render_heightfield(elev, gsd, intensity, camera, pose: Pose, iters: int = 12
 
     return ((np.clip(img, 0, 1) * 255).astype(np.uint8).reshape(camera.shape),
             depth.reshape(camera.shape))
+
+
+def load_image(path: str, crop: int = None):
+    """실제로 찍은 영상을 읽는다 (고도 모델과 같은 격자여야 한다)."""
+    import rasterio
+
+    with rasterio.open(path) as src:
+        if crop:
+            w = min(crop, src.width, src.height)
+            r0 = (src.height - w) // 2
+            c0 = (src.width - w) // 2
+            from rasterio.windows import Window
+            img = src.read(1, window=Window(c0, r0, w, w))
+        else:
+            img = src.read(1)
+    return np.asarray(img, dtype=np.float64)
+
+
+def estimate_illumination(image, elev, gsd, step_deg: float = 5.0):
+    """찍힌 영상이 어느 방향에서 비춰진 것인지 지형으로부터 되찾는다.
+
+    왜 필요한가
+        모자이크 영상에는 촬영 당시의 음영이 이미 들어 있다. 그것을 그대로
+        알베도로 쓰면 **음영을 두 번 입히게 된다** — 우리가 다시 조명을 걸기
+        때문이다. 빼내려면 원래 조명 방향을 알아야 하는데, 모자이크에는
+        그 값이 붙어 있지 않다.
+
+        지형의 법선은 알고 있으므로, 여러 태양 방향을 넣어 보고 영상과 가장
+        잘 맞는 방향을 고르면 된다. 음영이 지형에서 온 것이라면 반드시 어떤
+        방향에서 상관이 뚜렷하게 높아진다.
+
+    Returns
+    -------
+    (방위각, 고도, 상관계수) — 상관이 낮으면 음영보다 무늬가 지배적이라는 뜻이다.
+    """
+    n = surface_normals(elev, gsd)
+    img = np.asarray(image, dtype=np.float64)
+    if img.shape != elev.shape:
+        raise ValueError(f"영상과 고도 모델의 격자가 다릅니다: "
+                         f"{img.shape} vs {elev.shape}")
+    y = img.ravel() - img.mean()
+    denom_y = np.sqrt((y ** 2).sum())
+    if denom_y <= 0:
+        raise ValueError("영상이 완전히 균일합니다.")
+
+    best = (0.0, 45.0, -1.0)
+    for az in np.arange(0.0, 360.0, step_deg):
+        for el in np.arange(10.0, 85.0, step_deg):
+            a, e = np.radians(az), np.radians(el)
+            sun = np.array([np.sin(a) * np.cos(e), np.cos(a) * np.cos(e),
+                            np.sin(e)])
+            lit = np.clip(n @ sun, 0.0, None).ravel()
+            x = lit - lit.mean()
+            den = np.sqrt((x ** 2).sum()) * denom_y
+            if den <= 0:
+                continue
+            r = float((x * y).sum() / den)
+            if r > best[2]:
+                best = (float(az), float(el), r)
+    return best
+
+
+def derive_albedo(image, elev, gsd, mean_albedo: float = 0.12,
+                  floor: float = 0.25):
+    """찍힌 영상에서 음영을 빼내고 표면 무늬만 남긴다.
+
+    영상 = 알베도 x 음영 이므로, 추정한 조명으로 만든 음영으로 나누면 알베도가
+    남는다. 스치는 각에서는 음영이 0 에 가까워 나눗셈이 폭발하므로 바닥을 둔다.
+
+    남는 것은 티코의 광조(ray) 무늬, 어둡고 밝은 물질, 고도 모델에는 없는
+    잔크레이터다. **고도 모델이 매끈해서 잔무늬가 적다** 는 한계를 이것이 메운다.
+
+    Returns
+    -------
+    (albedo, info) : 평균이 mean_albedo 인 알베도 지도와 추정한 조명 정보
+    """
+    if not 0.0 < mean_albedo < 1.0:
+        raise ValueError(f"평균 알베도는 0~1 이어야 합니다: {mean_albedo}")
+    if not 0.0 < floor <= 1.0:
+        raise ValueError(f"바닥은 0~1 이어야 합니다: {floor}")
+
+    az, el, corr = estimate_illumination(image, elev, gsd)
+    a, e = np.radians(az), np.radians(el)
+    sun = np.array([np.sin(a) * np.cos(e), np.cos(a) * np.cos(e), np.sin(e)])
+    lit = np.clip(surface_normals(elev, gsd) @ sun, floor, None)
+
+    img = np.asarray(image, dtype=np.float64)
+    albedo = img / lit
+    albedo = np.clip(albedo, *np.percentile(albedo, [1, 99]))
+    albedo = albedo / albedo.mean() * mean_albedo
+    return albedo, {"azimuth_deg": az, "elevation_deg": el,
+                    "correlation": corr}
