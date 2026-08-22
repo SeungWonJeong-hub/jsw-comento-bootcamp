@@ -134,11 +134,11 @@ def report_lines():
     names = {n.split("[")[0] for n in (x[1] for x in hits)}
     total = re.search(r"(\d+) passed", text)
 
+    # 카드 폭에 줄바꿈 없이 들어가는 길이만 고른다. 이름이 접히면 그만큼
+    # 줄이 늘어 카드 밖으로 흘러넘친다.
     picked = [n for n in (
-        "test_nadir_view_of_flat_ground_has_constant_depth_equal_to_altitude",
         "test_stereo_baseline_matches_the_convergence_formula",
         "test_rendered_depth_recovers_the_original_elevation",
-        "test_rendered_pair_aligns_at_the_disparity_the_geometry_predicts",
         "test_full_pipeline_recovers_the_terrain_within_one_pixel",
     ) if n in names]
 
@@ -455,25 +455,28 @@ def build(prs, s):
         "실제 테스트 코드와 실행 결과 · tests/test_terrain.py · "
         "outputs/pytest_report.txt")
 
-    add_card(sl, 0.72, 1.70, 7.35, 3.30)
-    add_text(sl, 0.98, 1.89, 6.83, 0.24, [
+    # 두 카드가 담는 글의 길이가 비슷하다(코드 74자 · 결과 69자). 폭도 그에
+    # 맞춰 나눈다. 예전에는 7.35 대 4.30 이라 오른쪽이 접히며 넘쳤다.
+    add_card(sl, 0.72, 1.70, 6.90, 3.45)
+    add_text(sl, 0.98, 1.89, 6.38, 0.24, [
         ("테스트 코드 — tests/test_terrain.py", SANS_SB, 10.5, INK)])
-    add_text(sl, 0.98, 2.24, 6.83, 0.22, [
+    add_text(sl, 0.98, 2.24, 6.38, 0.22, [
         ("베이스라인이 B = 2·H·tan(수렴각/2) 를 정확히 만족해야 합니다",
          SANS, 10, MUTED)])
-    add_text(sl, 0.98, 2.58, 6.83, 2.30,
+    add_text(sl, 0.98, 2.62, 6.38, 2.60,
              [(x, MONO, 9.5, BODY) for x in code_lines()], spacing=1.3)
 
-    add_card(sl, 8.31, 1.70, 4.30, 3.30)
-    add_text(sl, 8.57, 1.89, 3.78, 0.24, [
+    add_card(sl, 7.86, 1.70, 4.75, 3.45)
+    add_text(sl, 8.12, 1.89, 4.23, 0.24, [
         ("실행 결과 — pytest", SANS_SB, 10.5, INK)])
-    add_text(sl, 8.57, 2.24, 3.78, 0.22, [
+    add_text(sl, 8.12, 2.24, 4.23, 0.22, [
         ("걸린 시간만 지우고 그대로 저장합니다", SANS, 10, MUTED)])
-    add_text(sl, 8.57, 2.58, 3.78, 2.20,
-             [(x, MONO, 8.5, BODY) for x in report_lines()], spacing=1.2)
+    add_text(sl, 8.12, 2.62, 4.23, 2.60,
+             [(x, MONO, 8, BODY) for x in report_lines()], spacing=1.2)
 
-    add_card(sl, 0.72, 5.18, 11.89, 1.64)
-    add_text(sl, 0.98, 5.62, 11.37, 0.90, [
+    # 아래 카드는 글이 위로 몰려 있었다. 카드 높이를 글에 맞추고 가운데로 둔다.
+    add_card(sl, 0.72, 5.48, 11.89, 1.34)
+    add_text(sl, 0.98, 5.70, 11.37, 0.90, [
         ("크기와 자료형만 보는 테스트는 계산식이 틀려도 통과합니다.",
          SANS, 11.5, BODY),
         ("그래서 손으로 답을 낼 수 있는 조건을 만들어 숫자까지 대조했습니다.",
