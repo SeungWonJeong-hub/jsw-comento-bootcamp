@@ -1,0 +1,16 @@
+{
+  "id": "seungwon21/s2ships-yolo-obb",
+  "title": "S2Ships YOLO OBB",
+  "code_file": "s2ships.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "model_sources": [],
+  "machine_shape": "NvidiaTeslaT4"
+}
