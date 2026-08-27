@@ -63,31 +63,54 @@ def _():
     assert ok, "GPU 미할당"
 
 
-@stage("데이터 준비")
+@stage("데이터 구축")
 def _():
-    """데이터셋은 카글 Datasets 로 붙인다 (GFW CSV 6GB 를 커널에서 다시 받을 이유가 없다)."""
-    sh("pip install -q ultralytics")
+    """타일 2.1GB 를 올리는 대신, 장면 목록(1.6MB)만 받아 커널이 사진을 내려 만든다.
+
+    scenes.json 에 장면별 COG 주소와 탐지 좌표·길이·방향이 들어 있다.
+    사진은 AWS 공개 COG 라 인증이 필요 없다.
+    """
+    sh("pip install -q ultralytics rasterio")
     src = None
-    for p in ["/kaggle/input/gfw-ships-yolo/yolo", "/kaggle/input/gfw-ships-yolo"]:
-        if os.path.isdir(p + "/images/train"):
+    for p in ["/kaggle/input/gfw-ships-scenes"]:
+        if os.path.exists(p + "/scenes.json"):
             src = p
             break
-    assert src, "데이터셋을 못 찾음 — dataset_sources 확인"
-    counts = {}
-    for sp in ["train", "val", "test"]:
-        n_img = len(os.listdir(f"{src}/images/{sp}"))
-        labs = [f"{src}/labels/{sp}/{f}" for f in os.listdir(f"{src}/labels/{sp}")]
-        n_obj = sum(len(open(f).read().strip().splitlines())
-                    for f in labs if os.path.getsize(f))
-        counts[sp] = [n_img, n_obj]
-        print(f"  {sp:6s} 타일 {n_img:6d}  인스턴스 {n_obj:6d}")
-    RESULTS["dataset"] = counts
-    open(f"{TMP}/gfw.yaml", "w").write(
-        f"path: {src}\ntrain: images/train\nval: images/val\ntest: images/test\n"
-        f"names:\n  0: vessel\n")
-    # P2 설정도 저장소에서 가져온다
+    assert src, "장면 패키지를 못 찾음 — dataset_sources 확인"
+
     sh("git clone --depth 1 https://github.com/SeungWonJeong-hub/jsw-comento-bootcamp.git "
        f"{TMP}/repo -b feature/ship-detection", check=False)
+    sys.path.insert(0, f"{TMP}/repo/03_ship_detection/src")
+    from build_gfw_dataset import cut_scene
+    import numpy as np
+
+    S = json.load(open(f"{src}/scenes.json", encoding="utf-8"))
+    split_of, cog, dets = S["split_of"], S["cog"], S["dets"]
+    print(f"장면 {len(split_of)}개")
+
+    rng = np.random.default_rng(0)
+    counter = [0]
+    stats = {}
+    for split in ["train", "val", "test"]:
+        ids = [s for s, v in split_of.items() if v == split]
+        tp = to = 0
+        for i, sid in enumerate(ids, 1):
+            try:
+                p, o = cut_scene(cog[sid], [tuple(d) for d in dets[sid]],
+                                 DATA, split, f"s{abs(hash(sid)) % 10**8:08d}",
+                                 counter, 0.0, rng)
+                tp += p; to += o
+            except Exception as e:
+                print(f"  {sid[:34]} 실패: {type(e).__name__}")
+            if i % 25 == 0:
+                print(f"  [{split}] {i}/{len(ids)}  타일 {tp}  라벨 {to}", flush=True)
+        stats[split] = [tp, to]
+        print(f"[{split}] 타일 {tp}  인스턴스 {to}", flush=True)
+    RESULTS["dataset"] = stats
+
+    open(f"{TMP}/gfw.yaml", "w").write(
+        f"path: {DATA}\ntrain: images/train\nval: images/val\ntest: images/test\n"
+        f"names:\n  0: vessel\n")
     p2 = f"{TMP}/repo/03_ship_detection/src/yolo11-p2-obb.yaml"
     assert os.path.exists(p2), "P2 설정을 못 찾음"
     RESULTS["p2_cfg"] = p2
