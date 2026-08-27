@@ -57,6 +57,17 @@ def find_scene(bbox, max_cloud=10, start="2024-01-01", end=None):
     feats = r.get("features", [])
     if not feats:
         return None
+    # STAC 는 bbox 와 '겹치기만' 해도 돌려준다. 항만이 타일 경계에 걸치면
+    # 겨우 몇 픽셀만 덮는 장면이 뽑혀 아무것도 못 읽는다. 실제로 덮는 넓이로 고른다.
+    def covered(f):
+        b = f["bbox"]
+        ov = (max(0.0, min(b[2], bbox[2]) - max(b[0], bbox[0]))
+              * max(0.0, min(b[3], bbox[3]) - max(b[1], bbox[1])))
+        need = (bbox[2] - bbox[0]) * (bbox[3] - bbox[1])
+        return ov / need if need > 0 else 0.0
+    feats = [f for f in feats if covered(f) > 0.6] or feats
+    feats.sort(key=lambda f: (-covered(f), f["properties"]["datetime"]), reverse=False)
+    feats.sort(key=lambda f: -covered(f))
     f = feats[0]
     return {"id": f["id"], "datetime": f["properties"]["datetime"],
             "cloud": f["properties"].get("eo:cloud_cover"),
@@ -77,6 +88,10 @@ def fetch_window(href, bbox):
     with rasterio.open(href) as s:
         xs, ys = transform("EPSG:4326", s.crs, [lon0, lon1], [lat0, lat1])
         w = from_bounds(xs[0], ys[0], xs[1], ys[1], s.transform).round_offsets().round_lengths()
+        # 창이 타일 밖으로 나가면 read() 는 말없이 잘라 준다. 그런데 window_transform()
+        # 은 '요청한' 창 기준이라 좌표가 어긋난다. 먼저 잘라서 맞춘다.
+        # (항만이 타일 경계에 걸치면 창 폭이 0 이 되어 아무것도 못 읽는 일도 생긴다)
+        w = w.crop(s.height, s.width)
         arr = s.read(window=w)
         return np.transpose(arr, (1, 2, 0)), s.window_transform(w), s.crs
 
@@ -126,6 +141,28 @@ def nms_obb(dets, thr):
     return keep
 
 
+def on_water(gray, cx, cy, r=22):
+    """탐지 주변이 '물처럼' 보이는가 — 정답이 없을 때 쓰는 자동 품질 검사.
+
+    물은 어둡고 균질하다. 육지·도심·부두는 밝고 얼룩덜룩하다.
+    배 자체는 밝으므로 중심을 빼고 주변 고리만 본다.
+    이 비율이 낮으면 그 항만의 탐지를 믿기 어렵다는 신호다.
+    """
+    h, w = gray.shape[:2]
+    y0, y1 = max(0, int(cy) - r), min(h, int(cy) + r)
+    x0, x1 = max(0, int(cx) - r), min(w, int(cx) + r)
+    patch = gray[y0:y1, x0:x1]
+    if patch.size < 200:
+        return None
+    m = np.ones(patch.shape, bool)
+    a, b = max(0, int(cy) - y0 - 6), max(0, int(cx) - x0 - 6)
+    m[a:a + 12, b:b + 12] = False          # 배 본체 제외
+    ring = patch[m]
+    if ring.size < 100:
+        return None
+    return bool(np.median(ring) < 90 and ring.std() < 45)
+
+
 def to_lonlat(affine, crs, x, y):
     from rasterio.warp import transform as _t
     X, Y = affine * (x, y)
@@ -162,6 +199,7 @@ def main():
         img, affine, crs = fetch_window(sc["visual"], bbox)
         dets = detect(img, model, conf=a.conf)
 
+        gray = img.mean(2)
         vis = img[:, :, ::-1].copy()
         rows = []
         for poly, cf in dets:
@@ -170,17 +208,30 @@ def main():
             lon, lat = to_lonlat(affine, crs, cx, cy)
             e = [math.dist(poly[i], poly[(i + 1) % 4]) for i in range(4)]
             rows.append({"lon": lon, "lat": lat, "conf": cf,
-                         "length_px": max(e[0], e[1]), "length_m": max(e[0], e[1]) * 10})
+                         "length_px": max(e[0], e[1]), "length_m": max(e[0], e[1]) * 10,
+                         "on_water": on_water(gray, cx, cy)})
         cv2.imwrite(f"{a.outdir}/{name}.jpg", vis)
         summary[name] = {"label": label, "scene": sc["id"], "datetime": sc["datetime"],
                          "cloud": sc["cloud"], "size_px": list(img.shape[:2]),
                          "n_detections": len(dets), "detections": rows}
         med = np.median([r["length_m"] for r in rows]) if rows else 0
+        ws = [r["on_water"] for r in rows if r["on_water"] is not None]
+        wr = 100 * sum(ws) / len(ws) if ws else 0
+        summary[name]["water_ratio"] = wr
         print(f"{label:<16} {sc['datetime'][:10]}  구름 {sc['cloud']:>4.1f}%  "
-              f"{img.shape[1]}x{img.shape[0]}px  탐지 {len(dets):>4}척  길이중앙 {med:>5.0f} m")
+              f"{img.shape[1]}x{img.shape[0]}px  탐지 {len(dets):>4}척  "
+              f"길이중앙 {med:>5.0f} m  물 위 {wr:>3.0f}%")
 
-    json.dump(summary, open(f"{a.outdir}/summary.json", "w", encoding="utf-8"),
-              indent=2, ensure_ascii=False)
+    # 항만을 하나씩 돌리는 경우가 많아, 덮어쓰지 말고 이어 붙인다
+    sp = f"{a.outdir}/summary.json"
+    if os.path.exists(sp):
+        try:
+            old = json.load(open(sp, encoding="utf-8"))
+            old.update(summary)
+            summary = old
+        except Exception:
+            pass
+    json.dump(summary, open(sp, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
     print(f"\n저장: {a.outdir}")
 
 
