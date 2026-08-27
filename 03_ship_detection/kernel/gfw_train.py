@@ -71,12 +71,16 @@ def _():
     사진은 AWS 공개 COG 라 인증이 필요 없다.
     """
     sh("pip install -q ultralytics rasterio")
+    # 마운트 경로가 슬러그와 다를 수 있으므로 input 아래를 훑는다
     src = None
-    for p in ["/kaggle/input/gfw-ships-scenes"]:
-        if os.path.exists(p + "/scenes.json"):
-            src = p
+    for root, dirs, files in os.walk("/kaggle/input"):
+        if "scenes.json" in files:
+            src = root
             break
+    if src is None:
+        print("사용 가능한 입력:", os.listdir("/kaggle/input") if os.path.isdir("/kaggle/input") else "없음")
     assert src, "장면 패키지를 못 찾음 — dataset_sources 확인"
+    print("장면 패키지:", src)
 
     sh("git clone --depth 1 https://github.com/SeungWonJeong-hub/jsw-comento-bootcamp.git "
        f"{TMP}/repo -b feature/ship-detection", check=False)
