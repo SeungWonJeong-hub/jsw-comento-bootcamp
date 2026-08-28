@@ -1,33 +1,33 @@
 """실제로 찍은 달 사진 두 장으로 고도를 복원한다 — 아폴로 15호 매핑 카메라.
 
-본 실험(run_3d_experiment.py)은 레이저 고도 모델에서 두 장을 렌더링해 쓴다.
-기하는 실제 달이지만 사진 자체는 만든 것이다. 여기서는 **1971년에 실제로
-필름에 찍힌 두 장**을 그대로 넣는다.
+본 실험(run_3d_experiment.py)은 레이저 고도 모델에서 두 장을 렌더링해 씁니다.
+기하는 실제 달이지만 사진 자체는 만든 것입니다. 여기서는 **1971년에 실제로
+필름에 찍힌 두 장**을 그대로 넣습니다.
 
 왜 아폴로인가
     달 궤도 스테레오는 거의 전부 푸시브룸이다 — 한 줄씩 쓸어 담으면서 자세가
-    계속 변하므로, 두 장 사이의 관계를 행렬 하나로 적을 수 없다. 카메라 자세
-    커널(SPICE)과 전용 도구 체계가 있어야 푼다.
+    계속 변하므로, 두 장 사이의 관계를 행렬 하나로 적을 수 없습니다. 카메라 자세
+    커널(SPICE)과 전용 도구 체계가 있어야 풉니다.
 
     아폴로 매핑 카메라는 **프레임 카메라**다. 한 순간에 한 장을 통째로 찍으므로
-    두 장 사이가 기본행렬 하나로 정확히 기술된다. 이 파이프라인이 쓰는 정렬과
-    삼각측량이 그대로 성립한다.
+    두 장 사이가 기본행렬 하나로 정확히 기술됩니다. 이 파이프라인이 쓰는 정렬과
+    삼각측량이 그대로 성립합니다.
 
     (Kaguya TC 로도 시도했으나, 받기 쉬운 지도 투영 판본은 이미 전역 DEM 으로
-     정사보정되어 시차가 제거되어 있었다. tools/check_real_pair.py 에 기록.)
+     정사보정되어 시차가 제거되어 있었습니다. tools/check_real_pair.py 에 기록.)
 
-무엇을 아는가 — 전부 아카이브에 적혀 있는 값이다
+무엇을 아는가 — 전부 아카이브에 적혀 있는 값입니다
     초점거리    76.054 mm (매핑 카메라 검정값)
     스캔 화소   6.756 um (원본) · 이 판본은 4048 화소로 줄인 것
     촬영 고도   100.99 km / 100.73 km
     중심 좌표   (25.89, -6.10) / (25.89, -7.43)
 
-    두 중심의 경도 차이가 곧 베이스라인이다. 즉 **고도의 크기(스케일)를 정답
-    고도에서 가져오지 않는다.** 카메라 제원과 궤도에서 나온다.
+    두 중심의 경도 차이가 곧 베이스라인입니다. 즉 **고도의 크기(스케일)를 정답
+    고도에서 가져오지 않습니다.** 카메라 제원과 궤도에서 나옵니다.
 
     정답과 견주려면 복원 결과를 지도 위에 놓아야 하는데, 그러려면 촬영 자세
-    전체가 필요하다. 여기서는 2차원 정합(평행이동·회전·크기)으로 맞춘다.
-    **맞추는 것은 위치이고, 고도의 크기는 맞추지 않는다.**
+    전체가 필요합니다. 여기서는 2차원 정합(평행이동·회전·크기)으로 맞춥니다.
+    **맞추는 것은 위치이고, 고도의 크기는 맞추지 않습니다.**
 
 사용법
     py -3 tools/get_apollo_pair.py
@@ -75,7 +75,7 @@ def log(msg=""):
 
 
 def baseline_m():
-    """두 촬영 지점 사이 거리. 중심 좌표의 경도 차이에서 나온다."""
+    """두 촬영 지점 사이 거리. 중심 좌표의 경도 차이에서 나옵니다."""
     (lat1, lon1), (lat2, lon2) = CENTER
     lat = math.radians((lat1 + lat2) / 2.0)
     dlon = math.radians(abs(lon2 - lon1))
@@ -89,8 +89,8 @@ def radial_bowl(pa, pb, K, k1, size):
     """왜곡 계수를 넣고 삼각측량했을 때 남는 '사발' 의 세기.
 
     복원한 깊이에서 평면 성분을 뺀 잔차가 화면 중심으로부터의 거리 제곱과
-    얼마나 상관되는지를 본다. 실제 지형이 화면 중심 기준으로 방사 대칭일
-    이유는 없으므로, 상관이 크면 그것은 지형이 아니라 왜곡이다.
+    얼마나 상관되는지를 봅니다. 실제 지형이 화면 중심 기준으로 방사 대칭일
+    이유는 없으므로, 상관이 크면 그것은 지형이 아니라 왜곡입니다.
     """
     w, h = size
     D = np.array([k1, 0.0, 0.0, 0.0, 0.0])
@@ -124,7 +124,7 @@ def radial_bowl(pa, pb, K, k1, size):
 
 
 def estimate_radial(pa, pb, K, size):
-    """사발이 사라지는 왜곡 계수를 찾는다. 거친 훑기 뒤 반씩 좁힌다."""
+    """사발이 사라지는 왜곡 계수를 찾습니다. 거친 훑기 뒤 반씩 좁힙니다."""
     grid = np.arange(-0.06, 0.0201, 0.005)
     best = min(grid, key=lambda k: radial_bowl(pa, pb, K, float(k), size)[0])
     step = 0.005
@@ -159,7 +159,7 @@ def main() -> int:
     base = baseline_m()
     gsd = alt * px_mm / FOCAL_MM
 
-    log("\n[1] 촬영 조건 — 전부 아카이브에 적힌 값이다")
+    log("\n[1] 촬영 조건 — 전부 아카이브에 적힌 값입니다")
     log(f"  사진        {FRAMES[0]} / {FRAMES[1]} · {w}x{h}")
     log(f"  촬영        1971-07-31 · 태양 고도 15도 · 24초 간격")
     log(f"  초점거리    {FOCAL_MM} mm = {focal_px:.0f} px  (화소 {px_mm*1000:.1f} um)")
@@ -171,7 +171,7 @@ def main() -> int:
     log(f"  깊이 분해능 {alt**2/(focal_px*base):.0f} m/px "
         f"(= Z^2 / (f x B), 본 실험의 450 m 와 견줄 값)")
 
-    log("\n[2] 두 장의 관계를 찾는다")
+    log("\n[2] 두 장의 관계를 찾습니다")
     det = cv2.SIFT_create(nfeatures=12000)
     ka, da = det.detectAndCompute(a, None)
     kb, db = det.detectAndCompute(b, None)
@@ -181,7 +181,7 @@ def main() -> int:
     log(f"  특징점      {len(ka):,} / {len(kb):,}")
     log(f"  맞춘 점     {len(good):,}")
     if len(good) < 100:
-        log("  정합이 너무 적다.")
+        log("  정합이 너무 적습니다.")
         return 1
 
     pa = np.float32([ka[m.queryIdx].pt for m in good])
@@ -191,8 +191,8 @@ def main() -> int:
                   [0.0, 0.0, 1.0]])
 
     # 이 판본의 스캔이 필름 형식을 몇 화소에 담았는지 적혀 있지 않아, 방사
-    # 왜곡이 남는다. 복원한 고도에 중앙이 솟은 사발이 생기는데 실제 지형이
-    # 그럴 리 없다. 대응점만으로 그 계수를 찾는다 — 정답 고도는 쓰지 않는다.
+    # 왜곡이 남습니다. 복원한 고도에 중앙이 솟은 사발이 생기는데 실제 지형이
+    # 그럴 리 없습니다. 대응점만으로 그 계수를 찾는다 — 정답 고도는 쓰지 않습니다.
     before = radial_bowl(pa, pb, K, 0.0, (w, h))[0]
     k1 = estimate_radial(pa, pb, K, (w, h))
     after, share = radial_bowl(pa, pb, K, k1, (w, h))
@@ -204,8 +204,8 @@ def main() -> int:
     pa = cv2.undistortPoints(pa.reshape(-1, 1, 2), K, dist, P=K).reshape(-1, 2)
     pb = cv2.undistortPoints(pb.reshape(-1, 1, 2), K, dist, P=K).reshape(-1, 2)
 
-    # 검정된 초점거리를 알고 있으므로 필수행렬을 바로 쓴다. 기본행렬만 쓰면
-    # 복원이 사영 변환만큼 불확정이라 고도에 기울기가 남는다.
+    # 검정된 초점거리를 알고 있으므로 필수행렬을 바로 씁니다. 기본행렬만 쓰면
+    # 복원이 사영 변환만큼 불확정이라 고도에 기울기가 남습니다.
     E, mask = cv2.findEssentialMat(pa, pb, K, method=cv2.RANSAC, prob=0.9999,
                                    threshold=1.5)
     inl = mask.ravel().astype(bool)
@@ -213,11 +213,11 @@ def main() -> int:
         f"({inl.mean()*100:.0f}%)")
 
     n_in, R, t, _ = cv2.recoverPose(E, pa[inl], pb[inl], K)
-    t = t.reshape(3, 1) * base       # 크기를 궤도에서 가져온다
+    t = t.reshape(3, 1) * base       # 크기를 궤도에서 가져옵니다
     ang = math.degrees(np.linalg.norm(cv2.Rodrigues(R)[0]))
     log(f"  자세 차이   {ang:.2f}도 · 이동 {np.round(t/1000, 1)} km")
 
-    log("\n[3] 정렬하고 정합한다")
+    log("\n[3] 정렬하고 정합합니다")
     R1, R2, P1, P2, Q, _, _ = cv2.stereoRectify(
         K, dist, K, dist, (w, h), R, t, flags=cv2.CALIB_ZERO_DISPARITY)
     m1 = cv2.initUndistortRectifyMap(K, dist, R1, P1, (w, h), cv2.CV_32FC1)
@@ -226,8 +226,8 @@ def main() -> int:
     Rr = cv2.remap(b, *m2, cv2.INTER_LINEAR)
     rect_focal = float(P1[0, 0])
 
-    # 정렬이 됐는지는 대응점의 세로 좌표가 맞는지로 확인한다. 이것이 어긋나
-    # 있으면 매처는 같은 줄에서 짝을 못 찾는다.
+    # 정렬이 됐는지는 대응점의 세로 좌표가 맞는지로 확인합니다. 이것이 어긋나
+    # 있으면 매처는 같은 줄에서 짝을 못 찾습니다.
     qa = cv2.undistortPoints(pa[inl].reshape(-1, 1, 2), K, None,
                              R=R1, P=P1).reshape(-1, 2)
     qb = cv2.undistortPoints(pb[inl].reshape(-1, 1, 2), K, None,
@@ -235,16 +235,16 @@ def main() -> int:
     log(f"  정렬 잔차   세로 {np.median(np.abs(qa[:, 1] - qb[:, 1])):.2f} px "
         f"(중앙값)")
 
-    # 탐색 구간도 대응점에서 직접 읽는다. 부호와 크기를 짐작하지 않는다.
+    # 탐색 구간도 대응점에서 직접 읽습니다. 부호와 크기를 짐작하지 않습니다.
     seen = qa[:, 0] - qb[:, 0]
 
-    # 시차가 음수면 정렬이 두 장의 역할을 바꿔 놓은 것이다. 그대로 두면
-    # 좌우 일관성 검사(오른쪽 기준 시차를 좌우 반전으로 구한다)가 성립하지
-    # 않는다. 역할을 되돌려 시차를 양수로 만든다.
+    # 시차가 음수면 정렬이 두 장의 역할을 바꿔 놓은 것입니다. 그대로 두면
+    # 좌우 일관성 검사(오른쪽 기준 시차를 좌우 반전으로 구합니다)가 성립하지
+    # 않습니다. 역할을 되돌려 시차를 양수로 만듭니다.
     if np.median(seen) < 0:
         L, Rr = Rr, L
         seen = -seen
-        log("  정렬이 두 장의 역할을 바꿔 놓았다 — 되돌린다")
+        log("  정렬이 두 장의 역할을 바꿔 놓았다 — 되돌립니다")
 
     d_lo, d_hi = np.percentile(seen, [1, 99])
     margin = max(48.0, (d_hi - d_lo))
@@ -278,17 +278,17 @@ def main() -> int:
         f"{keep.mean()*100:.1f}%")
 
     d = np.where(keep, disp, np.nan)
-    # 부호는 정렬이 어느 쪽을 왼쪽으로 놓았는지에 달렸다. 크기만 쓴다.
+    # 부호는 정렬이 어느 쪽을 왼쪽으로 놓았는지에 달렸습니다. 크기만 씁니다.
     depth = rect_focal * base / np.abs(d)
-    # 카메라에서 가까울수록 높다. 기준면은 이 장면의 중앙값으로 잡는다.
+    # 카메라에서 가까울수록 높습니다. 기준면은 이 장면의 중앙값으로 잡습니다.
     height = np.nanmedian(depth) - depth
     ok = np.isfinite(height)
     if ok.sum() < 10000:
-        log("  값이 나온 화소가 너무 적다.")
+        log("  값이 나온 화소가 너무 적습니다.")
         return 1
 
     lo, hi = np.nanpercentile(height[ok], [1, 99])
-    log("\n[4] 결과 — 고도의 크기는 카메라 제원과 궤도에서만 나온다")
+    log("\n[4] 결과 — 고도의 크기는 카메라 제원과 궤도에서만 나옵니다")
     log(f"  값이 나온 화소 {ok.mean()*100:.1f}%")
     log(f"  카메라까지 거리 중앙값 {np.nanmedian(depth)/1000:.1f} km "
         f"(아카이브의 촬영 고도 {alt/1000:.1f} km)")
@@ -305,18 +305,18 @@ def main() -> int:
             f"({t_lo:.0f} ~ {t_hi:.0f} m)")
         log(f"  기복의 비    {(hi-lo)/(t_hi-t_lo):.2f} 배")
         log("  두 값이 자릿수까지 맞으면, 어긋남이 실제로 지형의 높낮이에서")
-        log("  왔다는 뜻이다. 복원 쪽은 화소가 잘아 잔무늬가 더 많이 잡힌다.")
+        log("  왔다는 뜻입니다. 복원 쪽은 화소가 잘아 잔무늬가 더 많이 잡힙니다.")
 
-    # 고도 맵을 3D 점으로 편다. 화소의 행과 열이 지상 좌표가 되고 값이 높이다.
+    # 고도 맵을 3D 점으로 폅니다. 화소의 행과 열이 지상 좌표가 되고 값이 높입니다.
     # 정렬된 영상의 화소 크기는 원본과 같다고 본다 — alpha 기본값에서 정렬은
-    # 초점거리를 거의 바꾸지 않는다(2701 -> 2773).
+    # 초점거리를 거의 바꾸지 않습니다(2701 -> 2773).
     rows, cols = np.mgrid[0:h, 0:w]
     cloud = np.column_stack([
         (cols[ok] - w / 2.0) * gsd,
         (h / 2.0 - rows[ok]) * gsd,
         height[ok]])
-    # 1000만 점을 그대로 쓰면 파일이 40 MB 를 넘는다. 저장소에 두려면
-    # 솎아야 하고, 형태를 보는 데는 10만 점이면 충분하다.
+    # 1000만 점을 그대로 쓰면 파일이 40 MB 를 넘습니다. 저장소에 두려면
+    # 솎아야 하고, 형태를 보는 데는 10만 점이면 충분합니다.
     step = max(1, len(cloud) // 120000)
     pointcloud.write_ply(os.path.join(OUT, "pointcloud_apollo.ply"),
                          cloud[::step])
@@ -326,8 +326,8 @@ def main() -> int:
     import figures
     shown = np.where(ok, height, np.nan)
 
-    # 본 실험의 결과 그림이 이 고도를 네 번째 칸으로 함께 그린다. 좌표계가
-    # 없는 배열이므로 GeoTIFF 로만 저장한다.
+    # 본 실험의 결과 그림이 이 고도를 네 번째 칸으로 함께 그립니다. 좌표계가
+    # 없는 배열이므로 GeoTIFF 로만 저장합니다.
     try:
         import rasterio
         with rasterio.open(os.path.join(OUT, "apollo_height.tif"), "w",
@@ -335,7 +335,7 @@ def main() -> int:
                            width=shown.shape[1], count=1, dtype="float32",
                            nodata=float("nan"), compress="deflate") as f:
             f.write(shown.astype("float32"), 1)
-    except Exception as exc:                       # 저장 실패가 실험을 막지 않는다
+    except Exception as exc:                       # 저장 실패가 실험을 막지 않습니다
         log(f"  (고도 배열 저장 실패: {exc})")
     figures.figure_apollo(L, Rr, shown, os.path.join(OUT, "07_apollo.png"))
     figures.figure_apollo_slide(L, shown, (hi - lo) / 1000.0,

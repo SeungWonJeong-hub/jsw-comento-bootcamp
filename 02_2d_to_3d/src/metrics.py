@@ -1,7 +1,7 @@
 """3D 복원과 깊이 추정의 정량 평가.
 
-Chamfer 거리와 F-score 는 3D 복원 평가에서 널리 쓰는 정의를 따른다.
-정규화된 모델 좌표계에서 계산하므로 단위는 없다.
+Chamfer 거리와 F-score 는 3D 복원 평가에서 널리 쓰는 정의를 따릅니다.
+정규화된 모델 좌표계에서 계산하므로 단위는 없습니다.
 """
 
 from __future__ import annotations
@@ -15,9 +15,9 @@ def chamfer_distance(pred: np.ndarray, target: np.ndarray, norm: int = 1) -> dic
 
         d(A -> B) = mean_{a in A} min_{b in B} ||a - b||
 
-    양방향 평균을 대칭 Chamfer 로 쓴다. 단방향 값도 함께 돌려주는데,
+    양방향 평균을 대칭 Chamfer 로 씁니다. 단방향 값도 함께 돌려주는데,
     복원 결과가 정답보다 부풀었는지(pred -> target 이 작고 target -> pred 가 큼)
-    깎였는지를 구분할 수 있기 때문이다.
+    깎였는지를 구분할 수 있기 때문입니다.
     """
     pred = np.asarray(pred, dtype=np.float64)
     target = np.asarray(target, dtype=np.float64)
@@ -47,7 +47,7 @@ def chamfer_distance(pred: np.ndarray, target: np.ndarray, norm: int = 1) -> dic
 
 
 def f_score(pred: np.ndarray, target: np.ndarray, threshold: float) -> dict:
-    """임계 거리 안에 대응점이 있는 비율로 정밀도/재현율을 계산한다."""
+    """임계 거리 안에 대응점이 있는 비율로 정밀도/재현율을 계산합니다."""
     if threshold <= 0:
         raise ValueError(f"임계 거리는 양수여야 합니다: {threshold}")
     pred = np.asarray(pred, dtype=np.float64)
@@ -67,8 +67,8 @@ def depth_metrics(pred: np.ndarray, target: np.ndarray,
                   mask: np.ndarray = None) -> dict:
     """깊이 맵 오차 지표.
 
-    두 맵 모두 유한한 픽셀에서만 계산하고, 그 비율(valid_ratio)도 함께 보고한다.
-    유효 픽셀이 적으면 오차가 작아도 좋은 결과가 아니기 때문이다.
+    두 맵 모두 유한한 픽셀에서만 계산하고, 그 비율(valid_ratio)도 함께 보고합니다.
+    유효 픽셀이 적으면 오차가 작아도 좋은 결과가 아니기 때문입니다.
     """
     pred = np.asarray(pred, dtype=np.float64)
     target = np.asarray(target, dtype=np.float64)
@@ -83,8 +83,8 @@ def depth_metrics(pred: np.ndarray, target: np.ndarray,
     n_domain = int(domain.sum())
     n_valid = int(valid.sum())
     if n_valid == 0:
-        # 정상 경로와 키가 같아야 한다. median_abs 를 빼 두면 호출부가
-        # m["median_abs"] 에서 KeyError 로 죽는다. 값이 없는 것은 NaN 으로 알린다.
+        # 정상 경로와 키가 같아야 합니다. median_abs 를 빼 두면 호출부가
+        # m["median_abs"] 에서 KeyError 로 죽습니다. 값이 없는 것은 NaN 으로 알립니다.
         return {"rmse": float("nan"), "mae": float("nan"),
                 "median_abs": float("nan"),
                 "valid_ratio": 0.0, "n_valid": 0, "n_domain": n_domain}
@@ -101,7 +101,7 @@ def depth_metrics(pred: np.ndarray, target: np.ndarray,
 
 
 def mask_iou(pred: np.ndarray, target: np.ndarray) -> float:
-    """두 이진 마스크의 IoU. 자세 규약이 맞는지 검증할 때 쓴다."""
+    """두 이진 마스크의 IoU. 자세 규약이 맞는지 검증할 때 씁니다."""
     pred = np.asarray(pred).astype(bool)
     target = np.asarray(target).astype(bool)
     if pred.shape != target.shape:

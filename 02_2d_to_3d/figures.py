@@ -18,10 +18,10 @@ __all__ = ["figure_overview", "figure_tradeoff", "figure_cloud",
 
 
 def figure_overview(elev, gsd, view, rec, scored, path):
-    """왼쪽 영상부터 오차 지도까지 한 줄로 보여 준다.
+    """왼쪽 영상부터 오차 지도까지 한 줄로 보여 줍니다.
 
-    깊이 맵을 색으로만 보여 주면 "그럴듯한 그림" 과 구분이 안 된다. 정답과
-    복원을 같은 색 범위로 놓고 그 차이를 따로 그려야 얼마나 맞았는지 보인다.
+    깊이 맵을 색으로만 보여 주면 "그럴듯한 그림" 과 구분이 안 됩니다. 정답과
+    복원을 같은 색 범위로 놓고 그 차이를 따로 그려야 얼마나 맞았는지 보입니다.
     """
     ref, dep = rec["reference"] / 1000.0, rec["depth"] / 1000.0
     finite = np.isfinite(ref)
@@ -57,10 +57,10 @@ def figure_overview(elev, gsd, view, rec, scored, path):
 
 
 def figure_tradeoff(conv_rows, block_rows, path):
-    """수렴각과 블록 크기의 맞바꿈을 나란히 그린다.
+    """수렴각과 블록 크기의 맞바꿈을 나란히 그립니다.
 
     둘 다 "하나를 얻으면 하나를 내주는" 관계라, 표로 적으면 어느 쪽이
-    무엇과 맞바뀌는지 눈에 안 들어온다.
+    무엇과 맞바뀌는지 눈에 안 들어옵니다.
     """
     fig, ax = plt.subplots(1, 2, figsize=(11.0, 3.6))
 
@@ -75,7 +75,7 @@ def figure_tradeoff(conv_rows, block_rows, path):
     b.plot(conv, val, "s--", color="#1f77b4", label="유효화소 [%]")
     b.set_ylabel("유효화소 [%]", color="#1f77b4")
     b.tick_params(axis="y", labelcolor="#1f77b4")
-    a.set_title("수렴각 — 각을 키우면 정밀해지고 정합은 어려워진다")
+    a.set_title("수렴각 — 각을 키우면 정밀해지고 정합은 어려워집니다")
 
     bs = [r["block_size"] for r in block_rows]
     med2 = [r["median_abs"] / 1000.0 for r in block_rows]
@@ -89,13 +89,13 @@ def figure_tradeoff(conv_rows, block_rows, path):
     b.plot(bs, val2, "s--", color="#1f77b4")
     b.set_ylabel("유효화소 [%]", color="#1f77b4")
     b.tick_params(axis="y", labelcolor="#1f77b4")
-    a.set_title("블록 크기 — 무늬가 넉넉하면 작은 쪽이 정확하다")
+    a.set_title("블록 크기 — 무늬가 넉넉하면 작은 쪽이 정확합니다")
 
     fig.savefig(path); plt.close(fig)
 
 
 def figure_cloud(truth_points, cloud, path):
-    """정답 지형과 복원한 점구름을 나란히 놓는다."""
+    """정답 지형과 복원한 점구름을 나란히 놓습니다."""
     def draw(a, pts, color, title, step):
         p = pts[::step]
         a.scatter(p[:, 0], p[:, 1], c=p[:, 2] if color is None else color,
@@ -115,10 +115,10 @@ def figure_cloud(truth_points, cloud, path):
 
 
 def figure_fusion(truth, fused, per_angle, fused_score, gsd, path):
-    """수렴각별 결과와 융합 결과를 나란히 놓는다.
+    """수렴각별 결과와 융합 결과를 나란히 놓습니다.
 
-    정밀한 각도는 좁게, 넓은 각도는 성기게 덮는다. 표로 적으면 그 상보성이
-    눈에 안 들어오므로, 어디가 비었는지를 그림으로 보인다.
+    정밀한 각도는 좁게, 넓은 각도는 성기게 덮습니다. 표로 적으면 그 상보성이
+    눈에 안 들어오므로, 어디가 비었는지를 그림으로 보입니다.
     """
     truth, fused = truth / 1000.0, fused / 1000.0
     per_angle = [(c, g / 1000.0, sc) for c, g, sc in per_angle]
@@ -142,19 +142,19 @@ def figure_fusion(truth, fused, per_angle, fused_score, gsd, path):
 
     for a in ax:
         a.set_xticks([]); a.set_yticks([])
-    fig.suptitle("수렴각마다 덮는 곳이 다르다 — 합치면 둘 다 얻는다", fontsize=13)
+    fig.suptitle("수렴각마다 덮는 곳이 다르다 — 합치면 둘 다 얻습니다", fontsize=13)
     fig.savefig(path); plt.close(fig)
 
 
 def figure_result(truth, fused, cloud, gsd, score, path, apollo=None):
     """발표 3장에 쓰는 결과 그림.
 
-    정답 고도 · 복원 고도 · 3D 점구름을 나란히 놓는다. 고도 지도만 보이면
-    "그림이 비슷하다" 로 끝나고, 점구름만 보이면 얼마나 맞았는지가 안 보인다.
+    정답 고도 · 복원 고도 · 3D 점구름을 나란히 놓습니다. 고도 지도만 보이면
+    "그림이 비슷합니다" 로 끝나고, 점구름만 보이면 얼마나 맞았는지가 안 보입니다.
 
-    apollo 를 주면 네 번째 칸에 **실제로 찍힌 사진에서 복원한 고도**를 붙인다.
+    apollo 를 주면 네 번째 칸에 **실제로 찍힌 사진에서 복원한 고도**를 붙입니다.
     앞의 셋은 렌더링한 두 장에서 나온 것이고 넷째만 실제 사진이라, 나란히
-    두어야 그 차이가 한눈에 들어온다.
+    두어야 그 차이가 한눈에 들어옵니다.
     """
     truth, fused, cloud = truth / 1000.0, fused / 1000.0, cloud / 1000.0
     lo, hi = np.nanpercentile(truth, [2, 98])
@@ -203,9 +203,9 @@ def figure_result(truth, fused, cloud, gsd, score, path, apollo=None):
 def figure_method(rec, path):
     """발표 1장에 쓰는 그림 — 왼쪽 영상 · 오른쪽 영상 · 시차.
 
-    1장에서 보여야 할 것은 "같은 곳을 두 번 찍어 밀린 정도를 잰다" 하나다.
-    정답 깊이와 복원 깊이는 결과이므로 3장으로 보낸다. 다섯 칸을 한 줄에
-    욱여넣으면 각 칸이 작아 아무것도 안 보인다.
+    1장에서 보여야 할 것은 "같은 곳을 두 번 찍어 밀린 정도를 잽니다" 하나다.
+    정답 깊이와 복원 깊이는 결과이므로 3장으로 보냅니다. 다섯 칸을 한 줄에
+    욱여넣으면 각 칸이 작아 아무것도 안 보입니다.
     """
     fig, ax = plt.subplots(1, 3, figsize=(12.6, 4.0), dpi=220)
     ax[0].imshow(rec["left_rect"], cmap="gray")
@@ -227,7 +227,7 @@ def figure_method(rec, path):
 def figure_apollo(left, right, height, path):
     """1971년에 필름에 찍힌 두 장과, 거기서 복원한 고도.
 
-    렌더링이 아니라 실제로 찍힌 사진이라는 점이 이 그림의 전부다.
+    렌더링이 아니라 실제로 찍힌 사진이라는 점이 이 그림의 전부입니다.
     """
     lo, hi = np.nanpercentile(height, [2, 98])
     fig, ax = plt.subplots(1, 3, figsize=(13.2, 4.6), dpi=200)
@@ -252,7 +252,7 @@ def figure_apollo_slide(photo, height, relief_km, path):
     """발표 3장용 — 실제로 찍힌 사진 한 장과 거기서 복원한 고도.
 
     발표에서 이 그림이 하는 말은 하나다. 왼쪽은 1971년에 필름에 찍힌 사진이고,
-    오른쪽은 그 사진 두 장만으로 복원한 높낮이다.
+    오른쪽은 그 사진 두 장만으로 복원한 높낮이입니다.
     """
     lo, hi = np.nanpercentile(height, [2, 98])
     fig, ax = plt.subplots(1, 2, figsize=(9.0, 4.6), dpi=200)

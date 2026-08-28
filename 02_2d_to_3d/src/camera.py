@@ -2,7 +2,7 @@
 
 좌표계 규약 (OpenCV / SPEED+ 표준)
     x : 오른쪽,  y : 아래,  z : 광축 방향(카메라 앞이 양수)
-    깊이(depth)는 광축 방향 성분 Z 를 뜻하며 광선 길이가 아니다.
+    깊이(depth)는 광축 방향 성분 Z 를 뜻하며 광선 길이가 아닙니다.
 
 자세 라벨
     q_vbs2tango_true : 카메라(vbs) 좌표계 벡터를 타겟 동체(tango) 좌표계로
@@ -51,9 +51,9 @@ class PinholeCamera:
         return self.height, self.width
 
     def pixel_rays(self) -> np.ndarray:
-        """픽셀마다의 시선 벡터를 (H, W, 3) 로 반환한다.
+        """픽셀마다의 시선 벡터를 (H, W, 3) 로 반환합니다.
 
-        z 성분을 1 로 고정했기 때문에 광선 매개변수 s 가 곧 깊이 Z 가 된다.
+        z 성분을 1 로 고정했기 때문에 광선 매개변수 s 가 곧 깊이 Z 가 됩니다.
         즉  P_cam = origin + s * dir  이고  P_cam.z = s (origin.z = 0 일 때).
         """
         uu, vv = np.meshgrid(np.arange(self.width, dtype=np.float64),
@@ -101,7 +101,7 @@ class PinholeCamera:
 def quaternion_to_rotation(q, scalar_first: bool = True) -> np.ndarray:
     """단위 쿼터니언 -> 3x3 회전 행렬.
 
-    반환되는 R 은 q 가 표현하는 좌표계 변환을 그대로 따른다.
+    반환되는 R 은 q 가 표현하는 좌표계 변환을 그대로 따릅니다.
     """
     q = np.asarray(q, dtype=np.float64).reshape(4)
     n = np.linalg.norm(q)

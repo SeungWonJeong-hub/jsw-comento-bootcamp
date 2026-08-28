@@ -1,7 +1,7 @@
 """포인트 클라우드 생성, 변환, 저장.
 
-Open3D 를 쓰지 않고 numpy 와 PLY 파일 규격만으로 처리한다. PLY 는
-MeshLab, CloudCompare, Blender 등 대부분의 3D 뷰어에서 바로 열린다.
+Open3D 를 쓰지 않고 numpy 와 PLY 파일 규격만으로 처리합니다. PLY 는
+MeshLab, CloudCompare, Blender 등 대부분의 3D 뷰어에서 바로 열립니다.
 """
 
 from __future__ import annotations
@@ -20,13 +20,13 @@ def zbuffer_depth(points_cam: np.ndarray, camera, splat: int = 0,
                   fill_holes: bool = False) -> np.ndarray:
     """카메라 좌표계 점들을 깊이 맵으로 투영한다 (z-buffer).
 
-    같은 화소에 여러 점이 오면 가장 가까운 것을 남긴다. 메시를 조밀하게
+    같은 화소에 여러 점이 오면 가장 가까운 것을 남깁니다. 메시를 조밀하게
     샘플링해 넣으면 기준 깊이 맵(reference depth)을 만들 수 있고, 복원한
-    포인트 클라우드를 넣으면 3D -> 2D 역변환이 된다.
+    포인트 클라우드를 넣으면 3D -> 2D 역변환이 됩니다.
 
     Parameters
     ----------
-    splat : 점 하나를 주변 몇 화소까지 번지게 할지. 점이 성길 때 구멍을 막는다.
+    splat : 점 하나를 주변 몇 화소까지 번지게 할지. 점이 성길 때 구멍을 막습니다.
 
     Returns
     -------
@@ -65,7 +65,7 @@ def zbuffer_depth(points_cam: np.ndarray, camera, splat: int = 0,
 
 
 def _close_pinholes(depth: np.ndarray) -> np.ndarray:
-    """한두 화소짜리 구멍을 이웃 평균으로 메운다."""
+    """한두 화소짜리 구멍을 이웃 평균으로 메웁니다."""
     import cv2
 
     valid = np.isfinite(depth).astype(np.uint8)
@@ -106,8 +106,8 @@ def sample_mesh_surface(vertices: np.ndarray, faces: np.ndarray,
                         count: int = 30000, seed: int = 0) -> np.ndarray:
     """메시 표면에서 면적 비례로 점을 샘플링한다 (정답 포인트 클라우드 생성용).
 
-    면적 비례로 뽑아야 큰 면과 작은 면이 고르게 대표된다. 정점만 쓰면
-    메시의 삼각형 밀도 편향이 그대로 정답에 실린다.
+    면적 비례로 뽑아야 큰 면과 작은 면이 고르게 대표됩니다. 정점만 쓰면
+    메시의 삼각형 밀도 편향이 그대로 정답에 실립니다.
     """
     if count <= 0:
         raise ValueError(f"샘플 개수는 1 이상이어야 합니다: {count}")
@@ -140,16 +140,16 @@ def sample_mesh_surface(vertices: np.ndarray, faces: np.ndarray,
 def bounding_radius(vertices: np.ndarray, margin: float = 0.05) -> float:
     """동체 원점에서 가장 먼 정점까지의 거리 (여유 포함).
 
-    자세 라벨의 병진 t 는 카메라에서 본 '동체 원점' 위치다. 따라서 타겟이
+    자세 라벨의 병진 t 는 카메라에서 본 '동체 원점' 위치입니다. 따라서 타겟이
     들어갈 수 있는 깊이 구간은 [||t|| - R, ||t|| + R] 이고, 여기서 R 은
-    무게중심이 아니라 **동체 원점** 기준 최대 반지름이어야 한다.
+    무게중심이 아니라 **동체 원점** 기준 최대 반지름이어야 합니다.
 
     여유가 필요한 이유
         R 을 정확히 외접 반지름으로 잡으면 기준 깊이 자체의 경계 오차 때문에
-        정당한 시차까지 잘려 나간다. aqua 에서 실측하면 여유 없이 0.6895 를
-        쓸 때 최적 쌍의 유효화소가 80.8% 에서 78.9% 로 떨어진다(오차 중앙값은
-        0.00743 으로 같다). 5% 여유(0.7240)면 기존 상수 0.8 과 결과가 같으면서
-        타겟이 바뀌어도 따라간다.
+        정당한 시차까지 잘려 나갑니다. aqua 에서 실측하면 여유 없이 0.6895 를
+        쓸 때 최적 쌍의 유효화소가 80.8% 에서 78.9% 로 떨어집니다(오차 중앙값은
+        0.00743 으로 같습니다). 5% 여유(0.7240)면 기존 상수 0.8 과 결과가 같으면서
+        타겟이 바뀌어도 따라갑니다.
     """
     v = np.asarray(vertices, dtype=np.float64)
     if v.ndim != 2 or v.shape[1] != 3:
@@ -160,7 +160,7 @@ def bounding_radius(vertices: np.ndarray, margin: float = 0.05) -> float:
 
 
 def normalize_scale(points: np.ndarray):
-    """중심을 원점으로 옮기고 최대 반지름을 1 로 맞춘다.
+    """중심을 원점으로 옮기고 최대 반지름을 1 로 맞춥니다.
 
     Returns
     -------
@@ -178,7 +178,7 @@ def normalize_scale(points: np.ndarray):
 
 
 def write_ply(path: str, points: np.ndarray, colors: np.ndarray = None) -> str:
-    """포인트 클라우드를 바이너리 PLY 로 저장한다."""
+    """포인트 클라우드를 바이너리 PLY 로 저장합니다."""
     points = np.asarray(points, dtype=np.float32)
     if points.ndim != 2 or points.shape[1] != 3:
         raise ValueError(f"(N, 3) 배열이 필요합니다: {points.shape}")
