@@ -1,15 +1,15 @@
 """2차 업무 발표자료(PPT 4페이지) 생성기.
 
-    달 지형 스테레오 실험의 결과를 4장으로 정리한다.
+    달 지형 스테레오 실험의 결과를 4장으로 정리합니다.
 
-1차 업무 자료와 같은 디자인 규격을 따른다.
+1차 업무 자료와 같은 디자인 규격을 따릅니다.
     배경 #FAFAFA · 카드 흰색 + #EBEBEB 0.75pt 테두리 · 모서리 반경 0.125in
     제목 Pretendard SemiBold 27pt · 본문 Pretendard 9.5pt · 라벨 Cascadia Mono 8.5pt
 
-수치는 outputs/metrics.json 에서 직접 읽는다. 실험을 다시 돌리면 발표자료도
-자동으로 갱신되므로 본문과 결과가 어긋날 일이 없다.
+수치는 outputs/metrics.json 에서 직접 읽습니다. 실험을 다시 돌리면 발표자료도
+자동으로 갱신되므로 본문과 결과가 어긋날 일이 없습니다.
 
-생성물(.pptx)은 저장소에 커밋하지 않는다. 필요할 때 이 스크립트로 만든다.
+생성물(.pptx)은 저장소에 커밋하지 않습니다. 필요할 때 이 스크립트로 만듭니다.
 
 사용법
     py -3 run_3d_experiment.py
@@ -50,9 +50,9 @@ TOTAL_PAGES = 4
 
 
 def test_count() -> int:
-    """실행된 테스트 개수를 pytest 리포트에서 읽는다.
+    """실행된 테스트 개수를 pytest 리포트에서 읽습니다.
 
-    발표자료에 숫자를 직접 적어 두면 테스트를 늘렸을 때 조용히 어긋난다.
+    발표자료에 숫자를 직접 적어 두면 테스트를 늘렸을 때 조용히 어긋납니다.
     """
     import re
     path = os.path.join(OUT, "pytest_report.txt")
@@ -66,25 +66,25 @@ def test_count() -> int:
 def josa(n, pair):
     """숫자 뒤에 붙는 조사를 읽는 소리에 맞춘다 ("3을" / "5를").
 
-    수치를 f-string 으로 채우다 보니 값이 바뀌면 조사가 틀어진다. 한 자리
+    수치를 f-string 으로 채우다 보니 값이 바뀌면 조사가 틀어집니다. 한 자리
     끝소리가 받침으로 끝나는 수(0 영, 1 일, 3 삼, 6 육, 7 칠, 8 팔)와 10(십)
-    뒤에는 앞쪽 조사를, 나머지(2 이, 4 사, 5 오, 9 구) 뒤에는 뒤쪽을 쓴다.
+    뒤에는 앞쪽 조사를, 나머지(2 이, 4 사, 5 오, 9 구) 뒤에는 뒤쪽을 씁니다.
     """
     with_batchim, without = pair.split("/")
     last = int(n) % 10
     closed = last in (0, 1, 3, 6, 7, 8) or (int(n) % 100 == 10)
-    # '으로/로' 만 규칙이 다르다. ㄹ 받침(1 일, 7 칠, 8 팔) 뒤에는 '로' 를 쓴다.
+    # '으로/로' 만 규칙이 다릅니다. ㄹ 받침(1 일, 7 칠, 8 팔) 뒤에는 '로' 를 씁니다.
     if with_batchim == "으로" and last in (1, 7, 8):
         closed = False
     return f"{n}{with_batchim if closed else without}"
 
 
 def code_lines(name="test_stereo_baseline_matches_the_convergence_formula"):
-    """테스트 파일에서 함수 하나를 원문 그대로 읽어 온다.
+    """테스트 파일에서 함수 하나를 원문 그대로 읽어 옵니다.
 
     과제 요청이 "Unit Test 코드 및 실행 결과 문서화" 이므로 슬라이드에 코드를
-    직접 싣는다. 슬라이드에 손으로 옮겨 적으면 코드가 바뀌었을 때 조용히
-    어긋나므로 파일에서 읽는다.
+    직접 싣습니다. 슬라이드에 손으로 옮겨 적으면 코드가 바뀌었을 때 조용히
+    어긋나므로 파일에서 읽습니다.
     """
     path = os.path.join(ROOT, "tests", "test_terrain.py")
     src = io.open(path, encoding="utf-8").read().splitlines()
@@ -98,10 +98,10 @@ def code_lines(name="test_stereo_baseline_matches_the_convergence_formula"):
 
 
 def test_counts() -> dict:
-    """pytest 실행 결과에서 파일별 통과 수를 센다.
+    """pytest 실행 결과에서 파일별 통과 수를 셉니다.
 
-    슬라이드에 "기하 44 · 스테레오 27" 처럼 적으려면 이 값이 필요하다.
-    손으로 적어 두면 테스트를 늘렸을 때 조용히 어긋난다.
+    슬라이드에 "기하 44 · 스테레오 27" 처럼 적으려면 이 값이 필요합니다.
+    손으로 적어 두면 테스트를 늘렸을 때 조용히 어긋납니다.
     """
     import re
     from collections import Counter
@@ -115,11 +115,11 @@ def test_counts() -> dict:
 
 
 def report_lines():
-    """pytest 실행 결과에서 슬라이드에 들어갈 만큼만 뽑는다.
+    """pytest 실행 결과에서 슬라이드에 들어갈 만큼만 뽑습니다.
 
-    전문은 outputs/pytest_report.txt 에 그대로 있다. 여기서는 파일별 통과 수와
-    테스트 이름 몇 개만 옮긴다. 이름을 고르는 기준은 '무엇을 검증하는지가
-    이름만 봐도 드러나는 것' 이다.
+    전문은 outputs/pytest_report.txt 에 그대로 있습니다. 여기서는 파일별 통과 수와
+    테스트 이름 몇 개만 옮깁니다. 이름을 고르는 기준은 '무엇을 검증하는지가
+    이름만 봐도 드러나는 것' 입니다.
     """
     import re
     from collections import Counter
@@ -134,8 +134,8 @@ def report_lines():
     names = {n.split("[")[0] for n in (x[1] for x in hits)}
     total = re.search(r"(\d+) passed", text)
 
-    # 카드 폭에 줄바꿈 없이 들어가는 길이만 고른다. 이름이 접히면 그만큼
-    # 줄이 늘어 카드 밖으로 흘러넘친다.
+    # 카드 폭에 줄바꿈 없이 들어가는 길이만 고릅니다. 이름이 접히면 그만큼
+    # 줄이 늘어 카드 밖으로 흘러넘칩니다.
     picked = [n for n in (
         "test_stereo_baseline_matches_the_convergence_formula",
         "test_rendered_depth_recovers_the_original_elevation",
@@ -152,21 +152,21 @@ def report_lines():
 
 
 def set_font(run, name, size, color, bold=False, tracking=None):
-    """글꼴을 지정한다. tracking 은 자간 [pt], 음수면 좁힌다.
+    """글꼴을 지정합니다. tracking 은 자간 [pt], 음수면 좁힙니다.
 
     디자인 규격(DESIGN-vercel.md)의 Don't 에 "large heading 의 음수 자간을
-    풀지 말 것" 이 있다. 표에 따르면 48px 제목이 -2.4px, 32px 제목이 -1.28px 로
-    둘 다 글자 크기의 -4% 다. 같은 비율을 그대로 적용한다.
+    풀지 말 것" 이 있습니다. 표에 따르면 48px 제목이 -2.4px, 32px 제목이 -1.28px 로
+    둘 다 글자 크기의 -4% 다. 같은 비율을 그대로 적용합니다.
     """
     run.font.name = name
     run.font.size = Pt(size)
     run.font.bold = bold
     run.font.color.rgb = color
     if tracking:
-        # python-pptx 에 자간 API 가 없어 rPr 의 spc 속성을 직접 쓴다.
+        # python-pptx 에 자간 API 가 없어 rPr 의 spc 속성을 직접 씁니다.
         # 단위는 1/100 pt 다.
         run._r.get_or_add_rPr().set("spc", str(int(round(tracking * 100))))
-    # 한글이 기본 글꼴로 떨어지지 않도록 동아시아 글꼴도 지정한다.
+    # 한글이 기본 글꼴로 떨어지지 않도록 동아시아 글꼴도 지정합니다.
     rPr = run._r.get_or_add_rPr()
     ns = "{http://schemas.openxmlformats.org/drawingml/2006/main}"
     for tag in ("ea", "cs"):
@@ -174,10 +174,10 @@ def set_font(run, name, size, color, bold=False, tracking=None):
 
 
 def style_paragraph(para, name, size, color, tracking=None):
-    """문단과 그 안의 런에 모두 글꼴을 지정한다.
+    """문단과 그 안의 런에 모두 글꼴을 지정합니다.
 
     런에만 지정하면 텍스트가 빈 문단은 기본 크기(18pt)로 높이를 잡아
-    줄 간격이 어긋난다. 표에서 빈 칸이 한 행씩 밀리는 원인이었다.
+    줄 간격이 어긋납니다. 표에서 빈 칸이 한 행씩 밀리는 원인이었습니다.
     """
     para.font.name = name
     para.font.size = Pt(size)
@@ -216,17 +216,17 @@ def add_card(slide, x, y, w, h):
 
 def add_matrix(slide, x, y, col_w, rows, row_h=0.235, aligns=None,
                spacing=1.45):
-    """표를 그린다. 열마다 별도 텍스트 상자를 둔다.
+    """표를 그립니다. 열마다 별도 텍스트 상자를 둡니다.
 
-    등폭 글꼴로 공백을 맞추는 방식은 쓸 수 없다. Cascadia Mono 에는 한글이 없어
-    대체 글꼴로 그려지는데 그 글꼴은 고정폭이 아니라서 열이 어긋난다.
-    열을 상자로 분리하면 글꼴과 무관하게 정렬이 맞는다.
+    등폭 글꼴로 공백을 맞추는 방식은 쓸 수 없습니다. Cascadia Mono 에는 한글이 없어
+    대체 글꼴로 그려지는데 그 글꼴은 고정폭이 아니라서 열이 어긋납니다.
+    열을 상자로 분리하면 글꼴과 무관하게 정렬이 맞습니다.
 
     Parameters
     ----------
     col_w : 열 너비 목록 [inch]. 기본은 첫 열만 왼쪽, 나머지는 오른쪽 정렬.
     rows : (텍스트 튜플, 스타일) 목록. 스타일은 'head' | 'key' | 'body' | 'small'.
-    aligns : 열별 정렬 목록. 설명이 들어가는 열은 오른쪽으로 밀면 안 읽힌다.
+    aligns : 열별 정렬 목록. 설명이 들어가는 열은 오른쪽으로 밀면 안 읽힙니다.
     """
     styles = {
         "head": (SANS, 9, MUTED),
@@ -252,10 +252,10 @@ def add_matrix(slide, x, y, col_w, rows, row_h=0.235, aligns=None,
 
 
 def add_strip(slide, x, y, w, items, label_pt=10, value_pt=17):
-    """숫자 몇 개를 가로로 늘어놓는다.
+    """숫자 몇 개를 가로로 늘어놓습니다.
 
-    표로 쌓으면 슬라이드가 문서가 된다. 발표에서 눈이 머무는 숫자는 서넛뿐이고,
-    그것들은 한 줄에 나란히 있을 때 가장 빨리 읽힌다.
+    표로 쌓으면 슬라이드가 문서가 됩니다. 발표에서 눈이 머무는 숫자는 서넛뿐이고,
+    그것들은 한 줄에 나란히 있을 때 가장 빨리 읽힙니다.
     """
     if not items:
         return
@@ -301,11 +301,11 @@ TALK = []
 
 
 def add_notes(slide, text):
-    """할 말을 모아 둔다. 슬라이드에는 넣지 않는다.
+    """할 말을 모아 둡니다. 슬라이드에는 넣지 않습니다.
 
     발표자 노트로 넣으면 파일을 열어 본 사람에게 그대로 보이고, 인쇄하거나
-    다른 도구로 변환할 때 따라다닌다. 발표자가 볼 것은 손에 든 대본이면
-    충분하므로 pptx 는 슬라이드만 담고, 같은 내용을 대본 txt 로 따로 낸다.
+    다른 도구로 변환할 때 따라다닙니다. 발표자가 볼 것은 손에 든 대본이면
+    충분하므로 pptx 는 슬라이드만 담고, 같은 내용을 대본 txt 로 따로 냅니다.
     """
     TALK.append(text.strip())
 
@@ -346,7 +346,7 @@ def m(t):
 
 
 def t(x):
-    """발표용 문장. 듣는 사람이 읽을 크기라 본문보다 한 단계 크다."""
+    """발표용 문장. 듣는 사람이 읽을 크기라 본문보다 한 단계 큽니다."""
     return (x, SANS, 11, BODY)
 
 
@@ -363,7 +363,7 @@ def gap():
 
 
 def load_apollo():
-    """실제 사진 실험 결과가 있으면 읽는다. 없으면 그 부분을 뺀다."""
+    """실제 사진 실험 결과가 있으면 읽습니다. 없으면 그 부분을 뺍니다."""
     path = os.path.join(OUT, "apollo_metrics.json")
     if not os.path.exists(path):
         return None
@@ -374,7 +374,7 @@ def load_apollo():
 
 
 def build(prs, s):
-    """4 페이지. 과제 결과물 형식(업무.pdf p.16)에 맞춰 자리를 나눈다."""
+    """4 페이지. 과제 결과물 형식(업무.pdf p.16)에 맞춰 자리를 나눕니다."""
     sc, best = s["scene"], s["best"]
     conv = s["convergence_sweep"]
     blocks = s["block_size_sweep"]
@@ -394,7 +394,7 @@ def build(prs, s):
         f"달 광도함수 · SNR {sc['snr']:.0f}")
     add_image(sl, os.path.join(OUT, "05_method.png"), 0.72, 1.70, 11.89, 3.16)
 
-    # 왼쪽 — 식만. 라벨과 식을 열로 나눠야 식의 시작 위치가 맞는다.
+    # 왼쪽 — 식만. 라벨과 식을 열로 나눠야 식의 시작 위치가 맞습니다.
     add_card(sl, 0.72, 5.02, 6.10, 1.86)
     add_text(sl, 0.98, 5.21, 5.58, 0.24, [("스테레오로 Z 를 뽑기까지", SANS_SB, 10.5, INK)])
     steps = [
@@ -447,8 +447,8 @@ def build(prs, s):
         "실제 테스트 코드와 실행 결과 · tests/test_terrain.py · "
         "outputs/pytest_report.txt")
 
-    # 두 카드가 담는 글의 길이가 비슷하다(코드 74자 · 결과 69자). 폭도 그에
-    # 맞춰 나눈다. 예전에는 7.35 대 4.30 이라 오른쪽이 접히며 넘쳤다.
+    # 두 카드가 담는 글의 길이가 비슷합니다(코드 74자 · 결과 69자). 폭도 그에
+    # 맞춰 나눕니다. 예전에는 7.35 대 4.30 이라 오른쪽이 접히며 넘쳤습니다.
     add_card(sl, 0.72, 1.70, 6.90, 3.45)
     add_text(sl, 0.98, 1.89, 6.38, 0.24, [
         ("테스트 코드 — tests/test_terrain.py", SANS_SB, 10.5, INK)])
@@ -466,7 +466,7 @@ def build(prs, s):
     add_text(sl, 8.12, 2.62, 4.23, 2.60,
              [(x, MONO, 8, BODY) for x in report_lines()], spacing=1.2)
 
-    # 아래 카드는 글이 위로 몰려 있었다. 카드 높이를 글에 맞추고 가운데로 둔다.
+    # 아래 카드는 글이 위로 몰려 있었습니다. 카드 높이를 글에 맞추고 가운데로 둡니다.
     add_card(sl, 0.72, 5.48, 11.89, 1.34)
     add_text(sl, 0.98, 5.70, 11.37, 0.90, [
         ("테스트가 출력의 크기와 자료형만 보면 계산식이 틀려도 통과합니다.",
@@ -496,13 +496,13 @@ def build(prs, s):
         f"레이저로 잰 고도와 {fz['median_abs']/1000:.3f} km 안에서 일치",
         f"수렴각이 다른 네 쌍을 합친 결과 · 복원한 점 {s['n_points']:,}개")
 
-    # 3장이 요구하는 것은 변환 결과 이미지다. 크게 하나 두고, 숫자는 견줄 수
-    # 있을 만큼만 아래에 한 줄로 놓는다. 나머지 설명은 대본이 갖는다.
+    # 3장이 요구하는 것은 변환 결과 이미지입니다. 크게 하나 두고, 숫자는 견줄 수
+    # 있을 만큼만 아래에 한 줄로 놓습니다. 나머지 설명은 대본이 갖습니다.
     add_image(sl, os.path.join(OUT, "04_result.png"), 0.72, 1.76, 11.89, 3.16)
 
     add_card(sl, 0.72, 5.30, 11.89, 1.36)
     # 이 장이 답할 것은 하나다 - 얼마나 맞았는가. 중앙값만으로는 꼬리가 안
-    # 보이므로 90 퍼센타일을 같이 둔다.
+    # 보이므로 90 퍼센타일을 같이 둡니다.
     strip = [
         ("고도 오차 (중앙값)", f"{fz['median_abs']/1000:.3f} km"),
         ("10곳 중 9곳은", f"{fz['p90_abs']/1000:.3f} km 안"),
@@ -525,7 +525,7 @@ def build(prs, s):
 """)
 
     # ---------------- 4. 개선점 ----------------
-    # 고친 것은 3장의 수치에 이미 들어가 있다. 여기는 남은 것만 번호로 둔다.
+    # 고친 것은 3장의 수치에 이미 들어가 있습니다. 여기는 남은 것만 번호로 둡니다.
     sl = new_slide(
         prs, 4, "04 / 남은 과제",
         "개선점",
@@ -541,27 +541,27 @@ def build(prs, s):
             / tune[ap["picked_with_truth"]]["median_abs"] - 1) * 100
 
     items = [
-        ("1", "실제 사진 결과를 높낮이 차로만 견줬다",
+        ("1", "실제 사진 결과를 높낮이 차로만 견줬습니다",
          "복원한 고도가 지도 좌표 위에 놓여 있지 않아서 정답 고도와 픽셀을 "
          "맞대어 볼 수가 없었습니다. 그래서 견준 것이 높낮이 차와 "
          "카메라까지의 거리뿐입니다.",
          "이대로는 실제 사진에서 오차가 몇 미터인지를 한 숫자로 말할 수 "
          "없습니다. 픽셀마다 채점할 수 있는 상태로 개선해야 할 것 같습니다."),
-        ("2", "남긴 값이 얼마나 정확한지는 말하지 못한다",
+        ("2", "남긴 값이 얼마나 정확한지는 말하지 못합니다",
          f"정답 없이 쓰는 신호가 크게 틀린 픽셀을 골라내는 쪽에 맞춰져 "
          f"있습니다. 그 일은 잘합니다(AUC {best_auc['auc']:.2f}). 하지만 오차의 "
          f"크기와는 순위 상관이 {best_signal['spearman']:+.2f} 뿐입니다.",
          "착륙 지점을 고르려면 여기는 몇 미터 안이라고 말할 수 있어야 하는데 "
          "지금은 못 합니다. 크기까지 예측하는 쪽으로 개선해야 할 것 같습니다."),
     ]
-    # 항목이 적을수록 글자를 키우고 간격을 넓힌다. 같은 자리에 넷을 넣을 때와
-    # 둘을 넣을 때 같은 크기를 쓰면 카드가 비어 보인다.
+    # 항목이 적을수록 글자를 키우고 간격을 넓힙니다. 같은 자리에 넷을 넣을 때와
+    # 둘을 넣을 때 같은 크기를 쓰면 카드가 비어 보입니다.
     few = len(items) <= 2
     head_pt, body_pt = (18, 12.5) if few else (14, 11)
     step = 1.78 if few else 1.22
     y = 2.28 if few else 2.10
-    # 항목이 둘이면 카드도 그만큼 줄인다. 큰 카드에 글이 절반만 있으면 빠뜨린
-    # 것처럼 보인다.
+    # 항목이 둘이면 카드도 그만큼 줄입니다. 큰 카드에 글이 절반만 있으면 빠뜨린
+    # 것처럼 보입니다.
     tall = step * (len(items) - 1) + 1.85 if few else 5.12
 
     add_card(sl, 0.72, 1.70, 11.89, tall)
@@ -581,7 +581,7 @@ def build(prs, s):
 
 
 def talk_script(width=46):
-    """모아 둔 할 말을 대본 txt 로 조립한다."""
+    """모아 둔 할 말을 대본 txt 로 조립합니다."""
     import textwrap
 
     titles = ["01 / 방법", "02 / Unit Test", "03 / 2D → 3D 변환 결과",
@@ -595,7 +595,7 @@ def talk_script(width=46):
             if line:
                 out += textwrap.wrap(line, width, subsequent_indent="  ")
             elif out and out[-1]:
-                # 빈 줄은 문단을 나누는 표시다. 지우면 할 말이 한 덩어리가 된다.
+                # 빈 줄은 문단을 나누는 표시입니다. 지우면 할 말이 한 덩어리가 됩니다.
                 out.append("")
         out.append("")
     return "\n".join(out)

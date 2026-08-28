@@ -12,11 +12,11 @@
   - 주요 객체 크기가 너무 작은 이미지 제거
 
 [피드백 반영]
-  1. 임계값은 감이 아니라 분포에서 정한다. threshold_study.py 가 만든
-     thresholds.json 을 읽어 쓰고, 없으면 아래 기본값으로 돌아간다.
-  3. 증강은 여기서 저장하지 않는다. 학습 중 실시간으로 거는 쪽이 맞아서
-     dataset.py 로 옮겼다. 이 파일의 증강 함수는 결과를 눈으로 확인하는
-     비교 격자(참고용)에만 쓴다.
+  1. 임계값은 감이 아니라 분포에서 정합니다. threshold_study.py 가 만든
+     thresholds.json 을 읽어 쓰고, 없으면 아래 기본값으로 돌아갑니다.
+  3. 증강은 여기서 저장하지 않습니다. 학습 중 실시간으로 거는 쪽이 맞아서
+     dataset.py 로 옮겼습니다. 이 파일의 증강 함수는 결과를 눈으로 확인하는
+     비교 격자(참고용)에만 씁니다.
 
 데이터셋: https://huggingface.co/datasets/ethz/food101 (streaming 모드로 필요한 만큼만 수신)
 
@@ -43,7 +43,7 @@ BLUR_KERNEL = (5, 5)              # 가우시안 블러 커널
 BLUR_SIGMA = 0                    # 0 이면 커널 크기로부터 자동 계산
 
 # 이상치 임계값의 기본값. threshold_study.py 를 돌리기 전에도 동작하도록 남겨 둔
-# 폴백일 뿐이고, 실제 실행에서는 thresholds.json 의 분포 기반 값이 우선한다.
+# 폴백일 뿐이고, 실제 실행에서는 thresholds.json 의 분포 기반 값이 우선합니다.
 DEFAULT_DARK_MEAN = 40.0          # 평균 밝기(0~255) 하한. 미만이면 '너무 어두움'
 DEFAULT_MIN_AREA_RATIO = 0.10     # 주요 객체가 전체 화면에서 차지해야 할 최소 면적 비율
 THRESHOLD_PATH = Path("thresholds.json")
@@ -69,10 +69,10 @@ class Thresholds:
 
 
 def load_thresholds(path: Path = THRESHOLD_PATH) -> Thresholds:
-    """분포 조사 결과가 있으면 그것을 쓰고, 없으면 기본값으로 돌아간다.
+    """분포 조사 결과가 있으면 그것을 쓰고, 없으면 기본값으로 돌아갑니다.
 
-    임계값을 코드 상수로 박아 두면 왜 그 값인지 추적할 수 없다. JSON 으로 빼면
-    산출 근거(표본 수, 채택 기준, 제외율)가 값과 같은 파일에 남는다.
+    임계값을 코드 상수로 박아 두면 왜 그 값인지 추적할 수 없습니다. JSON 으로 빼면
+    산출 근거(표본 수, 채택 기준, 제외율)가 값과 같은 파일에 남습니다.
     """
     if not path.exists():
         return Thresholds(DEFAULT_DARK_MEAN, DEFAULT_MIN_AREA_RATIO, "기본값")
@@ -94,24 +94,24 @@ def load_thresholds(path: Path = THRESHOLD_PATH) -> Thresholds:
 # 1. 데이터 수집
 # ----------------------------------------------------------------------------
 def load_images_from_hf(num_images: int, cache_dir: Path) -> list[tuple[str, np.ndarray]]:
-    """Hugging Face food101 데이터셋을 streaming 으로 받아 BGR ndarray 로 반환한다.
+    """Hugging Face food101 데이터셋을 streaming 으로 받아 BGR ndarray 로 반환합니다.
 
-    streaming=True 를 쓰는 이유: food101 전체는 5GB 이상이라 전량 다운로드가 불필요하다.
-    받은 원본은 cache_dir 에 저장해 재실행 시 네트워크 없이도 동작하게 한다.
+    streaming=True 를 쓰는 이유: food101 전체는 5GB 이상이라 전량 다운로드가 불필요합니다.
+    받은 원본은 cache_dir 에 저장해 재실행 시 네트워크 없이도 동작하게 합니다.
     """
     from datasets import load_dataset
 
     cache_dir.mkdir(parents=True, exist_ok=True)
     stream = load_dataset(DATASET_ID, split=DATASET_SPLIT, streaming=True)
-    # food101 은 클래스 순으로 정렬돼 있어 앞에서부터 그냥 받으면 전부 같은 음식이 나온다.
-    # 여러 클래스가 섞이도록 버퍼 셔플을 건다(seed 고정으로 재현성 확보).
+    # food101 은 클래스 순으로 정렬돼 있어 앞에서부터 그냥 받으면 전부 같은 음식이 나옵니다.
+    # 여러 클래스가 섞이도록 버퍼 셔플을 겁니다(seed 고정으로 재현성 확보).
     stream = stream.shuffle(seed=42, buffer_size=1000)
 
     images: list[tuple[str, np.ndarray]] = []
     for idx, record in enumerate(stream):
         if idx >= num_images:
             break
-        # datasets 는 PIL.Image(RGB) 로 디코딩해 주므로 OpenCV 규약(BGR)으로 변환한다.
+        # datasets 는 PIL.Image(RGB) 로 디코딩해 주므로 OpenCV 규약(BGR)으로 변환합니다.
         rgb = np.array(record["image"].convert("RGB"))
         bgr = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
         name = f"food101_{idx:03d}_label{record['label']}"
@@ -121,7 +121,7 @@ def load_images_from_hf(num_images: int, cache_dir: Path) -> list[tuple[str, np.
 
 
 def load_images_from_disk(num_images: int, cache_dir: Path) -> list[tuple[str, np.ndarray]]:
-    """네트워크가 없을 때 캐시된 원본 이미지를 대신 사용한다."""
+    """네트워크가 없을 때 캐시된 원본 이미지를 대신 사용합니다."""
     paths = sorted(p for p in cache_dir.glob("*.jpg"))[:num_images]
     out: list[tuple[str, np.ndarray]] = []
     for p in paths:
@@ -142,8 +142,8 @@ class QualityReport:
     object_area_ratio: float
     is_too_dark: bool
     has_tiny_object: bool
-    # 판정에 쓴 임계값도 같이 남긴다. 나중에 리포트만 보고도 어떤 기준으로
-    # 걸렀는지 알 수 있어야 재현이 된다.
+    # 판정에 쓴 임계값도 같이 남깁니다. 나중에 리포트만 보고도 어떤 기준으로
+    # 걸렀는지 알 수 있어야 재현이 됩니다.
     dark_threshold: float
     area_threshold: float
 
@@ -165,20 +165,20 @@ class QualityReport:
 
 
 def measure_mean_brightness(image: np.ndarray) -> float:
-    """HSV 의 V(명도) 채널 평균으로 밝기를 측정한다.
+    """HSV 의 V(명도) 채널 평균으로 밝기를 측정합니다.
 
     BGR 단순 평균 대신 V 채널을 쓰는 이유: 색상/채도의 영향을 배제하고
-    '얼마나 밝은가'만 보기 위함이다.
+    '얼마나 밝은가'만 보기 위함입니다.
     """
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     return float(hsv[:, :, 2].mean())
 
 
 def measure_object_area_ratio(image: np.ndarray) -> float:
-    """주요 객체가 화면에서 차지하는 면적 비율(0~1)을 추정한다.
+    """주요 객체가 화면에서 차지하는 면적 비율(0~1)을 추정합니다.
 
     Otsu 이진화로 전경/배경을 자동 분리한 뒤 모폴로지로 잡음을 정리하고,
-    가장 큰 윤곽선의 면적을 전체 픽셀 수로 나눈다.
+    가장 큰 윤곽선의 면적을 전체 픽셀 수로 나눕니다.
     """
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     gray = cv2.GaussianBlur(gray, BLUR_KERNEL, BLUR_SIGMA)
@@ -203,7 +203,7 @@ def measure_object_area_ratio(image: np.ndarray) -> float:
 
 def inspect(name: str, image: np.ndarray,
             thresholds: Thresholds | None = None) -> QualityReport:
-    """이미지 1장을 검사해 이상치 여부를 판정한다."""
+    """이미지 1장을 검사해 이상치 여부를 판정합니다."""
     thresholds = thresholds or load_thresholds()
     mean_brightness = measure_mean_brightness(image)
     area_ratio = measure_object_area_ratio(image)
@@ -222,7 +222,7 @@ def inspect(name: str, image: np.ndarray,
 # 3. 전처리 단계 (기본 문제)
 # ----------------------------------------------------------------------------
 def resize_image(image: np.ndarray, size: tuple[int, int] = TARGET_SIZE) -> np.ndarray:
-    """224x224 로 크기 조정. 축소가 대부분이므로 INTER_AREA 가 화질 손실이 가장 적다."""
+    """224x224 로 크기 조정. 축소가 대부분이므로 INTER_AREA 가 화질 손실이 가장 적습니다."""
     return cv2.resize(image, size, interpolation=cv2.INTER_AREA)
 
 
@@ -231,12 +231,12 @@ def to_grayscale(image: np.ndarray) -> np.ndarray:
 
 
 def normalize(image: np.ndarray) -> np.ndarray:
-    """픽셀 값을 0~1 실수 범위로 정규화한다(학습 시 gradient 안정화 목적)."""
+    """픽셀 값을 0~1 실수 범위로 정규화합니다(학습 시 gradient 안정화 목적)."""
     return image.astype(np.float32) / 255.0
 
 
 def denoise(image: np.ndarray) -> np.ndarray:
-    """가우시안 블러로 센서 노이즈/압축 잡음을 완화한다."""
+    """가우시안 블러로 센서 노이즈/압축 잡음을 완화합니다."""
     return cv2.GaussianBlur(image, BLUR_KERNEL, BLUR_SIGMA)
 
 
@@ -246,14 +246,14 @@ def augment_flip(image: np.ndarray) -> np.ndarray:
 
 
 def augment_rotate(image: np.ndarray, degrees: float = ROTATE_DEGREES) -> np.ndarray:
-    """중심 기준 회전. 빈 영역은 경계 픽셀 복제로 채워 검은 테두리를 방지한다."""
+    """중심 기준 회전. 빈 영역은 경계 픽셀 복제로 채워 검은 테두리를 방지합니다."""
     h, w = image.shape[:2]
     matrix = cv2.getRotationMatrix2D((w / 2, h / 2), degrees, 1.0)
     return cv2.warpAffine(image, matrix, (w, h), borderMode=cv2.BORDER_REPLICATE)
 
 
 def augment_color(image: np.ndarray) -> np.ndarray:
-    """HSV 공간에서 채도(S)와 명도(V)를 조정해 조명/카메라 차이를 흉내 낸다."""
+    """HSV 공간에서 채도(S)와 명도(V)를 조정해 조명/카메라 차이를 흉내 냅니다."""
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV).astype(np.float32)
     hsv[:, :, 1] = np.clip(hsv[:, :, 1] * SATURATION_GAIN, 0, 255)
     hsv[:, :, 2] = np.clip(hsv[:, :, 2] * BRIGHTNESS_GAIN, 0, 255)
@@ -261,13 +261,13 @@ def augment_color(image: np.ndarray) -> np.ndarray:
 
 
 def preprocess(image: np.ndarray) -> dict[str, np.ndarray]:
-    """전체 전처리 파이프라인. 각 단계 결과를 dict 로 반환한다(시각화/검증용).
+    """전체 전처리 파이프라인. 각 단계 결과를 dict 로 반환합니다(시각화/검증용).
 
     순서: 크기 조정 -> 블러(노이즈 제거) -> 그레이스케일 -> 정규화
     블러를 크기 조정 뒤에 두는 이유: 커널 크기가 항상 동일한 화소 비율로 동작하게 하기 위함.
 
-    05~07 의 증강 결과는 문서용 예시다. 실제 학습에서는 dataset.py 가 __getitem__
-    마다 난수를 새로 뽑아 만들므로, 여기서 나온 고정 결과가 학습에 쓰이지 않는다.
+    05~07 의 증강 결과는 문서용 예시입니다. 실제 학습에서는 dataset.py 가 __getitem__
+    마다 난수를 새로 뽑아 만들므로, 여기서 나온 고정 결과가 학습에 쓰이지 않습니다.
     """
     resized = resize_image(image)
     blurred = denoise(resized)
@@ -289,7 +289,7 @@ def preprocess(image: np.ndarray) -> dict[str, np.ndarray]:
 # 4. 결과 저장 / 시각화
 # ----------------------------------------------------------------------------
 def to_bgr_u8(image: np.ndarray) -> np.ndarray:
-    """float 정규화 결과나 grayscale 을 저장 가능한 3채널 uint8 로 되돌린다."""
+    """float 정규화 결과나 grayscale 을 저장 가능한 3채널 uint8 로 되돌립니다."""
     if image.dtype != np.uint8:
         image = np.clip(image * 255.0, 0, 255).astype(np.uint8)
     if image.ndim == 2:
@@ -298,11 +298,11 @@ def to_bgr_u8(image: np.ndarray) -> np.ndarray:
 
 
 def build_contact_sheet(stages: dict[str, np.ndarray], columns: int = 4) -> np.ndarray:
-    """전처리 단계별 결과를 격자 이미지 한 장으로 합쳐 비교하기 쉽게 만든다."""
+    """전처리 단계별 결과를 격자 이미지 한 장으로 합쳐 비교하기 쉽게 만듭니다."""
     tiles = []
     for label, img in stages.items():
         tile = to_bgr_u8(img).copy()
-        # 라벨 가독성을 위해 상단에 반투명 띠를 깔고 텍스트를 올린다.
+        # 라벨 가독성을 위해 상단에 반투명 띠를 깔고 텍스트를 올립니다.
         cv2.rectangle(tile, (0, 0), (tile.shape[1], 22), (0, 0, 0), thickness=-1)
         cv2.putText(tile, label, (4, 16), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1)
         tiles.append(tile)
@@ -376,14 +376,14 @@ def main() -> None:
         norm = stages["04_normalized"]
 
         # 제출 항목: 전처리를 마친 이미지 그 자체 (224x224 그레이스케일)
-        # 정규화 결과는 0~1 float 이므로 저장 가능한 0~255 uint8 로 되돌린다.
+        # 정규화 결과는 0~1 float 이므로 저장 가능한 0~255 uint8 로 되돌립니다.
         processed_path = args.out_dir / f"{name}.png"
         cv2.imwrite(str(processed_path), np.clip(norm * 255.0, 0, 255).astype(np.uint8))
 
-        # 참고용: 단계별 비교 격자. 증강 칸은 '이런 변형이 걸린다'를 보이는 예시일
-        # 뿐이고, 학습에 들어가는 텐서는 dataset.py 가 매 에폭 새로 만든다.
-        # 정규화 텐서를 .npy 로 미리 저장하던 코드는 지웠다. 학습 입력을 디스크에
-        # 쌓아 두는 것이 바로 피드백에서 지적된 낭비다.
+        # 참고용: 단계별 비교 격자. 증강 칸은 '이런 변형이 걸립니다'를 보이는 예시일
+        # 뿐이고, 학습에 들어가는 텐서는 dataset.py 가 매 에폭 새로 만듭니다.
+        # 정규화 텐서를 .npy 로 미리 저장하던 코드는 지웠습니다. 학습 입력을 디스크에
+        # 쌓아 두는 것이 바로 피드백에서 지적된 낭비입니다.
         cv2.imwrite(str(args.preview_dir / f"{name}_stages.png"), build_contact_sheet(stages))
 
         saved.append(processed_path.name)

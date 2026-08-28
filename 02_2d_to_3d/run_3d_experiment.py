@@ -1,13 +1,13 @@
-"""달 지형 스테레오 실험 — 사진 두 장으로 고도를 복원한다.
+"""달 지형 스테레오 실험 — 사진 두 장으로 고도를 복원합니다.
 
 무엇을 하는가
     측정된 고도 모델(DTM)을 3D 로 펴고, 자세를 아는 카메라 두 대로 다시
-    찍는다. 그 두 장으로 스테레오를 돌려 고도를 복원하고, 원래 고도와
-    비교한다. 착륙선이 하강하며 두 번 찍어 지형을 판단하는 상황이다.
+    찍습니다. 그 두 장으로 스테레오를 돌려 고도를 복원하고, 원래 고도와
+    비교합니다. 착륙선이 하강하며 두 번 찍어 지형을 판단하는 상황입니다.
 
-    기하는 실제 달이고 밝기는 렌더링이다. 그림자와 표면 반사 특성은 실제
-    영상과 다르므로, 이 결과를 "실제 영상에서도 이만큼 나온다" 로 읽으면
-    안 된다. 알고리즘과 촬영 기하가 맞는지를 보는 실험이다.
+    기하는 실제 달이고 밝기는 렌더링입니다. 그림자와 표면 반사 특성은 실제
+    영상과 다르므로, 이 결과를 "실제 영상에서도 이만큼 나옵니다" 로 읽으면
+    안 됩니다. 알고리즘과 촬영 기하가 맞는지를 보는 실험입니다.
 
 사용법
     py -3 run_3d_experiment.py              # 합성 지형 (데이터 없이 실행)
@@ -32,31 +32,31 @@ from src.camera import PinholeCamera, Pose  # noqa: E402
 ROOT = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(ROOT, "outputs")
 
-# 촬영 고도를 상수로 박지 않고 초점거리에서 유도한다. 고도 모델의 화소
+# 촬영 고도를 상수로 박지 않고 초점거리에서 유도합니다. 고도 모델의 화소
 # 크기가 데이터마다 다르므로(합성 5 m, LOLA 118 m), 고도를 고정하면 한쪽에서
-# 시차가 화면을 넘거나 몇 픽셀로 쪼그라든다. "영상 화소 = 지형 화소" 가
-# 되도록 고도 = 초점거리 x 화소 크기로 맞춘다.
+# 시차가 화면을 넘거나 몇 픽셀로 쪼그라듭니다. "영상 화소 = 지형 화소" 가
+# 되도록 고도 = 초점거리 x 화소 크기로 맞춥니다.
 FOCAL_PX = 500.0        # 정렬 후 초점거리 [px]
 CONVERGENCE = 15.0      # 두 시선이 벌어진 각 [도]
-BLOCK = 11              # 정합 블록. 아래 [4] 에서 재서 고른다.
+BLOCK = 11              # 정합 블록. 아래 [4] 에서 재서 고릅니다.
 CONTRAST_K = 2.0        # 대비 하한을 잡음 표준편차의 몇 배로 둘지.
                         # 절대값이 아니라 배수로 두어야 영상이 바뀌어도
-                        # "잡음보다 이만큼 뚜렷한 무늬" 라는 뜻이 유지된다.
+                        # "잡음보다 이만큼 뚜렷한 무늬" 라는 뜻이 유지됩니다.
 LRC_MAX_DIFF = 1.0      # 좌우 일관성 검사에서 허용할 왕복 시차 차이 [px]
-RESIDUAL_DROP = 0.05    # 광도 잔차가 가장 큰 이만큼을 버린다. 정답을 보지
-                        # 않고 정하는 값이며, 아래 [6] 에서 근거를 잰다.
+RESIDUAL_DROP = 0.05    # 광도 잔차가 가장 큰 이만큼을 버립니다. 정답을 보지
+                        # 않고 정하는 값이며, 아래 [6] 에서 근거를 잽니다.
 SNR = 100.0             # 최대 밝기에서의 신호 대 잡음비. LROC NAC 수준.
 BLUR_PX = 0.7           # 광학 흐림 [px]
 SUN_ELEVATION = 25.0    # 태양 고도 [도]
 MEAN_ALBEDO = 0.12      # 표면의 평균 반사율. 실제 사진이 있으면 무늬만
-                        # 그 사진에서 가져오고 평균은 이 값으로 맞춘다.
+                        # 그 사진에서 가져오고 평균은 이 값으로 맞춥니다.
 
-_ALBEDO = MEAN_ALBEDO   # 알베도 지도. main() 이 실제 사진에서 만든다.
-SUBPIXEL = 2            # 정합 전에 가로로 이만큼 늘린다. 아래 설명 참고.
+_ALBEDO = MEAN_ALBEDO   # 알베도 지도. main() 이 실제 사진에서 만듭니다.
+SUBPIXEL = 2            # 정합 전에 가로로 이만큼 늘립니다. 아래 설명 참고.
 FUSE_ANGLES = (10.0, 15.0, 20.0, 30.0)   # 융합에 쓰는 수렴각
 MAX_SPREAD_PX = 0.5     # 각도끼리 이보다 어긋난 셀은 버린다 (시차 픽셀 단위)
 
-_ALT = None             # 촬영 고도 [m]. main() 이 화소 크기에서 정한다.
+_ALT = None             # 촬영 고도 [m]. main() 이 화소 크기에서 정합니다.
 _log = []
 
 
@@ -66,7 +66,7 @@ def log(msg=""):
 
 
 def build_terrain(path=None):
-    """고도 모델을 준비한다. 파일을 주면 읽고, 없으면 합성 지형을 만든다."""
+    """고도 모델을 준비합니다. 파일을 주면 읽고, 없으면 합성 지형을 만듭니다."""
     if path:
         elev, gsd = terrain.load_dtm(path)
         source = os.path.basename(path)
@@ -78,16 +78,16 @@ def build_terrain(path=None):
 
 
 def load_albedo(dtm_path, elev, gsd):
-    """고도 모델 옆에 같은 구역을 찍은 사진이 있으면 표면 무늬로 쓴다.
+    """고도 모델 옆에 같은 구역을 찍은 사진이 있으면 표면 무늬로 씁니다.
 
     왜 이것이 중요한가
-        상수 알베도로 그리면 영상의 무늬가 **전부 지형의 음영**에서만 나온다.
+        상수 알베도로 그리면 영상의 무늬가 **전부 지형의 음영**에서만 나옵니다.
         그런데 이 고도 모델은 레이저 궤적을 격자로 편 것이라 매끈해서, 실제
-        표면에 있는 잔크레이터·광조(ray)·밝고 어두운 물질이 통째로 빠진다.
-        정합기가 붙잡을 무늬가 실제보다 적고 굵다.
+        표면에 있는 잔크레이터·광조(ray)·밝고 어두운 물질이 통째로 빠집니다.
+        정합기가 붙잡을 무늬가 실제보다 적고 굵습니다.
 
-        같은 구역을 실제로 찍은 사진에서 음영을 빼내면 그 무늬가 돌아온다.
-        고도는 여전히 레이저 측정치이고, 무늬만 사진에서 온다.
+        같은 구역을 실제로 찍은 사진에서 음영을 빼내면 그 무늬가 돌아옵니다.
+        고도는 여전히 레이저 측정치이고, 무늬만 사진에서 옵니다.
 
     Returns
     -------
@@ -112,20 +112,20 @@ def make_views(elev, gsd, camera, convergence, snr=None, seed=0,
                photometric=True, albedo=None):
     """지형을 두 시점에서 렌더링한다 (화소마다 광선을 쏘는 방식).
 
-    점을 화소에 흩뿌리는 방식은 쓰지 않는다. 반올림 오차가 표면 기울기를
+    점을 화소에 흩뿌리는 방식은 쓰지 않습니다. 반올림 오차가 표면 기울기를
     따라 쏠리는데 수렴 촬영의 두 카메라는 반대로 기울어 있어, 시차가 한쪽으로
-    치우친다. 티코에서 실측하니 +2.6 px(깊이 1.2 km)였다. terrain.render_
-    heightfield 의 설명에 자세히 적었다.
+    치우칩니다. 티코에서 실측하니 +2.6 px(깊이 1.2 km)였습니다. terrain.render_
+    heightfield 의 설명에 자세히 적었습니다.
 
     밝기를 시점마다 따로 만드는 이유
         램버트 반사는 밝기가 태양 방향에만 의존하므로 같은 지면 조각이 두
-        사진에서 정확히 같은 밝기로 찍힌다. 실제 달 표면은 후방산란이 강해
-        보는 방향에 따라 밝기가 달라지고, 그 차이가 정합의 진짜 난이도다.
-        시점별로 렌더링하지 않으면 그 난이도가 실험에서 통째로 빠진다.
+        사진에서 정확히 같은 밝기로 찍힙니다. 실제 달 표면은 후방산란이 강해
+        보는 방향에 따라 밝기가 달라지고, 그 차이가 정합의 진짜 난이도입니다.
+        시점별로 렌더링하지 않으면 그 난이도가 실험에서 통째로 빠집니다.
 
     대비를 같은 자로 펴는 이유
         두 장을 각각 min~max 로 펴면 방금 만든 시점 간 밝기 차이가 그
-        정규화에서 도로 지워진다. 두 장을 함께 보고 하나의 자로 편다.
+        정규화에서 도로 지워집니다. 두 장을 함께 보고 하나의 자로 폅니다.
     """
     left_pose, right_pose, baseline = terrain.stereo_cameras(
         _ALT, convergence)
@@ -153,9 +153,9 @@ def make_views(elev, gsd, camera, convergence, snr=None, seed=0,
     right, _ = terrain.render_heightfield(elev, gsd, shade_right, camera,
                                           right_pose)
 
-    # 잡음은 두 장에 서로 다른 씨앗으로 넣는다. 같은 씨앗을 쓰면 잡음 무늬가
-    # 두 장에서 똑같아져 매처가 그것을 단서로 삼아 버린다. 실제 촬영에서
-    # 두 장의 잡음은 독립이다.
+    # 잡음은 두 장에 서로 다른 씨앗으로 넣습니다. 같은 씨앗을 쓰면 잡음 무늬가
+    # 두 장에서 똑같아져 매처가 그것을 단서로 삼아 버립니다. 실제 촬영에서
+    # 두 장의 잡음은 독립입니다.
     if snr:
         left = terrain.sensor_image(left, snr=snr, blur_px=BLUR_PX, seed=seed)
         right = terrain.sensor_image(right, snr=snr, blur_px=BLUR_PX,
@@ -171,9 +171,9 @@ def make_views(elev, gsd, camera, convergence, snr=None, seed=0,
 def _rectified_depth_range(pair, view, margin=0.02):
     """지형이 정렬된 왼쪽 카메라에서 차지하는 Z 구간 [m].
 
-    정답 깊이를 보고 정하면 채점에 쓸 값을 미리 훔쳐 보는 셈이 된다. 대신
+    정답 깊이를 보고 정하면 채점에 쓸 값을 미리 훔쳐 보는 셈이 됩니다. 대신
     촬영을 설계할 때 이미 아는 것 - 지형의 가로세로 범위와 고도 범위 - 만
-    쓴다. 경계 상자의 여덟 꼭짓점이면 볼록성 덕분에 전체를 감싼다.
+    씁니다. 경계 상자의 여덟 꼭짓점이면 볼록성 덕분에 전체를 감쌉니다.
     """
     p = view["points"]
     lo3, hi3 = p.min(axis=0), p.max(axis=0)
@@ -186,16 +186,16 @@ def _rectified_depth_range(pair, view, margin=0.02):
 
 def reconstruct(view, camera, relief, block_size=BLOCK,
                 min_contrast=None, use_lrc=True, residual_drop=RESIDUAL_DROP):
-    """정렬 → 시차 → 깊이. 시차 탐색 구간은 지형 기복에서 유도한다."""
+    """정렬 → 시차 → 깊이. 시차 탐색 구간은 지형 기복에서 유도합니다."""
     pair = stereo.RectifiedPair(
         camera, *stereo.relative_pose(view["pose"], view["pose_right"]),
         alpha=-1.0)
 
-    # 깊이 구간을 "고도 ± 기복" 으로 잡으면 안 된다. 정렬된 카메라는 수렴각의
-    # 절반만큼 기울어 있어, 지형이 넓으면 Z 가 화면을 가로질러 크게 변한다.
+    # 깊이 구간을 "고도 ± 기복" 으로 잡으면 안 됩니다. 정렬된 카메라는 수렴각의
+    # 절반만큼 기울어 있어, 지형이 넓으면 Z 가 화면을 가로질러 크게 변합니다.
     # 티코(75 km 폭, 고도 59 km)에서 Z 가 ±5 km 흔들려, 옳은 시차가 구간
-    # 밖으로 잘려 나가고 결과가 한쪽으로 1.2 km 치우쳤다. 지형의 경계 상자
-    # 여덟 꼭짓점을 정렬 카메라로 옮겨 실제 Z 범위를 구한다.
+    # 밖으로 잘려 나가고 결과가 한쪽으로 1.2 km 치우쳤습니다. 지형의 경계 상자
+    # 여덟 꼭짓점을 정렬 카메라로 옮겨 실제 Z 범위를 구합니다.
     lo, hi = _rectified_depth_range(pair, view)
     d_lo = pair.focal * pair.baseline / hi
     d_hi = pair.focal * pair.baseline / lo
@@ -204,32 +204,32 @@ def reconstruct(view, camera, relief, block_size=BLOCK,
 
     L, R, _ = pair.remap(view["left"], view["right"])
 
-    # 가로로 SUBPIXEL 배 늘려 정합한 뒤 시차를 되돌린다.
+    # 가로로 SUBPIXEL 배 늘려 정합한 뒤 시차를 되돌립니다.
     #
-    # 왜 — SGBM 의 부화소 보간은 시차를 정수 쪽으로 끌어당긴다(픽셀 락킹).
-    # 시차 소수부를 세어 보면 정수 부근(±0.1 px)에 49.3% 가 몰려 있다. 균일
-    # 하면 20% 여야 한다. 그 쏠림이 깊이를 +0.043 px 치우치게 만든다.
+    # 왜 — SGBM 의 부화소 보간은 시차를 정수 쪽으로 끌어당깁니다(픽셀 락킹).
+    # 시차 소수부를 세어 보면 정수 부근(±0.1 px)에 49.3% 가 몰려 있습니다. 균일
+    # 하면 20% 여야 합니다. 그 쏠림이 깊이를 +0.043 px 치우치게 만듭니다.
     #
-    # 가로만 늘리는 이유는 시차가 가로 방향이기 때문이다. 늘려서 정합하면
-    # 시차를 반 픽셀 단위로 표현할 수 있어 양자화가 절반이 된다. 실측:
+    # 가로만 늘리는 이유는 시차가 가로 방향이기 때문입니다. 늘려서 정합하면
+    # 시차를 반 픽셀 단위로 표현할 수 있어 양자화가 절반이 됩니다. 실측:
     #
     #     배율   값이 나온 화소   Z 오차 중앙값   정수 부근   시차 편향
     #      1x        69.4%         64.9 m        49.3%     +0.043 px
     #      2x        69.3%         34.6 m        35.9%     +0.024 px
     #      4x        69.6%         43.0 m        40.9%     +0.028 px
     #
-    # 2배에서 오차가 거의 반이 되고 화소 손실은 없다. 4배는 오히려 나빠진다 -
-    # 보간이 없는 정보를 만들어 내지는 못하기 때문이다.
-    # 왼쪽 기준과 오른쪽 기준 시차를 함께 구한다. 오른쪽 기준은 좌우 일관성
-    # 검사에만 쓰이지만, 그 검사가 가림을 걸러 내는 유일한 수단이다.
+    # 2배에서 오차가 거의 반이 되고 화소 손실은 없습니다. 4배는 오히려 나빠진다 -
+    # 보간이 없는 정보를 만들어 내지는 못하기 때문입니다.
+    # 왼쪽 기준과 오른쪽 기준 시차를 함께 구합니다. 오른쪽 기준은 좌우 일관성
+    # 검사에만 쓰이지만, 그 검사가 가림을 걸러 내는 유일한 수단입니다.
     if SUBPIXEL > 1:
         up = (cv2.resize(L, None, fx=SUBPIXEL, fy=1, interpolation=cv2.INTER_CUBIC),
               cv2.resize(R, None, fx=SUBPIXEL, fy=1, interpolation=cv2.INTER_CUBIC))
         raw_l, raw_r = stereo.compute_disparity_both(
             up[0], up[1], num_disparities=n_disp * SUBPIXEL,
             min_disparity=min_disp * SUBPIXEL, block_size=block_size)
-        # 원래 격자로 되돌린 뒤 필터를 건다. 이상치 필터의 크기 기준(덩어리
-        # 화소 수)이 늘린 영상에서는 다른 넓이를 뜻하기 때문이다.
+        # 원래 격자로 되돌린 뒤 필터를 겁니다. 이상치 필터의 크기 기준(덩어리
+        # 화소 수)이 늘린 영상에서는 다른 넓이를 뜻하기 때문입니다.
         def _back(d):
             return cv2.resize(d, (L.shape[1], L.shape[0]),
                               interpolation=cv2.INTER_NEAREST) / SUBPIXEL
@@ -244,32 +244,32 @@ def reconstruct(view, camera, relief, block_size=BLOCK,
         disparity, stereo.filter_disparity(raw_r), LRC_MAX_DIFF)
     residual = stereo.photometric_residual(L, R, disparity)
     # 이긴 시차가 이웃보다 얼마나 뚜렷하게 이겼는가. 정합기 안에서 실제로
-    # 일어난 일에 가장 가까운 단서이고, 역시 정답을 쓰지 않는다.
+    # 일어난 일에 가장 가까운 단서이고, 역시 정답을 쓰지 않습니다.
     peak = stereo.matching_margin(L, R, disparity)
 
-    # 대비 하한을 영상에서 정한다. 절대값으로 박아 두면 밝기 분포가 다른
-    # 영상에 그대로 옮겼을 때 뜻이 달라진다.
+    # 대비 하한을 영상에서 정합니다. 절대값으로 박아 두면 밝기 분포가 다른
+    # 영상에 그대로 옮겼을 때 뜻이 달라집니다.
     if min_contrast is None:
         min_contrast = stereo.contrast_floor(L, CONTRAST_K)
 
     depth = stereo.disparity_to_depth(disparity, pair.focal, pair.baseline)
     depth = np.where((depth >= lo) & (depth <= hi), depth, np.nan)
-    # 무늬가 없는 곳에서는 매처가 무엇을 고르든 믿을 수 없다. 값을 내지 않는다.
+    # 무늬가 없는 곳에서는 매처가 무엇을 고르든 믿을 수 없습니다. 값을 내지 않습니다.
     depth = np.where(stereo.texture_mask(L, min_contrast), depth, np.nan)
     if use_lrc:
         depth = np.where(lrc, depth, np.nan)
 
-    # 광도 잔차가 큰 화소를 버린다. 옳게 맞춘 화소는 두 영상을 포개므로 잔차가
-    # 잡음 수준이고, 틀린 화소는 다른 지점을 포개므로 크다. 문턱은 남아 있는
-    # 화소의 분포에서 잡으므로 정답도, 절대 상수도 쓰지 않는다.
+    # 광도 잔차가 큰 화소를 버립니다. 옳게 맞춘 화소는 두 영상을 포개므로 잔차가
+    # 잡음 수준이고, 틀린 화소는 다른 지점을 포개므로 큽니다. 문턱은 남아 있는
+    # 화소의 분포에서 잡으므로 정답도, 절대 상수도 쓰지 않습니다.
     if residual_drop:
         alive = np.isfinite(depth) & np.isfinite(residual)
         if alive.any():
             cut = np.percentile(residual[alive], 100.0 * (1.0 - residual_drop))
             depth = np.where(alive & (residual > cut), np.nan, depth)
 
-    # 기준 깊이도 같은 광선 방식으로 만든다. 정렬된 왼쪽 카메라에 직접
-    # 쏘므로 흩뿌리기의 반올림이 끼어들지 않는다.
+    # 기준 깊이도 같은 광선 방식으로 만듭니다. 정렬된 왼쪽 카메라에 직접
+    # 쏘므로 흩뿌리기의 반올림이 끼어들지 않습니다.
     rect_pose = Pose(pair.R1 @ view["pose"].R, pair.R1 @ view["pose"].t)
     reference = terrain.render_heightfield(
         view["elev"], view["gsd"], view["shading"], pair.camera, rect_pose)[1]
@@ -281,19 +281,19 @@ def reconstruct(view, camera, relief, block_size=BLOCK,
             "curvature": peak["curvature"], "match_score": peak["score"]}
 
 
-#: 허용오차를 미터로 못 박지 않고 **시차 몇 픽셀**로 잡는다. 시차 1픽셀이
+#: 허용오차를 미터로 못 박지 않고 **시차 몇 픽셀**로 잡습니다. 시차 1픽셀이
 #: 바꾸는 깊이가 곧 이 촬영 기하의 분해능 한계이므로, 그보다 훨씬 작은 값을
-#: 기준으로 삼으면 알고리즘이 아니라 운을 재게 된다. 촬영 조건이 바뀌어도
-#: 같은 뜻을 갖는다는 장점도 있다.
+#: 기준으로 삼으면 알고리즘이 아니라 운을 재게 됩니다. 촬영 조건이 바뀌어도
+#: 같은 뜻을 갖는다는 장점도 있습니다.
 TOLERANCE_PX = (0.25, 0.5, 1.0, 2.0)
 
 
 def to_grid(points, elev, gsd):
-    """복원한 점들을 지형 격자에 얹는다. 셀마다 중앙값.
+    """복원한 점들을 지형 격자에 얹습니다. 셀마다 중앙값.
 
-    수렴각마다 정렬 창의 크기가 달라 깊이 맵끼리는 화소 단위로 겹칠 수 없다.
+    수렴각마다 정렬 창의 크기가 달라 깊이 맵끼리는 화소 단위로 겹칠 수 없습니다.
     지형 격자는 모든 각도가 공유하는 유일한 좌표계이고, 만들려는 산출물
-    자체가 "격자 위의 고도" 이므로 여기서 합치는 것이 자연스럽다.
+    자체가 "격자 위의 고도" 이므로 여기서 합치는 것이 자연스럽습니다.
     """
     h, w = elev.shape
     p = points[np.isfinite(points).all(axis=1)]
@@ -313,17 +313,17 @@ def to_grid(points, elev, gsd):
 
 
 def fuse(layers, resolutions, max_spread):
-    """여러 각도의 고도 격자를 정밀도로 가중해 합친다.
+    """여러 각도의 고도 격자를 정밀도로 가중해 합칩니다.
 
     가중치를 1/분해능^2 으로 두는 이유
-        시차 1픽셀이 바꾸는 깊이가 그 각도의 정밀도다. 오차가 그 값에
+        시차 1픽셀이 바꾸는 깊이가 그 각도의 정밀도입니다. 오차가 그 값에
         비례한다고 보면 분산은 제곱에 비례하므로, 역분산 가중이 곧
-        1/분해능^2 이 된다. 수렴각이 큰(정밀한) 층이 자연히 무거워진다.
+        1/분해능^2 이 됩니다. 수렴각이 큰(정밀한) 층이 자연히 무거워집니다.
 
     각도끼리 어긋나는 셀을 버리는 이유
-        정답을 보지 않고도 "믿을 수 없는 곳" 을 가려낼 수 있는 유일한 단서다.
-        서로 다른 기하에서 본 값이 다르면 둘 중 하나 이상이 틀린 것이다.
-        실측하면 90 퍼센타일 오차가 87.2 → 82.1 m 로 준다.
+        정답을 보지 않고도 "믿을 수 없는 곳" 을 가려낼 수 있는 유일한 단서입니다.
+        서로 다른 기하에서 본 값이 다르면 둘 중 하나 이상이 틀린 것입니다.
+        실측하면 90 퍼센타일 오차가 87.2 → 82.1 m 로 줍니다.
 
     Returns
     -------
@@ -338,18 +338,18 @@ def fuse(layers, resolutions, max_spread):
     fused = np.where(den > 0, num / np.maximum(den, 1e-12), np.nan)
 
     n_layers = have.sum(axis=0)
-    # nanmax/nanmin 은 전부 NaN 인 셀에서 경고를 낸다. 없는 값을 무한대로
-    # 채워 두면 같은 결과를 경고 없이 얻는다.
+    # nanmax/nanmin 은 전부 NaN 인 셀에서 경고를 냅니다. 없는 값을 무한대로
+    # 채워 두면 같은 결과를 경고 없이 얻습니다.
     hi = np.where(have, stack, -np.inf).max(axis=0)
     lo = np.where(have, stack, np.inf).min(axis=0)
     spread = np.where(n_layers >= 2, hi - lo, np.nan)
-    # 한 층만 값을 낸 셀은 견줄 상대가 없어 그대로 둔다.
+    # 한 층만 값을 낸 셀은 견줄 상대가 없어 그대로 둡니다.
     drop = np.isfinite(spread) & (spread > max_spread)
     return np.where(drop, np.nan, fused), n_layers, spread
 
 
 def _fill_holes(grid):
-    """빈 셀을 가장 가까운 값으로 메운다. 다시 그리려면 구멍이 없어야 한다."""
+    """빈 셀을 가장 가까운 값으로 메웁니다. 다시 그리려면 구멍이 없어야 합니다."""
     from scipy.ndimage import distance_transform_edt
     have = np.isfinite(grid)
     if have.all():
@@ -362,20 +362,20 @@ def _fill_holes(grid):
 
 
 def reshading_score(grid, gsd, camera, view):
-    """복원한 고도를 같은 조명으로 다시 그려 실제 영상과 얼마나 닮았는지 본다.
+    """복원한 고도를 같은 조명으로 다시 그려 실제 영상과 얼마나 닮았는지 봅니다.
 
     왜 이 항이 필요한가
-        교차 각도 불일치는 정합 잡음은 잡지만 **뭉개짐은 못 잡는다.** 블록을
-        키우면 두 각도가 똑같이 매끄러워져 서로 더 잘 맞기 때문이다. 공통
-        모드라 상대 비교로는 드러나지 않는다.
+        교차 각도 불일치는 정합 잡음은 잡지만 **뭉개짐은 못 잡습니다.** 블록을
+        키우면 두 각도가 똑같이 매끄러워져 서로 더 잘 맞기 때문입니다. 공통
+        모드라 상대 비교로는 드러나지 않습니다.
 
-        뭉개진 고도는 다시 그려도 무늬가 밋밋해 실제 영상과 덜 닮는다. 실제
-        영상은 두 각도의 평활과 무관한 **바깥의 기준**이므로 공통 모드가 깨진다.
-        정답 고도는 여전히 쓰지 않는다 — 쓰는 것은 찍은 사진뿐이다.
+        뭉개진 고도는 다시 그려도 무늬가 밋밋해 실제 영상과 덜 닮습니다. 실제
+        영상은 두 각도의 평활과 무관한 **바깥의 기준**이므로 공통 모드가 깨집니다.
+        정답 고도는 여전히 쓰지 않는다 — 쓰는 것은 찍은 사진뿐입니다.
 
     Returns
     -------
-    다시 그린 영상과 실제 영상의 정규화 상관 (1 에 가까울수록 닮았다).
+    다시 그린 영상과 실제 영상의 정규화 상관 (1 에 가까울수록 닮았습니다).
     """
     filled = _fill_holes(grid)
     lit = terrain.shade(filled, gsd, sun_elevation_deg=SUN_ELEVATION,
@@ -396,7 +396,7 @@ def reshading_score(grid, gsd, camera, view):
 
 
 def grid_score(grid, truth):
-    """격자 위 고도를 정답 고도와 견준다."""
+    """격자 위 고도를 정답 고도와 견줍니다."""
     ok = np.isfinite(grid)
     err = np.abs(grid[ok] - truth[ok])
     if not ok.any():
@@ -408,7 +408,7 @@ def grid_score(grid, truth):
 
 
 def score(depth, reference, resolution):
-    """복원 깊이를 기준 깊이와 견준다. 허용오차는 분해능의 배수다."""
+    """복원 깊이를 기준 깊이와 견줍니다. 허용오차는 분해능의 배수입니다."""
     domain = np.isfinite(reference)
     m = metrics.depth_metrics(depth, reference, mask=domain)
     err = np.abs(depth - reference)
@@ -424,7 +424,7 @@ def score(depth, reference, resolution):
 
 
 def to_elevation(rec, view, camera):
-    """복원한 깊이 맵을 지형 좌표계의 고도로 되돌린다."""
+    """복원한 깊이 맵을 지형 좌표계의 고도로 되돌립니다."""
     pair = rec["pair"]
     points_cam = pair.camera.unproject(rec["depth"])
     world = pair.to_body(points_cam, view["pose"])
@@ -432,10 +432,10 @@ def to_elevation(rec, view, camera):
 
 
 def load_apollo_height():
-    """실제 사진 실험의 결과가 있으면 읽는다. 없으면 그 칸을 빼고 그린다.
+    """실제 사진 실험의 결과가 있으면 읽습니다. 없으면 그 칸을 빼고 그립니다.
 
     run_apollo_stereo.py 를 돌려야 생기는 파일이라, 없다고 해서 이 실험이
-    멈추면 안 된다.
+    멈추면 안 됩니다.
     """
     path = os.path.join(OUT, "apollo_height.tif")
     meta = os.path.join(OUT, "apollo_metrics.json")
@@ -457,7 +457,7 @@ def main() -> int:
     dtm_path = sys.argv[1] if len(sys.argv) > 1 else None
 
     log("=" * 70)
-    log("달 지형 스테레오 — 사진 두 장으로 고도를 복원한다")
+    log("달 지형 스테레오 — 사진 두 장으로 고도를 복원합니다")
     log("=" * 70)
 
     global _ALT
@@ -504,15 +504,15 @@ def main() -> int:
     log(f"  Z 오차 중앙값 {best['median_abs']:.1f} m "
         f"= 시차 {best['median_abs_px']:.2f} px · RMSE {best['rmse']:.1f} m")
     log(f"  기복 {relief:,.0f} m 대비 {best['median_abs']/relief*100:.2f}%")
-    log("  허용오차는 시차 몇 픽셀에 해당하는지로 잡는다. 미터로 못 박으면")
-    log("  촬영 기하가 바뀔 때 뜻이 달라진다.")
+    log("  허용오차는 시차 몇 픽셀에 해당하는지로 잡습니다. 미터로 못 박으면")
+    log("  촬영 기하가 바뀔 때 뜻이 달라집니다.")
     for tol in TOLERANCE_PX:
         key = f"within_{str(tol).replace('.', 'p')}px"
         log(f"  {tol:4.2f} px ({tol*resolution:6.0f} m) 이내   "
             f"{best[key]*100:5.1f}%")
 
     log("\n[3] 수렴각을 바꾸면 — 정밀도와 정합 가능성의 맞바꿈")
-    log("  각이 크면 고도를 정밀하게 얻지만 두 영상이 달라 보여 정합이 어렵다.")
+    log("  각이 크면 고도를 정밀하게 얻지만 두 영상이 달라 보여 정합이 어렵습니다.")
     log(f"  {'수렴각':>6s}{'베이스라인':>11s}{'분해능':>9s}{'유효화소':>10s}"
         f"{'Z오차중앙':>11s}{'= 시차':>9s}")
     conv_rows = []
@@ -529,9 +529,9 @@ def main() -> int:
             f"{s['valid_ratio']*100:9.1f}%{s['median_abs']:11.1f}"
             f"{s['median_abs_px']:9.2f}")
 
-    log("\n[4] 정합 블록 크기 — 잡음이 있으면 큰 쪽이 정확하다")
-    log("  블록이 작으면 창 안의 무늬가 적어 잡음 한 점이 정합을 흔든다. 크면")
-    log("  기울어진 면에서 깊이가 뭉개진다. 그 맞바꿈의 균형점을 재서 고른다.")
+    log("\n[4] 정합 블록 크기 — 잡음이 있으면 큰 쪽이 정확합니다")
+    log("  블록이 작으면 창 안의 무늬가 적어 잡음 한 점이 정합을 흔듭니다. 크면")
+    log("  기울어진 면에서 깊이가 뭉개집니다. 그 맞바꿈의 균형점을 재서 고릅니다.")
     log(f"  {'블록':>5s}{'유효화소':>10s}{'Z오차중앙':>11s}{'= 시차':>9s}")
     block_rows = []
     for bs in (3, 5, 7, 9, 11, 15):
@@ -541,15 +541,15 @@ def main() -> int:
         log(f"  {bs:5d}{s['valid_ratio']*100:9.1f}%{s['median_abs']:11.1f}"
             f"{s['median_abs_px']:9.2f}")
     log(f"  채택: 블록 {BLOCK}. 손으로 고른 값이 아니라 [7] 의 절차가 정답을 보지")
-    log("  않고 고른 값이다. 정답으로 고르면 다른 값이 나오고, 그 차이가 이 방식의")
-    log("  비용이다 — [7] 에 적어 두었다.")
-    log("  촬영 조건이 바뀌면 최적점도 움직인다. 잡음이 없을 때는 작은 블록이")
+    log("  않고 고른 값입니다. 정답으로 고르면 다른 값이 나오고, 그 차이가 이 방식의")
+    log("  비용이다 — [7] 에 적어 두었습니다.")
+    log("  촬영 조건이 바뀌면 최적점도 움직입니다. 잡음이 없을 때는 작은 블록이")
     log("  이겼고, 센서 모델을 넣자 큰 쪽으로 갔다가, 실제 표면 무늬를 넣으니")
-    log("  다시 작은 쪽으로 왔다. 손으로 박아 두면 그때마다 조용히 틀린 값이 된다.")
+    log("  다시 작은 쪽으로 왔습니다. 손으로 박아 두면 그때마다 조용히 틀린 값이 됩니다.")
 
     log("\n[5] 여러 수렴각을 합친다 — 정밀도와 덮는 범위를 함께")
-    log("  각도마다 정렬 창이 달라 깊이 맵끼리는 못 겹친다. 지형 격자 위에서")
-    log("  합치되, 정밀한 각도가 무거워지도록 1/분해능^2 으로 가중한다.")
+    log("  각도마다 정렬 창이 달라 깊이 맵끼리는 못 겹칩니다. 지형 격자 위에서")
+    log("  합치되, 정밀한 각도가 무거워지도록 1/분해능^2 으로 가중합니다.")
     grids, resolutions = [], []
     for conv in FUSE_ANGLES:
         vv = make_views(elev, gsd, camera, conv, snr=SNR,
@@ -571,16 +571,16 @@ def main() -> int:
         f"{fused_score['coverage']*100:9.1f}%{fused_score['median_abs']:12.1f} m"
         f"{fused_score['p90_abs']:9.1f}{fused_score['rmse']:10.1f}")
     log("  단독으로는 정밀한 각도가 좁게 덮고 넓은 각도가 성기게 덮는데,")
-    log("  합치면 둘 다 얻는다. 각도끼리 어긋나는 셀은 버려서 90% 오차도 줄인다.")
+    log("  합치면 둘 다 얻습니다. 각도끼리 어긋나는 셀은 버려서 90% 오차도 줄입니다.")
     log(f"  두 각도 이상이 값을 낸 셀 {np.mean(n_layers >= 2)*100:.1f}%, "
         f"세 각도 이상 {np.mean(n_layers >= 3)*100:.1f}%")
 
-    log("\n[6] 정답 없이 믿을 곳을 가려낸다")
-    log("  지금까지는 어느 화소가 맞았는지 정답과 비교해야만 알았다. 실제")
-    log("  운용에는 정답이 없으므로 두 영상만으로 계산되는 단서가 필요하다.")
-    # 채점용은 관문을 모두 끄고 뽑는다. 잔차 관문을 켠 채로 그 잔차를 채점하면
+    log("\n[6] 정답 없이 믿을 곳을 가려냅니다")
+    log("  지금까지는 어느 화소가 맞았는지 정답과 비교해야만 알았습니다. 실제")
+    log("  운용에는 정답이 없으므로 두 영상만으로 계산되는 단서가 필요합니다.")
+    # 채점용은 관문을 모두 끄고 뽑습니다. 잔차 관문을 켠 채로 그 잔차를 채점하면
     # 정보가 있는 꼬리가 이미 잘려 나간 표본을 보게 된다 — 앞서 각도 간 편차를
-    # 거른 격자에서 재다가 같은 함정에 빠졌다.
+    # 거른 격자에서 재다가 같은 함정에 빠졌습니다.
     without = reconstruct(view, camera, relief, use_lrc=False,
                           residual_drop=0.0)
     s_without = score(without["depth"], without["reference"], resolution)
@@ -592,7 +592,7 @@ def main() -> int:
         f"{best['median_abs']:11.1f} m"
         f"{np.nanpercentile(np.abs(rec['depth']-rec['reference']), 90):9.1f}")
     # 다른 관문을 이미 통과한 화소 가운데 몇 개를 이 검사가 더 걸러 내는지를
-    # 본다. 전체 화소로 세면 애초에 시차가 없던 곳까지 섞여 들어간다.
+    # 봅니다. 전체 화소로 세면 애초에 시차가 없던 곳까지 섞여 들어갑니다.
     survived = np.isfinite(without["depth"])
     log(f"  다른 관문을 통과한 화소 중 이 검사가 걸러 낸 비율 "
         f"{(survived & ~without['lrc']).sum() / max(survived.sum(), 1)*100:.1f}%")
@@ -600,7 +600,7 @@ def main() -> int:
     log("")
     log("  신뢰도가 실제 오차를 예측하는가 — 희소화 곡선 (AUSE)")
     log("  신뢰도 낮은 순으로 버리며 남은 오차를 재고, 실제 오차 순으로 버린")
-    log("  이상적인 곡선과의 넓이를 잰다. 0 에 가까울수록 잘 예측한다는 뜻이다.")
+    log("  이상적인 곡선과의 넓이를 잽니다. 0 에 가까울수록 잘 예측한다는 뜻입니다.")
     depth_err = np.abs(without["depth"] - without["reference"])
     rng = np.random.default_rng(0)
     fused_signal = stereo.rank_fuse(-without["residual"], without["margin"],
@@ -627,7 +627,7 @@ def main() -> int:
             f"   (평균오차 {sp['curve'][0]:.0f} → {sp['curve'][-1]:.0f} m)")
 
     # 편차가 큰 셀을 이미 버린 격자에서 재면, 바로 그 셀들이 표본에서
-    # 빠져 신호가 실제보다 약해 보인다. 거르기 전 격자에서 잰다.
+    # 빠져 신호가 실제보다 약해 보입니다. 거르기 전 격자에서 잽니다.
     fused_raw, _, spread_raw = fuse(grids, resolutions, np.inf)
     grid_err = np.abs(fused_raw - elev)
     sp_spread = stereo.sparsification(grid_err, -spread_raw)
@@ -642,14 +642,14 @@ def main() -> int:
         f"   (평균오차 {sp_spread['curve'][0]:.0f} → {sp_spread['curve'][-1]:.0f} m)")
     log("")
     log("  AUSE 는 오차 크기를 얼마나 잘 맞추는지를 보고, AUC 는 '크게 틀린 화소를")
-    log(f"  골라내는가' (시차 1 px = {resolution:.0f} m 초과) 를 본다. 오차의 대부분은")
-    log("  부화소 잡음이라 원리적으로 예측할 수 없다. 실제로 필요한 판단은")
-    log("  '이 값을 버릴까' 이므로 AUC 쪽이 쓰임에 가깝다. 0.5 가 무작위다.")
+    log(f"  골라내는가' (시차 1 px = {resolution:.0f} m 초과) 를 봅니다. 오차의 대부분은")
+    log("  부화소 잡음이라 원리적으로 예측할 수 없습니다. 실제로 필요한 판단은")
+    log("  '이 값을 버릴까' 이므로 AUC 쪽이 쓰임에 가깝습니다. 0.5 가 무작위입니다.")
 
     log("")
-    log("  재기만 해서는 뜻이 없다 — 실제로 버려 보고 좋아지는지 본다")
-    log("  잔차가 큰 쪽부터 버린다. 얼마나 버릴지는 남은 화소의 분포에서 정하므로")
-    log("  정답도 절대 상수도 쓰지 않는다.")
+    log("  재기만 해서는 뜻이 없다 — 실제로 버려 보고 좋아지는지 봅니다")
+    log("  잔차가 큰 쪽부터 버립니다. 얼마나 버릴지는 남은 화소의 분포에서 정하므로")
+    log("  정답도 절대 상수도 쓰지 않습니다.")
     log(f"  {'버리는 비율':>12s}{'유효화소':>10s}{'Z오차중앙':>12s}{'90%':>10s}"
         f"{'1px 초과':>10s}")
     drop_rows = []
@@ -666,27 +666,27 @@ def main() -> int:
             f"{drop_rows[-1]['over_1px']*100:9.2f}%")
     log(f"  채택: {RESIDUAL_DROP*100:.0f}%.")
     log("  중앙값은 거의 안 움직이는데 크게 틀린 화소 비율이 0.26 에서 0.07% 로")
-    log("  떨어진다 — 이 신호가 겨냥하는 것이 바로 그쪽이기 때문이다. 5% 를 넘겨")
-    log("  더 버려도 크게 틀린 화소는 더 안 줄고 덮는 범위만 잃는다.")
+    log("  떨어진다 — 이 신호가 겨냥하는 것이 바로 그쪽이기 때문입니다. 5% 를 넘겨")
+    log("  더 버려도 크게 틀린 화소는 더 안 줄고 덮는 범위만 잃습니다.")
 
-    log("\n[7] 파라미터를 영상에서 정한다")
+    log("\n[7] 파라미터를 영상에서 정합니다")
     log("  상수로 박은 값은 이 지형에서 훑어 고른 값이라 지형이 바뀌면 다시")
-    log("  골라야 한다. 영상 자체에서 유도하면 따라온다.")
+    log("  골라야 합니다. 영상 자체에서 유도하면 따라옵니다.")
     sigma = stereo.estimate_noise_sigma(rec["left_rect"])
     log(f"  잡음 표준편차   {sigma:.2f} 회색조   (Immerkaer, 영상 한 장에서)")
     log(f"  대비 하한       {rec['min_contrast']:.2f} = 잡음 x {CONTRAST_K:.0f}"
-        f"   (예전에는 2.00 을 손으로 박았다)")
+        f"   (예전에는 2.00 을 손으로 박았습니다)")
     log(f"  무늬 자기상관   {stereo.autocorrelation_length(rec['left_rect']):.1f} px"
         f" → 블록 {stereo.suggest_block_size(rec['left_rect'])}")
     log("")
     log("  블록 크기를 정답 없이 고를 수 있는가")
     log("  광도 잔차와 좌우 일관성 통과율은 블록에 대해 단조라서 항상 양 끝을")
-    log("  고른다. 두 가지를 대신 쓴다. 둘 다 정답 고도를 쓰지 않는다.")
+    log("  고릅니다. 두 가지를 대신 씁니다. 둘 다 정답 고도를 쓰지 않습니다.")
     log("    (가) 수렴각이 다른 두 촬영의 결과가 서로 얼마나 일치하는가")
     log("    (나) 복원한 고도를 같은 조명으로 다시 그리면 실제 사진과 닮는가")
     log("  (가) 는 정합 잡음을 잡지만 뭉개짐은 못 잡는다 — 블록을 키우면 두 각도가")
-    log("  똑같이 매끄러워져 서로 더 잘 맞기 때문이다. (나) 는 두 각도 바깥의")
-    log("  기준이라 그 공통 모드를 깬다.")
+    log("  똑같이 매끄러워져 서로 더 잘 맞기 때문입니다. (나) 는 두 각도 바깥의")
+    log("  기준이라 그 공통 모드를 깹니다.")
     log(f"  {'블록':>5s}{'일관성':>9s}{'광도잔차':>10s}"
         f"{'(가) 불일치':>14s}{'(나) 재조명':>13s}{'| 정답 Z오차':>15s}")
     view30 = make_views(elev, gsd, camera, 30.0, snr=SNR, seed=60)
@@ -697,7 +697,7 @@ def main() -> int:
         ok = r["lrc"] & np.isfinite(r["residual"])
 
         # 같은 지형을 다른 각도로 찍어 복원하고, 두 결과가 격자 위에서
-        # 얼마나 어긋나는지 잰다. 정답은 쓰지 않는다.
+        # 얼마나 어긋나는지 잽니다. 정답은 쓰지 않습니다.
         r30 = reconstruct(view30, camera, relief, block_size=bs)
         g15 = to_grid(to_elevation(r, view, camera), elev, gsd)
         g30 = to_grid(to_elevation(r30, view30, camera), elev, gsd)
@@ -705,7 +705,7 @@ def main() -> int:
         disagree = (float(np.median(np.abs(g15[both] - g30[both])))
                     if both.any() else float("nan"))
 
-        # 다시 그려서 실제 사진과 견준다. 뭉갤수록 무늬가 사라져 덜 닮는다.
+        # 다시 그려서 실제 사진과 견줍니다. 뭉갤수록 무늬가 사라져 덜 닮습니다.
         relit = reshading_score(g15, gsd, camera, view)
 
         tune_rows.append({
@@ -719,7 +719,7 @@ def main() -> int:
             f"{tune_rows[-1]['residual']:10.2f}{disagree:12.1f} m"
             f"{relit:13.3f}{sc_['median_abs']:12.1f} m")
 
-    # 두 항을 순위로 합친다. 불일치는 작을수록, 재조명 상관은 클수록 좋다.
+    # 두 항을 순위로 합칩니다. 불일치는 작을수록, 재조명 상관은 클수록 좋습니다.
     combined = stereo.rank_fuse(
         np.array([-r["cross_angle_disagreement"] for r in tune_rows]),
         np.array([r["reshading"] for r in tune_rows]))
@@ -743,9 +743,9 @@ def main() -> int:
         f"({(err_free/err_truth-1)*100:+.1f}%).")
 
     log("\n[8] 촬영 모델이 결과를 얼마나 바꾸는가")
-    log("  렌더링을 실제 쪽으로 옮기는 요소가 셋이다. 방향은 서로 다르다 —")
+    log("  렌더링을 실제 쪽으로 옮기는 요소가 셋입니다. 방향은 서로 다르다 —")
     log("  반사 모델과 센서 잡음은 문제를 어렵게 만들고, 실제 표면 무늬는 오히려")
-    log("  쉽게 만든다. 실제에 가깝다는 것이 곧 성적이 나쁘다는 뜻은 아니다.")
+    log("  쉽게 만듭니다. 실제에 가깝다는 것이 곧 성적이 나쁘다는 뜻은 아닙니다.")
     log(f"  {'촬영 모델':34s}{'유효화소':>10s}{'Z오차중앙':>12s}{'= 시차':>9s}")
     render_rows = []
     for label, photo, snr, alb in (
@@ -764,15 +764,15 @@ def main() -> int:
                             "min_contrast": r["min_contrast"], **sc_})
         log(f"  {label:34s}{sc_['valid_ratio']*100:9.1f}%"
             f"{sc_['median_abs']:11.1f} m{sc_['median_abs_px']:9.2f}")
-    log("  잡음이 가장 크게 좌우한다. 실제 표면 무늬는 고도 모델에 없는 잔무늬를")
+    log("  잡음이 가장 크게 좌우합니다. 실제 표면 무늬는 고도 모델에 없는 잔무늬를")
     log("  되돌려 주므로 정합이 쉬워진다 — 이 고도 모델이 레이저 궤적을 격자로")
-    log("  편 것이라 매끈하다는 한계를 사진이 메우는 셈이다.")
-    log("  그래도 실제로 찍은 스테레오 쌍은 아니다. 이 표가 말하는 것은 렌더링의")
-    log("  어느 부분이 결과를 얼마나 좌우하는가이지, 실제 영상의 성적이 아니다.")
+    log("  편 것이라 매끈하다는 한계를 사진이 메우는 셈입니다.")
+    log("  그래도 실제로 찍은 스테레오 쌍은 아닙니다. 이 표가 말하는 것은 렌더링의")
+    log("  어느 부분이 결과를 얼마나 좌우하는가이지, 실제 영상의 성적이 아닙니다.")
 
     log("\n[9] 3D 로 변환")
-    # 점구름도 융합 결과에서 만든다. 한 각도만 쓰면 위에서 얻은 이득이
-    # 산출물에 반영되지 않는다.
+    # 점구름도 융합 결과에서 만듭니다. 한 각도만 쓰면 위에서 얻은 이득이
+    # 산출물에 반영되지 않습니다.
     yy, xx = np.mgrid[0:elev.shape[0], 0:elev.shape[1]]
     keep = np.isfinite(fused)
     cloud = np.column_stack([
@@ -791,9 +791,9 @@ def main() -> int:
     figures.figure_cloud(view["points"], cloud,
                          os.path.join(OUT, "02_pointcloud.png"))
     figures.figure_method(rec, os.path.join(OUT, "05_method.png"))
-    # 발표 3장은 세 칸으로 둔다. 네 칸이면 각 칸이 작아지고, 실제 사진은
-    # 다른 지역이라 색 범위도 달라 나란히 놓으면 읽는 쪽이 한 번 멈춘다.
-    # 실제 사진 결과는 outputs/07_apollo.png 에 따로 있다.
+    # 발표 3장은 세 칸으로 둡니다. 네 칸이면 각 칸이 작아지고, 실제 사진은
+    # 다른 지역이라 색 범위도 달라 나란히 놓으면 읽는 쪽이 한 번 멈춥니다.
+    # 실제 사진 결과는 outputs/07_apollo.png 에 따로 있습니다.
     figures.figure_result(elev, fused, cloud, gsd, fused_score,
                           os.path.join(OUT, "04_result.png"), apollo=None)
     figures.figure_fusion(elev, fused,

@@ -1,19 +1,19 @@
 """
-1차 업무 [피드백 반영 1] - 이상치 임계값을 데이터 분포에서 산출한다.
+1차 업무 [피드백 반영 1] - 이상치 임계값을 데이터 분포에서 산출합니다.
 
-기존 코드는 밝기 하한 40, 면적비 하한 0.10 을 감으로 정해 두었다. 표본 40장에서는
+기존 코드는 밝기 하한 40, 면적비 하한 0.10 을 감으로 정해 두었습니다. 표본 40장에서는
 밝기 필터가 한 번도 발동하지 않았고, 최저값 54.5 가 임계값과 14.5 밖에 떨어져
-있지 않아 "발동하지 않았다"를 안전하다는 뜻으로 읽을 수 없는 상태였다.
+있지 않아 "발동하지 않았습니다"를 안전하다는 뜻으로 읽을 수 없는 상태였습니다.
 
 이 스크립트는 대규모 표본으로 두 지표의 분포를 직접 그린 뒤, 세 가지 통계 기준으로
-커트라인을 계산하고 어느 쪽을 채택할지 분포 모양을 근거로 판단한다.
+커트라인을 계산하고 어느 쪽을 채택할지 분포 모양을 근거로 판단합니다.
 
-  (a) 백분위수    하위 1% / 5%     - 분포 모양을 가정하지 않는다
+  (a) 백분위수    하위 1% / 5%     - 분포 모양을 가정하지 않습니다
   (b) IQR 울타리  Q1 - 1.5 * IQR   - 상자그림의 표준 이상치 기준
   (c) 정규 근사   mean - 3 * std   - 정규분포를 가정할 때의 0.13% 지점
 
-세 기준은 분포가 정규에 가까울수록 서로 붙고, 치우칠수록 벌어진다. 어느 것이
-맞다가 아니라 어느 것이 이 분포에 맞는지를 왜도로 판정한다.
+세 기준은 분포가 정규에 가까울수록 서로 붙고, 치우칠수록 벌어집니다. 어느 것이
+맞다가 아니라 어느 것이 이 분포에 맞는지를 왜도로 판정합니다.
 
 사용 예)
     py -3 threshold_study.py --num-images 1000
@@ -40,25 +40,25 @@ from image_preprocessing import (
 MEASURE_PATH = Path("outputs/threshold_study_measurements.json")
 THRESHOLD_PATH = Path("thresholds.json")
 
-# 하위 몇 %를 이상치로 볼 것인가. 백분위수 기준의 후보값이다.
+# 하위 몇 %를 이상치로 볼 것인가. 백분위수 기준의 후보값입니다.
 PERCENTILE_CANDIDATES = (1.0, 5.0)
 
-# 왜도의 절댓값이 이 값을 넘으면 정규 근사를 쓰지 않는다.
-# 0.5 는 통계 관행상 '완만한 치우침'과 '뚜렷한 치우침'을 가르는 지점이다.
+# 왜도의 절댓값이 이 값을 넘으면 정규 근사를 쓰지 않습니다.
+# 0.5 는 통계 관행상 '완만한 치우침'과 '뚜렷한 치우침'을 가르는 지점입니다.
 SKEW_LIMIT = 0.5
 
-# 기존에 감으로 정했던 값. 비교 대상으로만 남긴다.
+# 기존에 감으로 정했던 값. 비교 대상으로만 남깁니다.
 OLD = {"mean_brightness": 40.0, "object_area_ratio": 0.10}
 
 
 # ----------------------------------------------------------------------------
-# 1. 측정 - 지표 정의는 image_preprocessing 에서 그대로 가져와 한 곳에만 둔다
+# 1. 측정 - 지표 정의는 image_preprocessing 에서 그대로 가져와 한 곳에만 둡니다
 # ----------------------------------------------------------------------------
 def measure_stream(num_images: int) -> list[dict]:
-    """food101 을 streaming 으로 받아 밝기와 면적비만 측정한다.
+    """food101 을 streaming 으로 받아 밝기와 면적비만 측정합니다.
 
-    이미지 자체는 저장하지 않는다. 1,000 장이면 원본이 250 MB 가까이 되는데
-    필요한 것은 숫자 두 개뿐이라 디스크에 남길 이유가 없다.
+    이미지 자체는 저장하지 않습니다. 1,000 장이면 원본이 250 MB 가까이 되는데
+    필요한 것은 숫자 두 개뿐이라 디스크에 남길 이유가 없습니다.
     """
     from datasets import load_dataset
 
@@ -91,7 +91,7 @@ def measure_stream(num_images: int) -> list[dict]:
 # 2. 커트라인 계산
 # ----------------------------------------------------------------------------
 def describe(values: np.ndarray) -> dict:
-    """분포의 위치, 산포, 모양을 한 번에 요약한다."""
+    """분포의 위치, 산포, 모양을 한 번에 요약합니다."""
     from scipy import stats
 
     q1, q2, q3 = np.percentile(values, [25, 50, 75])
@@ -105,7 +105,7 @@ def describe(values: np.ndarray) -> dict:
         "median": float(q2),
         "q3": float(q3),
         "iqr": float(q3 - q1),
-        # 왜도: 0 이면 대칭, 양수면 오른쪽 꼬리가 길다.
+        # 왜도: 0 이면 대칭, 양수면 오른쪽 꼬리가 길습니다.
         # 첨도(초과): 0 이면 정규분포와 같은 뾰족함.
         "skew": float(stats.skew(values)),
         "kurtosis": float(stats.kurtosis(values)),
@@ -113,10 +113,10 @@ def describe(values: np.ndarray) -> dict:
 
 
 def cutlines(values: np.ndarray) -> dict:
-    """세 가지 기준으로 하한 커트라인을 계산한다.
+    """세 가지 기준으로 하한 커트라인을 계산합니다.
 
     이상치 제거의 목적이 '너무 어두운' / '객체가 너무 작은' 쪽을 걸러내는 것이므로
-    양측이 아니라 하한 단측만 본다.
+    양측이 아니라 하한 단측만 봅니다.
     """
     q1, q3 = np.percentile(values, [25, 75])
     iqr = q3 - q1
@@ -130,11 +130,11 @@ def cutlines(values: np.ndarray) -> dict:
 
 
 def choose(summary: dict, lines: dict) -> tuple[str, float, str]:
-    """분포 모양을 보고 어떤 기준을 채택할지 정한다.
+    """분포 모양을 보고 어떤 기준을 채택할지 정합니다.
 
     왜도가 작으면 정규 근사와 IQR 이 비슷하게 나오므로 이상치 판정의 표준인
-    IQR 울타리를 쓴다. 치우친 분포에서는 IQR 울타리가 데이터 범위 밖으로
-    나가 아무것도 걸러내지 못하는 일이 잦아, 분포 가정이 없는 백분위수를 쓴다.
+    IQR 울타리를 씁니다. 치우친 분포에서는 IQR 울타리가 데이터 범위 밖으로
+    나가 아무것도 걸러내지 못하는 일이 잦아, 분포 가정이 없는 백분위수를 씁니다.
     """
     skewed = abs(summary["skew"]) > SKEW_LIMIT
     fence_useless = lines["iqr_fence"] < summary["min"]
@@ -159,7 +159,7 @@ def choose(summary: dict, lines: dict) -> tuple[str, float, str]:
 # 3. 시각화
 # ----------------------------------------------------------------------------
 def plot(rows: list[dict], result: dict, path: Path) -> None:
-    """히스토그램에 커트라인 후보를 모두 얹어 어디서 잘리는지 눈으로 비교한다."""
+    """히스토그램에 커트라인 후보를 모두 얹어 어디서 잘리는지 눈으로 비교합니다."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -230,7 +230,7 @@ def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="이상치 임계값 분포 조사")
     p.add_argument("--num-images", type=int, default=1000, help="측정할 이미지 수")
     p.add_argument("--from-cache", action="store_true",
-                   help="새로 받지 않고 저장된 측정값으로 계산만 다시 한다")
+                   help="새로 받지 않고 저장된 측정값으로 계산만 다시 합니다")
     return p.parse_args()
 
 

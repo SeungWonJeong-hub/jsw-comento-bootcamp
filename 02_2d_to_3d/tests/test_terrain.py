@@ -1,13 +1,13 @@
 """달 지형 스테레오의 Unit Test.
 
 출력 크기와 자료형만 보는 테스트는 수식이
-틀려도 통과하므로, **손으로 답을 낼 수 있는 조건**을 만들어 숫자까지 대조한다.
+틀려도 통과하므로, **손으로 답을 낼 수 있는 조건**을 만들어 숫자까지 대조합니다.
 
-  해석해      평면을 내려다보면 깊이가 정확히 고도와 같아야 한다
-  불변식      베이스라인 = 2·H·tan(수렴각/2), 카메라 두 대가 같은 점을 본다
-  왕복        깊이 맵을 3D 로 펴서 되돌리면 원래 고도가 나와야 한다
+  해석해      평면을 내려다보면 깊이가 정확히 고도와 같아야 합니다
+  불변식      베이스라인 = 2·H·tan(수렴각/2), 카메라 두 대가 같은 점을 봅니다
+  왕복        깊이 맵을 3D 로 펴서 되돌리면 원래 고도가 나와야 합니다
   회귀        렌더링한 두 장의 시차가 f·B/Z 와 맞아야 한다  <- 실제 버그를 잡은 것
-  경계        잘못된 입력은 조용히 넘어가지 말고 예외를 낸다
+  경계        잘못된 입력은 조용히 넘어가지 말고 예외를 냅니다
 """
 
 from __future__ import annotations
@@ -34,15 +34,15 @@ needs_dtm = pytest.mark.skipif(not os.path.exists(DTM),
 # --------------------------------------------------------------------------
 
 def test_surface_points_places_grid_centre_at_origin():
-    """격자의 가운데가 원점에 오고, 화소 간격이 지상 거리와 같아야 한다."""
+    """격자의 가운데가 원점에 오고, 화소 간격이 지상 거리와 같아야 합니다."""
     elev = np.zeros((5, 5))
     pts = terrain.surface_points(elev, gsd=10.0)
 
     centre = pts[len(pts) // 2]
     np.testing.assert_allclose(centre, [0.0, 0.0, 0.0], atol=1e-12)
-    # 가로로 이웃한 두 점은 정확히 gsd 만큼 떨어져 있다.
+    # 가로로 이웃한 두 점은 정확히 gsd 만큼 떨어져 있습니다.
     assert np.isclose(pts[1, 0] - pts[0, 0], 10.0)
-    # 세로는 위쪽 행이 북쪽(+Y)이다.
+    # 세로는 위쪽 행이 북쪽(+Y)입니다.
     assert pts[0, 1] > pts[-1, 1]
 
 
@@ -61,8 +61,8 @@ def test_normals_of_a_flat_plane_point_straight_up():
 
 
 def test_normal_of_a_constant_slope_matches_the_angle():
-    """기울기 tan(t) 인 사면의 법선은 시선과 정확히 t 만큼 기울어야 한다."""
-    gsd, slope = 5.0, 0.25            # 동쪽으로 갈수록 높아진다
+    """기울기 tan(t) 인 사면의 법선은 시선과 정확히 t 만큼 기울어야 합니다."""
+    gsd, slope = 5.0, 0.25            # 동쪽으로 갈수록 높아집니다
     x = np.arange(32) * gsd
     elev = np.tile(slope * x, (32, 1))
     n = terrain.surface_normals(elev, gsd)[16, 16]
@@ -82,7 +82,7 @@ def test_normals_reject_bad_pixel_size(gsd):
 # --------------------------------------------------------------------------
 
 def test_overhead_sun_on_flat_ground_gives_albedo_plus_ambient():
-    """태양이 바로 위면 램버트 반사는 albedo 그대로다."""
+    """태양이 바로 위면 램버트 반사는 albedo 그대로입니다."""
     img = terrain.shade(np.zeros((8, 8)), gsd=5.0, sun_elevation_deg=90.0,
                         albedo=0.2, ambient=0.05)
     np.testing.assert_allclose(img, 0.25, atol=1e-9)
@@ -95,11 +95,11 @@ def test_sun_at_the_horizon_leaves_only_ambient():
 
 
 def test_slope_facing_the_sun_is_brighter_than_the_one_away():
-    """해를 마주 보는 사면이 밝아야 한다.
+    """해를 마주 보는 사면이 밝아야 합니다.
 
-    부호를 헷갈리기 쉽다. 고도가 동쪽으로 갈수록 높아지는 지형은 **서쪽 비탈**
-    이다. 그 면의 법선이 서쪽을 향하므로 서쪽에 뜬 해에 밝아진다. 처음에는
-    동쪽 해로 적었다가 이 테스트에서 걸렸다.
+    부호를 헷갈리기 쉽습니다. 고도가 동쪽으로 갈수록 높아지는 지형은 **서쪽 비탈**
+    입니다. 그 면의 법선이 서쪽을 향하므로 서쪽에 뜬 해에 밝아집니다. 처음에는
+    동쪽 해로 적었다가 이 테스트에서 걸렸습니다.
     """
     gsd = 5.0
     x = np.arange(32) * gsd
@@ -119,7 +119,7 @@ def test_slope_facing_the_sun_is_brighter_than_the_one_away():
 def test_look_at_returns_an_orthonormal_pose_aimed_at_the_target():
     pose = terrain.look_at((100.0, -50.0, 2000.0), (0.0, 0.0, 0.0))
     np.testing.assert_allclose(pose.R @ pose.R.T, np.eye(3), atol=1e-12)
-    # 바라보는 점은 카메라 앞(+z)에 있고 광축 위에 있다.
+    # 바라보는 점은 카메라 앞(+z)에 있고 광축 위에 있습니다.
     target_cam = pose.apply(np.zeros((1, 3)))[0]
     assert target_cam[2] > 0
     np.testing.assert_allclose(target_cam[:2], 0.0, atol=1e-9)
@@ -132,10 +132,10 @@ def test_look_at_rejects_a_degenerate_up_hint():
 
 
 def test_nadir_cameras_do_not_flip_their_right_direction():
-    """수직에 가까운 두 시점이 같은 쪽을 영상 오른쪽으로 삼아야 한다.
+    """수직에 가까운 두 시점이 같은 쪽을 영상 오른쪽으로 삼아야 합니다.
 
-    up 기준을 수직(0,0,1) 로 두면 외적이 0 에 가까워져 방향이 홱 뒤집힌다.
-    실제로 그렇게 짰다가 두 카메라의 상대 회전이 20도가 아니라 180도로 나왔다.
+    up 기준을 수직(0,0,1) 로 두면 외적이 0 에 가까워져 방향이 홱 뒤집힙니다.
+    실제로 그렇게 짰다가 두 카메라의 상대 회전이 20도가 아니라 180도로 나왔습니다.
     """
     left, right, _ = terrain.stereo_cameras(2000.0, convergence_deg=20.0)
     R_ij, _ = stereo.relative_pose(left, right)
@@ -164,10 +164,10 @@ def test_stereo_cameras_reject_impossible_convergence(bad):
 # --------------------------------------------------------------------------
 
 def test_nadir_view_of_flat_ground_has_constant_depth_equal_to_altitude():
-    """수직으로 평지를 보면 모든 화소의 깊이가 고도와 같다.
+    """수직으로 평지를 보면 모든 화소의 깊이가 고도와 같습니다.
 
-    광축에 수직인 평면은 어느 화소에서 보든 z 성분이 같기 때문이다. 값이
-    조금이라도 다르면 투영식이나 광선 방향이 틀린 것이다.
+    광축에 수직인 평면은 어느 화소에서 보든 z 성분이 같기 때문입니다. 값이
+    조금이라도 다르면 투영식이나 광선 방향이 틀린 것입니다.
     """
     H = 1500.0
     cam = PinholeCamera(64, 64, 400.0)
@@ -181,7 +181,7 @@ def test_nadir_view_of_flat_ground_has_constant_depth_equal_to_altitude():
 
 
 def test_rendered_depth_recovers_the_original_elevation():
-    """깊이 맵을 3D 로 펴서 지형 좌표계로 되돌리면 원래 고도가 나와야 한다."""
+    """깊이 맵을 3D 로 펴서 지형 좌표계로 되돌리면 원래 고도가 나와야 합니다."""
     elev, gsd = terrain.synthetic_dtm(size=128, gsd=5.0, relief=200.0, seed=1)
     H = 400.0 * gsd
     cam = PinholeCamera(128, 128, 400.0)
@@ -197,10 +197,10 @@ def test_rendered_depth_recovers_the_original_elevation():
 
 @pytest.mark.parametrize("gsd", [0.0, -5.0])
 def test_render_rejects_bad_pixel_size(gsd):
-    """화소 크기가 0 이면 조용히 0 으로 나누지 말고 예외를 내야 한다.
+    """화소 크기가 0 이면 조용히 0 으로 나누지 말고 예외를 내야 합니다.
 
-    법선 계산은 검사하는데 렌더링은 빠져 있었다. 0 으로 나눈 좌표가 그대로
-    보간에 들어가 경고만 남기고 엉뚱한 그림이 나온다.
+    법선 계산은 검사하는데 렌더링은 빠져 있었습니다. 0 으로 나눈 좌표가 그대로
+    보간에 들어가 경고만 남기고 엉뚱한 그림이 나옵니다.
     """
     cam = PinholeCamera(32, 32, 100.0)
     pose = terrain.look_at((0.0, 0.0, 500.0), (0.0, 0.0, 0.0))
@@ -224,16 +224,16 @@ def test_render_rejects_mismatched_elevation_and_intensity():
 # --------------------------------------------------------------------------
 
 def test_rendered_pair_aligns_at_the_disparity_the_geometry_predicts():
-    """렌더링한 두 장이 f·B/Z 에서 가장 잘 겹쳐야 한다.
+    """렌더링한 두 장이 f·B/Z 에서 가장 잘 겹쳐야 합니다.
 
-    실제로 났던 버그를 고정한다. 점을 화소에 흩뿌려 그릴 때 위치를 반올림하면
-    그 오차가 표면 기울기 방향으로 쏠린다. 수렴 촬영의 두 카메라는 서로 반대로
-    기울어 있어 좌우가 반대로 쏠리고, 결과가 **시차 치우침**이다. 티코 지형에서
-    +2.6 px, 깊이로 1.2 km 였다. 화소마다 광선을 쏘는 방식으로 바꿔 −0.1 px 가
-    됐다.
+    실제로 났던 버그를 고정합니다. 점을 화소에 흩뿌려 그릴 때 위치를 반올림하면
+    그 오차가 표면 기울기 방향으로 쏠립니다. 수렴 촬영의 두 카메라는 서로 반대로
+    기울어 있어 좌우가 반대로 쏠리고, 결과가 **시차 치우침**입니다. 티코 지형에서
+    +2.6 px, 깊이로 1.2 km 였습니다. 화소마다 광선을 쏘는 방식으로 바꿔 −0.1 px 가
+    됐습니다.
 
     기하식만 대조하면 P1, P2 의 정의상 항상 맞아 떨어져 아무것도 검증하지
-    못한다. 그래서 **렌더링한 영상 자체**를 시차만큼 밀어 겹쳐 본다.
+    못합니다. 그래서 **렌더링한 영상 자체**를 시차만큼 밀어 겹쳐 봅니다.
     """
     import cv2
 
@@ -271,11 +271,11 @@ def test_rendered_pair_aligns_at_the_disparity_the_geometry_predicts():
 
 
 def test_scatter_render_would_bias_the_disparity():
-    """흩뿌리기 방식이 기울어진 시점에서 실제로 치우침을 만드는지 고정한다.
+    """흩뿌리기 방식이 기울어진 시점에서 실제로 치우침을 만드는지 고정합니다.
 
-    고친 방식(광선)과 옛 방식(흩뿌리기)을 같은 장면에 돌려 비교한다. 옛 방식이
-    더 크게 치우쳐야 한다. 이 관계가 깨지면 렌더러를 되돌려도 테스트가 통과해
-    버리므로, 회귀를 막으려면 둘을 함께 재야 한다.
+    고친 방식(광선)과 옛 방식(흩뿌리기)을 같은 장면에 돌려 비교합니다. 옛 방식이
+    더 크게 치우쳐야 합니다. 이 관계가 깨지면 렌더러를 되돌려도 테스트가 통과해
+    버리므로, 회귀를 막으려면 둘을 함께 재야 합니다.
     """
     elev, gsd = terrain.synthetic_dtm(size=160, gsd=5.0, relief=250.0, seed=3)
     H = 400.0 * gsd
@@ -289,7 +289,7 @@ def test_scatter_render_would_bias_the_disparity():
 
     both = np.isfinite(ray) & np.isfinite(scat)
     assert both.mean() > 0.5
-    # 흩뿌리기는 깊이를 카메라 쪽으로 당긴다 (3x3 최소값 필터와 같다).
+    # 흩뿌리기는 깊이를 카메라 쪽으로 당긴다 (3x3 최소값 필터와 같습니다).
     assert np.median(scat[both] - ray[both]) < 0.0
 
 
@@ -304,7 +304,7 @@ def test_synthetic_terrain_is_reproducible_and_scaled():
     np.testing.assert_array_equal(a, b)
     assert not np.array_equal(a, c)
     assert gsd == 5.0
-    # 크레이터가 파이므로 기복은 relief 보다 커진다.
+    # 크레이터가 파이므로 기복은 relief 보다 커집니다.
     assert a.max() - a.min() > 300.0
 
 
@@ -345,15 +345,15 @@ def test_real_dtm_rejects_an_oversized_crop():
 # --------------------------------------------------------------------------
 
 def test_full_pipeline_recovers_the_terrain_within_one_pixel():
-    """렌더링 → 정렬 → 정합 → 깊이 까지 한 번에 돌려 정확도를 확인한다.
+    """렌더링 → 정렬 → 정합 → 깊이 까지 한 번에 돌려 정확도를 확인합니다.
 
-    조각마다 맞아도 이어 붙이면 틀릴 수 있다. 좌표계를 한 군데서 잘못 돌리면
-    각 단계는 통과하면서 최종 깊이만 어긋난다. 그래서 끝에서 끝까지 한 번
-    돌려 **시차 1픽셀에 해당하는 깊이** 안에 드는지 본다.
+    조각마다 맞아도 이어 붙이면 틀릴 수 있습니다. 좌표계를 한 군데서 잘못 돌리면
+    각 단계는 통과하면서 최종 깊이만 어긋납니다. 그래서 끝에서 끝까지 한 번
+    돌려 **시차 1픽셀에 해당하는 깊이** 안에 드는지 봅니다.
 
     1픽셀을 기준으로 두는 이유는, 그것이 이 촬영 기하가 원리적으로 구분할 수
-    있는 한계이기 때문이다. 그보다 작은 오차를 요구하면 정합 알고리즘이 아니라
-    운을 시험하게 된다.
+    있는 한계이기 때문입니다. 그보다 작은 오차를 요구하면 정합 알고리즘이 아니라
+    운을 시험하게 됩니다.
     """
     from src import metrics
 
@@ -389,18 +389,18 @@ def test_full_pipeline_recovers_the_terrain_within_one_pixel():
     m = metrics.depth_metrics(depth, reference, mask=np.isfinite(reference))
     one_pixel = stereo.depth_resolution(altitude, pair.focal, pair.baseline)
 
-    # 정렬 창은 원본 화각 밖까지 포함하므로 값이 나오는 화소는 3분의 1 정도다.
-    # 기준 깊이가 정의된 영역 자체가 88% 이고, 거기서 그늘과 가장자리가 빠진다.
+    # 정렬 창은 원본 화각 밖까지 포함하므로 값이 나오는 화소는 3분의 1 정도입니다.
+    # 기준 깊이가 정의된 영역 자체가 88% 이고, 거기서 그늘과 가장자리가 빠집니다.
     assert m["valid_ratio"] > 0.25
-    # 실측 0.30 px. 절반을 상한으로 두면 정합이 망가졌을 때만 걸린다.
+    # 실측 0.30 px. 절반을 상한으로 두면 정합이 망가졌을 때만 걸립니다.
     assert m["median_abs"] < 0.5 * one_pixel
 
 
 def test_texture_gate_keeps_patterned_areas_and_drops_flat_ones():
-    """무늬가 있는 곳만 남기고 평평한 곳은 버려야 한다.
+    """무늬가 있는 곳만 남기고 평평한 곳은 버려야 합니다.
 
-    블록 정합은 창 안의 밝기 패턴을 맞춘다. 패턴이 없으면 어디에 갖다 대도
-    비용이 비슷해서, 매처가 고른 값이 옳다는 보장이 없다.
+    블록 정합은 창 안의 밝기 패턴을 맞춥니다. 패턴이 없으면 어디에 갖다 대도
+    비용이 비슷해서, 매처가 고른 값이 옳다는 보장이 없습니다.
     """
     flat = np.full((64, 64), 120, dtype=np.uint8)
     assert not stereo.texture_mask(flat, 2.0).any()
@@ -409,7 +409,7 @@ def test_texture_gate_keeps_patterned_areas_and_drops_flat_ones():
     speckled = np.clip(120 + rng.normal(0, 25, (64, 64)), 0, 255).astype(np.uint8)
     assert stereo.texture_mask(speckled, 2.0).mean() > 0.95
 
-    # 절반만 무늬가 있으면 그 절반만 남는다.
+    # 절반만 무늬가 있으면 그 절반만 남습니다.
     half = flat.copy()
     half[:, 32:] = speckled[:, 32:]
     kept = stereo.texture_mask(half, 2.0)
@@ -423,12 +423,12 @@ def test_local_contrast_rejects_bad_window(bad):
 
 
 def test_render_rejects_terrain_above_the_camera():
-    """지형이 카메라보다 높으면 멈춰야 한다.
+    """지형이 카메라보다 높으면 멈춰야 합니다.
 
-    고정점 반복은 광선이 아래로 내려가며 지면을 한 번 만난다고 가정한다.
+    고정점 반복은 광선이 아래로 내려가며 지면을 한 번 만난다고 가정합니다.
     지형이 카메라보다 높으면 그 전제가 깨지는데, 예외 없이 두면 값이 거의
-    안 나오는 결과가 조용히 돌아온다. 실제로 기복 4 km 지형을 고도 2.5 km
-    에서 찍는 설정이 유효화소 3% 를 내놓고도 아무 말이 없었다.
+    안 나오는 결과가 조용히 돌아옵니다. 실제로 기복 4 km 지형을 고도 2.5 km
+    에서 찍는 설정이 유효화소 3% 를 내놓고도 아무 말이 없었습니다.
     """
     elev, gsd = terrain.synthetic_dtm(size=64, gsd=5.0, relief=4000.0, seed=1)
     cam = PinholeCamera(64, 64, 500.0)
@@ -447,7 +447,7 @@ def _run_module():
 
 
 def test_grid_binning_puts_points_in_the_right_cell():
-    """지형 격자에 얹을 때 셀 위치가 어긋나면 안 된다."""
+    """지형 격자에 얹을 때 셀 위치가 어긋나면 안 됩니다."""
     M = _run_module()
     elev = np.zeros((5, 5))
     gsd = 10.0
@@ -460,10 +460,10 @@ def test_grid_binning_puts_points_in_the_right_cell():
 
 
 def test_fusion_weights_the_precise_layer_more():
-    """정밀한 층(분해능이 작은 층)이 더 무겁게 반영돼야 한다."""
+    """정밀한 층(분해능이 작은 층)이 더 무겁게 반영돼야 합니다."""
     M = _run_module()
     coarse = np.full((4, 4), 100.0)      # 분해능 400 m
-    fine = np.full((4, 4), 200.0)        # 분해능 100 m -> 16배 무겁다
+    fine = np.full((4, 4), 200.0)        # 분해능 100 m -> 16배 무겁습니다
     fused, n, spread = M.fuse([coarse, fine], [400.0, 100.0], max_spread=1e9)
     expected = (100.0 / 400.0 ** 2 + 200.0 / 100.0 ** 2) /                (1 / 400.0 ** 2 + 1 / 100.0 ** 2)
     assert fused[0, 0] == pytest.approx(expected)
@@ -472,21 +472,21 @@ def test_fusion_weights_the_precise_layer_more():
 
 
 def test_fusion_drops_cells_where_the_layers_disagree():
-    """각도끼리 어긋나는 셀은 버려야 한다.
+    """각도끼리 어긋나는 셀은 버려야 합니다.
 
-    정답을 보지 않고 "믿을 수 없는 곳" 을 가려낼 수 있는 단서다. 서로 다른
-    기하에서 본 값이 다르면 둘 중 하나 이상이 틀린 것이다.
+    정답을 보지 않고 "믿을 수 없는 곳" 을 가려낼 수 있는 단서입니다. 서로 다른
+    기하에서 본 값이 다르면 둘 중 하나 이상이 틀린 것입니다.
     """
     M = _run_module()
     a = np.array([[10.0, 10.0]])
-    b = np.array([[10.5, 90.0]])         # 오른쪽 셀에서 크게 어긋난다
+    b = np.array([[10.5, 90.0]])         # 오른쪽 셀에서 크게 어긋납니다
     fused, _, _ = M.fuse([a, b], [100.0, 100.0], max_spread=5.0)
     assert np.isfinite(fused[0, 0])
     assert np.isnan(fused[0, 1])
 
 
 def test_fusion_keeps_a_cell_only_one_layer_saw():
-    """한 층만 본 셀은 견줄 상대가 없으므로 그대로 둔다."""
+    """한 층만 본 셀은 견줄 상대가 없으므로 그대로 둡니다."""
     M = _run_module()
     a = np.array([[np.nan, 5.0]])
     b = np.array([[7.0, np.nan]])

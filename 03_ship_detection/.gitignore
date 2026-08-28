@@ -1,0 +1,6 @@
+data/
+runs/
+weights/
+*.pt
+*.onnx
+*.onnx.data
