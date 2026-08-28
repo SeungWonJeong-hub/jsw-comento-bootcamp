@@ -38,7 +38,18 @@ STAC = "https://earth-search.aws.element84.com/v1/search"
 
 
 def load_detections(path, min_presence, max_per_scene, rng):
-    """CSV → {scene_id: [(lon, lat, length_m, heading_deg, is_infra)]}"""
+    """CSV → {scene_id: [(lon, lat, length_m, heading_deg, is_infra)]}
+
+    주의 — max_per_scene 은 기본적으로 쓰지 않는다 (0 = 무제한).
+
+    처음에는 "몇 장면이 데이터를 지배하지 않게" 장면당 60개로 무작위 추출했다.
+    그런데 버려진 배는 사진에서 사라지지 않는다. 타일 안에 그대로 있는데
+    라벨만 없어져, 학습에서 "저건 배가 아니다"로 배운다.
+    실제로 탐지의 80%를 버렸고 재현율이 0.13~0.24 로 무너졌다.
+    라벨 정렬은 97% 로 멀쩡했기 때문에 정렬 검사로는 안 잡히는 종류의 오류였다.
+
+    장면 수로 규모를 조절하고, 고른 장면 안의 탐지는 전부 쓴다.
+    """
     by_scene = collections.defaultdict(list)
     with open(path, encoding="utf-8") as f:
         for r in csv.DictReader(f):
@@ -58,7 +69,8 @@ def load_detections(path, min_presence, max_per_scene, rng):
             except Exception:
                 continue
             by_scene[r["scene_id"]].append((lon, lat, L, H, infra))
-    # 장면당 상한 — 몇 장면이 데이터를 지배하지 않도록
+    if not max_per_scene:                      # 0 = 무제한 (기본)
+        return dict(by_scene)
     out = {}
     for k, v in by_scene.items():
         if len(v) > max_per_scene:
@@ -186,9 +198,11 @@ def main():
     ap.add_argument("--gfw", default="C:/Users/seung/datasets/GFW")
     ap.add_argument("--out", default="C:/Users/seung/datasets/GFWShips/yolo")
     ap.add_argument("--min-presence", type=float, default=0.8)
-    ap.add_argument("--max-per-scene", type=int, default=60)
-    ap.add_argument("--train-scenes", type=int, default=220)
-    ap.add_argument("--korea-scenes", type=int, default=90)
+    ap.add_argument("--max-per-scene", type=int, default=0,
+                help="장면당 탐지 상한. 0=무제한. 상한을 걸면 버려진 배가 "
+                     "라벨 없는 배로 남아 재현율이 무너진다")
+    ap.add_argument("--train-scenes", type=int, default=110)
+    ap.add_argument("--korea-scenes", type=int, default=45)
     ap.add_argument("--seed", type=int, default=0)
     a = ap.parse_args()
 
