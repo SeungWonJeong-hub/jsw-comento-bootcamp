@@ -14,8 +14,10 @@
 ![탐지 결과](outputs/fig6_hero_det.png)
 
 학습에 쓰지 않은 해역(34WFT)에서 선박이 몰린 6.4 x 3.6 km 입니다.
-신뢰도 0.5(F1 최고점)에 물 위 필터를 걸어 8척을 찾았고, 같은 창의 주석은
-11척, 둘이 겹친 것은 6척입니다.
+신뢰도 0.5(F1 최고점)에 물 위 필터를 걸어 8척을 찾았습니다. 같은 창의 정답
+라벨은 11척이고, 그중 6척을 찾았습니다. 남은 2척은 라벨에 없는 자리인데,
+주변 물과의 밝기 차가 64 DN 으로 찾은 배(21 DN)보다 밝아 라벨이 빠뜨린
+배로 보입니다.
 
 배는 장변이 5 화소입니다. 형체가 읽히려면 30 화소쯤은 되어야 하니 배율이 6배는
 필요하고, 그러면 10 m 화소 하나도 발표 화면에서 0.34 mm 로 함께 보입니다. 이 둘은
@@ -48,7 +50,9 @@
 │   ├── measure_representable_width.py  10 m 에서 폭이 표현되는가  ← 규약 논쟁의 결말
 │   ├── bench_cpu.py            ONNX 내보내기·CPU 지연시간 (4차 웹앱의 전제)
 │   ├── figures.py              그림 생성
+│   ├── fig_before_after.py     타일을 확대해 원본·탐지를 나란히 (fig_hero 이전)
 │   ├── fig_hero.py             탐지 결과 대표 그림 (PPT 3장)
+│   ├── fig_port.py             한국 항만 그림 + GFW 정답 대조
 │   ├── make_ppt.py             보고용 PPT 생성
 │   └── yolo11-p2-obb.yaml      P2(stride 4) 헤드 모델 설정
 ├── kernel/                     카글 GPU 학습 커널
@@ -356,9 +360,10 @@ python src/build_dataset.py                       # 핀란드 학습셋 구축
 python src/eval_size_strata.py --weights <best.pt> --split test
 python src/eval_point.py       --weights <best.pt> --split test
 python src/operating_point.py  --weights <best.pt> --split test
-python src/korea_ports.py --port busan_anchorage --weights <best.pt> --conf 0.5
+python src/korea_ports.py --port busan_anchorage --weights <best.pt>   # conf 0.05 + 물 게이트
 python src/figures.py
 python src/fig_hero.py --weights <best.pt>       # 탐지 결과 대표 그림
+python src/fig_port.py --weights <best.pt>       # 한국 항만 + GFW 대조
 python src/make_ppt.py                           # 보고용 PPT
 ```
 
