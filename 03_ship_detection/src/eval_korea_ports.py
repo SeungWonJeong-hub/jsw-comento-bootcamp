@@ -46,12 +46,13 @@ def load_gfw(path, bbox, date=None, min_presence=0.8):
             if date and ts != date:
                 continue
             L = float(r["length_m_inferred"]) if r.get("length_m_inferred") else 30.0
-            out.append((lon, lat, L, ts, bool(r.get("mmsi"))))
+            H = float(r["heading_deg_inferred"]) if r.get("heading_deg_inferred") else 0.0
+            out.append((lon, lat, L, ts, bool(r.get("mmsi")), H))
     return out
 
 
 def match(preds, gts, radius_px):
-    """신뢰도 순 탐욕 매칭. (맞았나, 신뢰도, 거리, 정답 길이)"""
+    """점 기반 — 신뢰도 순 탐욕 매칭. (맞았나, 신뢰도, 거리, 정답 길이)"""
     used, recs = set(), []
     for cx, cy, cf in sorted(preds, key=lambda p: -p[2]):
         best, bi = 1e9, -1
@@ -72,6 +73,42 @@ def match(preds, gts, radius_px):
     return recs
 
 
+def poly_iou(a, b):
+    ia, _ = cv2.intersectConvexConvex(a.astype(np.float32), b.astype(np.float32))
+    if ia <= 0:
+        return 0.0
+    ua = (cv2.contourArea(a.astype(np.float32))
+          + cv2.contourArea(b.astype(np.float32)) - ia)
+    return ia / ua if ua > 0 else 0.0
+
+
+def match_iou(pred_polys, gt_polys, thr):
+    """IoU 기반 매칭. (맞았나, 신뢰도, IoU)
+
+    주의 — 정답 박스는 GFW 의 점 + 길이 + 방향으로 '합성'한 것이다.
+    따라서 여기서 재는 IoU 오차에는 모델의 위치 오차뿐 아니라
+    내 박스 합성 오차도 섞여 있다. 점 기반 결과와 나란히 봐야 한다.
+    """
+    used, recs = set(), []
+    for poly, cf in sorted(pred_polys, key=lambda p: -p[1]):
+        best, bi = 0.0, -1
+        for i, g in enumerate(gt_polys):
+            if i in used:
+                continue
+            v = poly_iou(poly, g)
+            if v > best:
+                best, bi = v, i
+        if best >= thr and bi >= 0:
+            used.add(bi)
+            recs.append((1, cf, best))
+        else:
+            recs.append((0, cf, float('nan')))
+    for i in range(len(gt_polys)):
+        if i not in used:
+            recs.append((0, -1.0, float('nan')))
+    return recs
+
+
 def main():
     import sys
     ap = argparse.ArgumentParser()
@@ -89,6 +126,7 @@ def main():
 
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from korea_ports import PORTS, find_scene, fetch_window, detect, to_lonlat
+    from build_gfw_dataset import obb_from
     from ultralytics import YOLO
     from rasterio.warp import transform as _t
 
@@ -110,33 +148,56 @@ def main():
         img, affine, crs = fetch_window(sc["visual"], bbox)
         inv = ~affine
         xs, ys = _t("EPSG:4326", crs, [g[0] for g in gts_ll], [g[1] for g in gts_ll])
-        gts = []
+        gts, headings = [], []
         for (X, Y), g in zip(zip(xs, ys), gts_ll):
             cx, cy = inv * (X, Y)
             if 0 <= cx < img.shape[1] and 0 <= cy < img.shape[0]:
                 gts.append((cx, cy, g[2]))
+                headings.append(g[5])
         if not gts:
             print(f"{label:<16} 창 안에 정답 없음")
             continue
 
         dets = detect(img, model, conf=a.conf)
         preds = [(p[:, 0].mean(), p[:, 1].mean(), c) for p, c in dets]
-        recs = match(preds, gts, a.radius_px)
 
+        # --- 점 기반 ---
+        recs = match(preds, gts, a.radius_px)
         det = [r for r in recs if r[1] >= 0]
         tp = sum(r[0] for r in det)
         prec = tp / len(det) if det else 0.0
         rec = tp / len(gts) if gts else 0.0
         f1 = 2 * prec * rec / (prec + rec) if (prec + rec) else 0.0
         err = [r[2] for r in recs if r[0] == 1]
+
+        # --- IoU 기반 ---
+        # GFW 의 점+길이+방향으로 정답 회전 박스를 합성한다
+        gt_polys = [obb_from(cx, cy, L / 10.0, H)
+                    for (cx, cy, L), H in zip(gts, headings)]
+        iou_out = {}
+        for thr in (0.3, 0.5):
+            ir = match_iou(dets, gt_polys, thr)
+            idet = [r for r in ir if r[1] >= 0]
+            itp = sum(r[0] for r in idet)
+            ip = itp / len(idet) if idet else 0.0
+            ir_ = itp / len(gt_polys) if gt_polys else 0.0
+            iou_out[f"iou{int(thr*100)}"] = dict(
+                precision=ip, recall=ir_,
+                f1=2 * ip * ir_ / (ip + ir_) if (ip + ir_) else 0.0)
+        matched_iou = [r[2] for r in match_iou(dets, gt_polys, 0.1) if r[0] == 1]
+        mean_iou = float(np.mean(matched_iou)) if matched_iou else float('nan')
+
         ais = sum(1 for g in gts_ll if g[4]) / len(gts_ll)
-        print(f"{label:<16} {sc['datetime'][:10]}  GFW정답 {len(gts):>4}  탐지 {len(det):>4}  "
-              f"P {prec:.3f}  R {rec:.3f}  F1 {f1:.3f}  "
-              f"중심오차 {np.median(err) if err else float('nan'):.2f}px  AIS {100*ais:.0f}%")
+        i50, i30 = iou_out["iou50"], iou_out["iou30"]
+        print(f"{label:<16} GFW정답 {len(gts):>4}  탐지 {len(det):>4}  |  "
+              f"점 P {prec:.3f} R {rec:.3f} F1 {f1:.3f}  |  "
+              f"IoU50 P {i50['precision']:.3f} R {i50['recall']:.3f}  "
+              f"IoU30 R {i30['recall']:.3f}  평균IoU {mean_iou:.3f}")
         summary[name] = dict(label=label, scene=sc["id"], datetime=sc["datetime"],
-                             n_gt=len(gts), n_det=len(det), precision=prec,
-                             recall=rec, f1=f1,
-                             center_err_px=float(np.median(err)) if err else None,
+                             n_gt=len(gts), n_det=len(det),
+                             point=dict(precision=prec, recall=rec, f1=f1,
+                                        center_err_px=float(np.median(err)) if err else None),
+                             iou=iou_out, mean_iou=mean_iou,
                              ais_ratio=ais, conf=a.conf)
 
     os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
