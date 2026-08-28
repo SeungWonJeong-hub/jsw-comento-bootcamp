@@ -175,7 +175,13 @@ def main():
     ap.add_argument("--port", default="busan_anchorage", choices=list(PORTS) + ["all"])
     ap.add_argument("--weights", required=True)
     ap.add_argument("--repo", default=None, help="커스텀 모듈이 있는 ultralytics 포크 경로")
-    ap.add_argument("--conf", type=float, default=0.25)
+    # 0.25 에서는 항적이 뚜렷한 배도 잘려 나갔다. 낮추고 물 게이트로 거른다.
+    ap.add_argument("--conf", type=float, default=0.05)
+    # DOTA 는 OBB 실험에 NMS 0.1 을 쓴다. 우리 기본값 0.5 는 3~5 px 물체에서
+    # 같은 배를 여러 번 남긴다 (최근접 이웃 p10 이 10 m = 1 px 이었다).
+    ap.add_argument("--nms-iou", type=float, default=0.1)
+    ap.add_argument("--no-gate", action="store_true",
+                    help="물 게이트를 끄고 원본 탐지를 그대로 본다")
     ap.add_argument("--max-cloud", type=float, default=10)
     ap.add_argument("--outdir", default="outputs/korea")
     a = ap.parse_args()
@@ -197,10 +203,26 @@ def main():
             print(f"{label:<16} 구름 {a.max_cloud}% 이하 장면 없음")
             continue
         img, affine, crs = fetch_window(sc["visual"], bbox)
-        dets = detect(img, model, conf=a.conf)
+        raw = detect(img, model, conf=a.conf, iou=a.nms_iou)
 
+        # 임계값을 낮추면 놓친 배를 되찾지만 갯벌과 부두에 오탐이 붙는다.
+        # 그래서 낮춘 다음 물 위에 있는 것만 남긴다. 두 조치는 짝이다.
+        #   낮춘다      -> 재현율을 올린다
+        #   게이트를 건다 -> 새로 생긴 육지 오탐을 버린다
+        # 대가는 접안한 배다. 부두가 밝아 물로 보이지 않아 함께 버려진다.
         gray = img.mean(2)
+        if a.no_gate:
+            dets, dropped = raw, []
+        else:
+            dets, dropped = [], []
+            for poly, cf in raw:
+                cx, cy = poly[:, 0].mean(), poly[:, 1].mean()
+                tgt = dropped if on_water(gray, cx, cy) is False else dets
+                tgt.append((poly, cf))
+
         vis = img[:, :, ::-1].copy()
+        for poly, _ in dropped:            # 게이트가 버린 것을 옅은 빨강으로 남긴다
+            cv2.polylines(vis, [poly.astype(np.int32)], True, (60, 60, 200), 1)
         rows = []
         for poly, cf in dets:
             cv2.polylines(vis, [poly.astype(np.int32)], True, (0, 212, 255), 2)
@@ -213,14 +235,17 @@ def main():
         cv2.imwrite(f"{a.outdir}/{name}.jpg", vis)
         summary[name] = {"label": label, "scene": sc["id"], "datetime": sc["datetime"],
                          "cloud": sc["cloud"], "size_px": list(img.shape[:2]),
+                         "conf": a.conf, "gate": not a.no_gate,
+                         "n_raw": len(raw), "n_dropped": len(dropped),
                          "n_detections": len(dets), "detections": rows}
         med = np.median([r["length_m"] for r in rows]) if rows else 0
         ws = [r["on_water"] for r in rows if r["on_water"] is not None]
         wr = 100 * sum(ws) / len(ws) if ws else 0
         summary[name]["water_ratio"] = wr
         print(f"{label:<16} {sc['datetime'][:10]}  구름 {sc['cloud']:>4.1f}%  "
-              f"{img.shape[1]}x{img.shape[0]}px  탐지 {len(dets):>4}척  "
-              f"길이중앙 {med:>5.0f} m  물 위 {wr:>3.0f}%")
+              f"{img.shape[1]}x{img.shape[0]}px  "
+              f"탐지 {len(dets):>4}척 (원본 {len(raw)}, 게이트 -{len(dropped)})  "
+              f"길이중앙 {med:>5.0f} m")
 
     # 항만을 하나씩 돌리는 경우가 많아, 덮어쓰지 말고 이어 붙인다
     sp = f"{a.outdir}/summary.json"
