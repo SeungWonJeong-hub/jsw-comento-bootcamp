@@ -1,15 +1,15 @@
 """
-1차 업무 [피드백 반영 3] - 증강을 미리 저장하지 않고 학습 중 실시간으로 건다.
+1차 업무 [피드백 반영 3] - 증강을 미리 저장하지 않고 학습 중 실시간으로 겁니다.
 
-기존 파이프라인은 증강 결과를 파일로 만들어 두었다. 그러면 두 가지가 손해다.
+기존 파이프라인은 증강 결과를 파일로 만들어 두었습니다. 그러면 두 가지가 손해입니다.
 
-  1. 저장 공간 — 증강 종류만큼 데이터셋이 배로 불어난다.
-  2. 다양성   — 한 이미지가 평생 정해진 몇 장으로 고정된다. 에폭을 아무리 돌려도
-               모델이 보는 변형은 저장해 둔 그 몇 장뿐이다.
+  1. 저장 공간 — 증강 종류만큼 데이터셋이 배로 불어납니다.
+  2. 다양성   — 한 이미지가 평생 정해진 몇 장으로 고정됩니다. 에폭을 아무리 돌려도
+               모델이 보는 변형은 저장해 둔 그 몇 장뿐입니다.
 
 실시간 증강은 __getitem__ 이 호출될 때마다 난수를 새로 뽑으므로, 같은 이미지라도
-에폭마다 다른 변형이 나온다. 저장 공간은 0 이고 다양성은 사실상 무제한이다.
-그 대신 CPU 연산이 늘어나므로 DataLoader 의 num_workers 로 학습과 겹쳐 돌린다.
+에폭마다 다른 변형이 나옵니다. 저장 공간은 0 이고 다양성은 사실상 무제한입니다.
+그 대신 CPU 연산이 늘어나므로 DataLoader 의 num_workers 로 학습과 겹쳐 돌립니다.
 
   구조:  경로 목록 -> __getitem__ 에서 [로드 -> 리사이즈 -> 무작위 증강 ->
          블러 -> 그레이스케일 -> 정규화] -> (1, 224, 224) float32 텐서
@@ -54,9 +54,9 @@ except ImportError as exc:  # pragma: no cover - 안내용
 class AugmentConfig:
     """무작위 증강의 범위와 발동 확률.
 
-    기존 코드는 회전 15도, 채도 1.4배, 명도 1.25배를 고정값으로 썼다. 실시간
-    증강에서는 고정값을 쓸 이유가 없으므로 구간에서 매번 뽑는다. 고정값이면
-    '15도 돌아간 사진'만 배우지만, 구간이면 그 사이 모든 각도를 배운다.
+    기존 코드는 회전 15도, 채도 1.4배, 명도 1.25배를 고정값으로 썼습니다. 실시간
+    증강에서는 고정값을 쓸 이유가 없으므로 구간에서 매번 뽑습니다. 고정값이면
+    '15도 돌아간 사진'만 배우지만, 구간이면 그 사이 모든 각도를 배웁니다.
     """
     flip_prob: float = 0.5
     rotate_prob: float = 0.5
@@ -68,11 +68,11 @@ class AugmentConfig:
 
 def random_augment(image: np.ndarray, cfg: AugmentConfig,
                    rng: np.random.Generator) -> np.ndarray:
-    """컬러 BGR 이미지에 무작위 증강을 적용한다.
+    """컬러 BGR 이미지에 무작위 증강을 적용합니다.
 
     난수원을 인자로 받는 이유: DataLoader 워커마다 독립적인 난수열을 주기
-    위해서다. 전역 난수를 쓰면 워커가 fork/spawn 될 때 같은 시드를 물려받아
-    모든 워커가 똑같은 증강을 내놓는, 눈에 잘 안 띄는 버그가 생긴다.
+    위해서입니다. 전역 난수를 쓰면 워커가 fork/spawn 될 때 같은 시드를 물려받아
+    모든 워커가 똑같은 증강을 내놓는, 눈에 잘 안 띄는 버그가 생깁니다.
     """
     out = image
     if rng.random() < cfg.flip_prob:
@@ -82,7 +82,7 @@ def random_augment(image: np.ndarray, cfg: AugmentConfig,
         degrees = float(rng.uniform(*cfg.rotate_range))
         h, w = out.shape[:2]
         matrix = cv2.getRotationMatrix2D((w / 2, h / 2), degrees, 1.0)
-        # 빈 구석을 검게 두면 모델이 '검은 삼각형'을 특징으로 배운다.
+        # 빈 구석을 검게 두면 모델이 '검은 삼각형'을 특징으로 배웁니다.
         out = cv2.warpAffine(out, matrix, (w, h), borderMode=cv2.BORDER_REPLICATE)
 
     if rng.random() < cfg.color_prob:
@@ -100,8 +100,8 @@ def random_augment(image: np.ndarray, cfg: AugmentConfig,
 class Food101Dataset(Dataset):
     """경로 목록을 받아 학습 입력 텐서를 그때그때 만들어 내는 데이터셋.
 
-    이미지를 미리 메모리에 다 올리지 않고 __getitem__ 에서 읽는다. 데이터셋이
-    커져도 메모리가 늘지 않고, 읽기는 워커 프로세스에서 학습과 병렬로 일어난다.
+    이미지를 미리 메모리에 다 올리지 않고 __getitem__ 에서 읽습니다. 데이터셋이
+    커져도 메모리가 늘지 않고, 읽기는 워커 프로세스에서 학습과 병렬로 일어납니다.
     """
 
     def __init__(self, paths, labels=None, *, thresholds=None, augment: bool = True,
@@ -117,8 +117,8 @@ class Food101Dataset(Dataset):
 
         self.reports: list = []
         if filter_outliers:
-            # 품질 검사는 학습 전 1회만 한다. __getitem__ 안에서 매번 하면
-            # 에폭마다 같은 판정을 반복하는 순수한 낭비다.
+            # 품질 검사는 학습 전 1회만 합니다. __getitem__ 안에서 매번 하면
+            # 에폭마다 같은 판정을 반복하는 순수한 낭비입니다.
             keep_paths, keep_labels = [], []
             for path, label in zip(paths, labels):
                 image = cv2.imread(str(path))
@@ -139,22 +139,22 @@ class Food101Dataset(Dataset):
         return len(self.paths)
 
     def __getstate__(self) -> dict:
-        """워커 프로세스로 복제될 때 난수원은 빼고 보낸다.
+        """워커 프로세스로 복제될 때 난수원은 빼고 보냅니다.
 
         메인 프로세스에서 이미 만들어진 Generator 를 그대로 피클해 보내면 모든
-        워커가 동일한 난수 상태에서 출발한다. 결과가 정상으로 보이기 때문에
-        찾기 어려운 종류의 버그다. None 으로 비워 보내면 각 워커가 자기
-        torch.initial_seed() 로 새로 만든다.
+        워커가 동일한 난수 상태에서 출발합니다. 결과가 정상으로 보이기 때문에
+        찾기 어려운 종류의 버그입니다. None 으로 비워 보내면 각 워커가 자기
+        torch.initial_seed() 로 새로 만듭니다.
         """
         state = self.__dict__.copy()
         state["_rng"] = None
         return state
 
     def _generator(self) -> np.random.Generator:
-        """워커별로 독립적인 난수원을 지연 생성한다.
+        """워커별로 독립적인 난수원을 지연 생성합니다.
 
         torch.initial_seed() 는 DataLoader 가 워커마다 다르게 넣어 주는 값이라,
-        이것을 섞으면 워커끼리 겹치지 않으면서 에폭마다 달라지는 난수열이 된다.
+        이것을 섞으면 워커끼리 겹치지 않으면서 에폭마다 달라지는 난수열이 됩니다.
         """
         if self._rng is None:
             worker = torch.utils.data.get_worker_info()
@@ -169,9 +169,9 @@ class Food101Dataset(Dataset):
             raise FileNotFoundError(f"이미지를 읽을 수 없습니다: {self.paths[index]}")
 
         # 순서: 리사이즈 -> 증강 -> 블러 -> 그레이스케일 -> 정규화
-        # 증강을 리사이즈 뒤에 두면 회전/보간 비용이 224x224 에서만 발생한다.
-        # 블러를 증강 뒤에 두는 이유는 기존 파이프라인과 같다. 커널이 항상
-        # 같은 화소 비율로 작동해야 한다.
+        # 증강을 리사이즈 뒤에 두면 회전/보간 비용이 224x224 에서만 발생합니다.
+        # 블러를 증강 뒤에 두는 이유는 기존 파이프라인과 같습니다. 커널이 항상
+        # 같은 화소 비율로 작동해야 합니다.
         out = cv2.resize(image, self.target_size, interpolation=cv2.INTER_AREA)
         if self.augment:
             out = random_augment(out, self.config, self._generator())
@@ -183,7 +183,7 @@ class Food101Dataset(Dataset):
 
 def make_loader(dataset: Food101Dataset, batch_size: int = 8, workers: int = 0,
                 shuffle: bool = True) -> DataLoader:
-    """학습용 DataLoader. 워커가 증강을 미리 만들어 두므로 GPU 가 기다리지 않는다."""
+    """학습용 DataLoader. 워커가 증강을 미리 만들어 두므로 GPU 가 기다리지 않습니다."""
     return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle,
                       num_workers=workers, drop_last=False,
                       persistent_workers=workers > 0)
@@ -194,7 +194,7 @@ def make_loader(dataset: Food101Dataset, batch_size: int = 8, workers: int = 0,
 # ----------------------------------------------------------------------------
 def storage_comparison(dataset: Food101Dataset, num_augment: int = 3,
                        full_train_size: int = 75_750) -> dict:
-    """사전 저장 방식과 실시간 방식의 디스크 사용량을 비교한다.
+    """사전 저장 방식과 실시간 방식의 디스크 사용량을 비교합니다.
 
     full_train_size 는 food101 학습 분할 전체 장수(101 클래스 x 750 장)다.
     """
@@ -215,7 +215,7 @@ def storage_comparison(dataset: Food101Dataset, num_augment: int = 3,
 
 def demo_variation(dataset: Food101Dataset, index: int, epochs: int,
                    out_path: Path) -> list[float]:
-    """같은 인덱스를 여러 번 꺼내 매번 다른 결과가 나오는지 확인하고 격자로 저장한다."""
+    """같은 인덱스를 여러 번 꺼내 매번 다른 결과가 나오는지 확인하고 격자로 저장합니다."""
     tiles, diffs, first = [], [], None
     for epoch in range(epochs):
         tensor, _ = dataset[index]

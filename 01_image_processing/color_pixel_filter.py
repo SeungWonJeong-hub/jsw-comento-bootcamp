@@ -6,9 +6,9 @@
   - cv2.threshold(): 이진화를 통한 픽셀 필터링
   - cv2.inRange()  : 특정 색상 범위의 픽셀 감지
 
-빨간색을 기본 대상으로 하되, --color 로 다른 색도 지정할 수 있게 일반화했다.
+빨간색을 기본 대상으로 하되, --color 로 다른 색도 지정할 수 있게 일반화했습니다.
 과제 예제는 cv2.imshow() 로 화면 출력하지만, 여기서는 결과를 파일로 저장해
-CI/원격 환경에서도 재현되도록 했다(--show 옵션으로 창 출력도 가능).
+CI/원격 환경에서도 재현되도록 했습니다(--show 옵션으로 창 출력도 가능).
 
 사용 예)
     py -3 color_pixel_filter.py --image data/sample.jpg --color red
@@ -23,12 +23,12 @@ import cv2
 import numpy as np
 
 # HSV 색상 범위 정의. OpenCV 의 H 는 0~179 범위임에 주의.
-# 빨간색은 H=0 을 기준으로 양쪽 끝에 걸쳐 있어 범위를 두 개로 나눠야 한다.
+# 빨간색은 H=0 을 기준으로 양쪽 끝에 걸쳐 있어 범위를 두 개로 나눠야 합니다.
 #
-# red 는 과제 예제의 값을 그대로 유지한다.
-# red-orange 는 위성 염전 이미지의 화소 값을 직접 재서 정한 범위다.
+# red 는 과제 예제의 값을 그대로 유지합니다.
+# red-orange 는 위성 염전 이미지의 화소 값을 직접 재서 정한 범위입니다.
 #   염전 화소 실측: H 7~11, S 96~135, V 76~223
-#   -> 색상(H)이 아니라 채도(S) 하한 120 에서 절반이 잘려나가고 있었다.
+#   -> 색상(H)이 아니라 채도(S) 하한 120 에서 절반이 잘려나가고 있었습니다.
 COLOR_RANGES: dict[str, list[tuple[tuple[int, int, int], tuple[int, int, int]]]] = {
     "red":        [((0, 120, 70), (10, 255, 255)), ((170, 120, 70), (180, 255, 255))],
     "red-orange": [((0, 100, 70), (15, 255, 255))],
@@ -42,7 +42,7 @@ JPEG_QUALITY = 92       # 사진 계열 결과물 저장 품질
 
 
 def load_image(path: Path) -> np.ndarray:
-    """이미지를 로드한다. cv2.imread 는 실패해도 예외 없이 None 을 돌려주므로 직접 검사한다."""
+    """이미지를 로드합니다. cv2.imread 는 실패해도 예외 없이 None 을 돌려주므로 직접 검사합니다."""
     image = cv2.imread(str(path))
     if image is None:
         raise FileNotFoundError(f"이미지를 읽을 수 없습니다: {path}")
@@ -50,7 +50,7 @@ def load_image(path: Path) -> np.ndarray:
 
 
 def analyze_pixels(image: np.ndarray) -> dict[str, object]:
-    """픽셀 값의 기초 통계를 계산한다(채널 순서는 OpenCV 규약대로 B, G, R)."""
+    """픽셀 값의 기초 통계를 계산합니다(채널 순서는 OpenCV 규약대로 B, G, R)."""
     b, g, r = cv2.split(image)
     return {
         "shape": image.shape,                  # (height, width, channels)
@@ -64,21 +64,21 @@ def analyze_pixels(image: np.ndarray) -> dict[str, object]:
 
 
 def build_color_mask(image: np.ndarray, color: str) -> np.ndarray:
-    """지정한 색상에 해당하는 픽셀만 255 로 표시된 마스크를 만든다."""
+    """지정한 색상에 해당하는 픽셀만 255 로 표시된 마스크를 만듭니다."""
     if color not in COLOR_RANGES:
         raise ValueError(f"지원하지 않는 색상: {color} (가능: {', '.join(COLOR_RANGES)})")
 
-    # 조명 변화에 강인하도록 RGB 가 아닌 HSV 공간에서 색을 판별한다.
+    # 조명 변화에 강인하도록 RGB 가 아닌 HSV 공간에서 색을 판별합니다.
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
     mask = np.zeros(hsv.shape[:2], dtype=np.uint8)
     for lower, upper in COLOR_RANGES[color]:
         part = cv2.inRange(hsv, np.array(lower, np.uint8), np.array(upper, np.uint8))
-        # 과제 예제의 `mask = mask1 + mask2` 형태를 그대로 따른다.
+        # 과제 예제의 `mask = mask1 + mask2` 형태를 그대로 따릅니다.
         # uint8 덧셈이라 두 범위에 모두 걸린 화소는 255+255 가 254 로 넘치는데,
-        # 사용한 이미지에서 겹친 화소가 0 개임을 확인했다. red 는 두 구간이 H 양끝에
-        # 떨어져 있고 red-orange 는 구간이 하나뿐이라 겹칠 여지가 없다.
-        # 구간이 겹치는 색을 추가한다면 cv2.bitwise_or 로 바꿔야 한다.
+        # 사용한 이미지에서 겹친 화소가 0 개임을 확인했습니다. red 는 두 구간이 H 양끝에
+        # 떨어져 있고 red-orange 는 구간이 하나뿐이라 겹칠 여지가 없습니다.
+        # 구간이 겹치는 색을 추가한다면 cv2.bitwise_or 로 바꿔야 합니다.
         mask = mask + part
 
     # 점 노이즈 제거 후 구멍 메우기
@@ -96,12 +96,12 @@ def build_binary_map(image: np.ndarray) -> np.ndarray:
 
 
 def apply_mask(image: np.ndarray, mask: np.ndarray) -> np.ndarray:
-    """마스크에 해당하는 픽셀만 원본에서 남기고 나머지는 검게 만든다."""
+    """마스크에 해당하는 픽셀만 원본에서 남기고 나머지는 검게 만듭니다."""
     return cv2.bitwise_and(image, image, mask=mask)
 
 
 def annotate_regions(image: np.ndarray, mask: np.ndarray, min_area: int = 200) -> np.ndarray:
-    """검출된 색상 영역에 경계 상자를 그려 어디가 잡혔는지 눈으로 확인할 수 있게 한다."""
+    """검출된 색상 영역에 경계 상자를 그려 어디가 잡혔는지 눈으로 확인할 수 있게 합니다."""
     annotated = image.copy()
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     for contour in contours:
@@ -144,9 +144,9 @@ def main() -> None:
     ratio = detected / stats["total_pixels"] * 100
     print(f"\n[{args.color} 검출] {detected:,} px / {stats['total_pixels']:,} px ({ratio:.2f}%)")
 
-    # 사진 계열은 JPEG, 마스크·이진화는 PNG 로 저장한다.
+    # 사진 계열은 JPEG, 마스크·이진화는 PNG 로 저장합니다.
     # 사진을 PNG 무손실로 담으면 원본 JPEG 대비 5배 가까이 커지고, 반대로 마스크를
-    # JPEG 로 담으면 경계에 압축 잡음이 생겨 값이 0/255 로 유지되지 않는다.
+    # JPEG 로 담으면 경계에 압축 잡음이 생겨 값이 0/255 로 유지되지 않습니다.
     stem = args.image.stem
     results = [
         (f"{stem}_1_original.jpg", image),
