@@ -9,7 +9,10 @@
   01 방법    핀란드 연안 데이터로 학습셋을 만들고 파인튜닝한 경로
   02 결과    대조군 넷의 기여도, 그리고 지표를 바꾸니 뒤집힌 결론
   03 확인    탐지 결과를 한 장으로 크게, 원본과 나란히
-  04 확장    한국으로 가져갈 때 무엇이 되고 무엇이 안 되는지 (4차)
+
+한국 확장은 아직 넣지 않습니다. 부산에서 잰 수치가 규약 차이에 크게 흔들려,
+무엇을 어디까지 말할 수 있는지 정하기 전에는 장을 만들지 않습니다.
+slide4 는 지울 때가 아니라 다시 쓸 때를 위해 남겨 둡니다.
 """
 import os
 import json
@@ -27,7 +30,7 @@ HAIR, CANVAS, CARD = "EBEBEB", "FAFAFA", "FFFFFF"
 ACC, WARN = "0070F3", "D4443C"
 SANS, SEMI, MED, MONO = ("Pretendard", "Pretendard SemiBold",
                          "Pretendard Medium", "Cascadia Mono")
-TOTAL = 4
+TOTAL = 3
 
 
 def C(h):
@@ -248,17 +251,20 @@ def slide3(prs, fig):
     if os.path.exists(p):
         sl.shapes.add_picture(p, Inches(9.57), Inches(2.24), width=Inches(2.96))
 
+    # 표는 빼기를 시키지 않습니다. "주석 11, 탐지 8" 만 놓으면 읽는 사람이
+    # 11-8=3 을 미탐으로 셉니다. 탐지 8 중 2 는 주석에 없는 자리라 실제 미탐은
+    # 5 입니다. 그래서 정답과 탐지를 각각 맞은 것/틀린 것으로 갈라 적습니다.
     txt(sl, 9.57, 4.20, 2.96, .22, "이 창의 숫자", SEMI, 10.5, INK)
     rows(sl, 9.57, 4.28, ["", ""],
-         [["창 크기", f"{kw} x {kh} km"],
-          ["주석된 선박", f"{m['gt']}척"],
-          ["모델이 찾은 것", f"{m['det']}척"],
-          ["둘이 겹친 것", f"{m['hit']}척"]],
+         [["주석된 선박", f"{m['gt']}척"],
+          ["  그중 찾은 것", f"{m['hit']}척"],
+          ["  놓친 것", f"{m['gt'] - m['hit']}척"],
+          ["주석에 없는데 잡은 것", f"{m['unmatched']}척"]],
          [1.70, 1.26])
     txt(sl, 9.57, 5.62, 2.96, 1.30,
-        f"주석과 짝이 없는 {m['unmatched']}건은 주변 물과의 밝기 차가 "
-        f"{dn['unmatched']} DN 으로, 겹친 배({dn['hit']} DN)보다 오히려 밝습니다 — "
-        f"주석에 빠진 배로 보입니다. 놓친 {m['gt'] - m['hit']}척은 {dn['miss']} DN 입니다.",
+        f"놓친 {m['gt'] - m['hit']}척은 주변 물과의 밝기 차가 {dn['miss']} DN 인 "
+        f"어두운 배입니다. 주석에 없는데 잡은 {m['unmatched']}척은 {dn['unmatched']} DN "
+        f"으로 찾은 배({dn['hit']} DN)보다 오히려 밝아, 주석이 빠뜨린 배로 보입니다.",
         SANS, 9.0, MUTE, line=1.42)
 
 
@@ -318,7 +324,6 @@ def build(out, fig):
     slide1(prs, fig)
     slide2(prs, fig)
     slide3(prs, fig)
-    slide4(prs, fig)
     prs.save(out)
     print("저장:", out)
 

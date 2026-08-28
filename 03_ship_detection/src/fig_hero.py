@@ -117,6 +117,80 @@ def best_window(cs, ww, hh, lim):
     return best, bn
 
 
+def render(img, polys, S, attribution):
+    """사진 위에 청록 박스와 배지·범례·축척을 얹어 한 장으로 만듭니다.
+
+    핀란드 평가셋이든 한국 항만이든 그리는 방식은 같아야, 두 장을 나란히 놓고
+    비교할 수 있습니다.
+    """
+    h, w = img.shape[:2]
+    W, H = w * S, h * S
+    shown = tone(stretch(img))
+    base = cv2.resize(shown, (W, H), interpolation=cv2.INTER_LANCZOS4)
+
+    # 청록 박스입니다. 배가 몇 화소뿐이라 실제 크기대로 그리면 화면에서 선 두
+    # 줄이 됩니다. 최소 한 변을 두어 눈에 걸리게 하되, 중심과 방향은 탐지 결과
+    # 그대로입니다.
+    MIN = 30
+    boxes = []
+    for p in polys:
+        (cx, cy), (bw, bh), ang = cv2.minAreaRect((p * S).astype(np.float32))
+        boxes.append(cv2.boxPoints(((cx, cy), (max(bw, MIN), max(bh, MIN)), ang))
+                     .astype(np.int32))
+    over = base.copy()
+    for q in boxes:
+        cv2.fillPoly(over, [q], CYAN)
+    base = cv2.addWeighted(over, 0.13, base, 0.87, 0)
+    for q in boxes:
+        cv2.polylines(base, [q], True, CYAN, 3, cv2.LINE_AA)
+
+    # 글자는 Pretendard 로 얹습니다 — 슬라이드 본문과 같은 서체입니다
+    im = Image.fromarray(cv2.cvtColor(base, cv2.COLOR_BGR2RGB))
+    dr = ImageDraw.Draw(im, "RGBA")
+    cy = (38, 228, 228, 255)
+
+    f_big, f_lab = font("Bold", 104), font("SemiBold", 27)
+    num = str(len(polys))
+    nw = dr.textlength(num, font=f_big)
+    lw = dr.textlength("탐지된 선박", font=f_lab)
+    bw = int(max(nw, lw) + 72)
+    bx, by = W - 64 - bw, 64
+    rrect(dr, [bx, by, bx + bw, by + 158], 16, fill=(8, 12, 14, 195),
+          outline=(38, 228, 228, 95), width=2)
+    dr.text((bx + bw / 2 - lw / 2, by + 22), "탐지된 선박", font=f_lab,
+            fill=(150, 235, 235, 255))
+    dr.text((bx + bw / 2 - nw / 2, by + 46), num, font=f_big, fill=cy)
+
+    f_leg = font("Medium", 27)
+    tw = dr.textlength("모델이 찾은 선박", font=f_leg)
+    rrect(dr, [64, H - 64 - 62, 64 + tw + 92, H - 64], 12, fill=(8, 12, 14, 195))
+    rrect(dr, [86, H - 64 - 41, 108, H - 64 - 19], 3,
+          fill=(38, 228, 228, 55), outline=cy, width=3)
+    dr.text((126, H - 64 - 47), "모델이 찾은 선박", font=f_leg, fill=(232, 232, 232, 255))
+
+    # 축척 막대 — 화소 하나가 10 m 이므로, 화면 폭의 1/6 쯤 되는 눈금을 씁니다
+    f_sc = font("Medium", 25)
+    mbar = min([n for n in (50, 100, 200, 500, 1000) if n * S > W / 8] or [1000])
+    sw = mbar * S
+    lab = f"{mbar // 100} km" if mbar >= 100 else f"{mbar * 10} m"
+    cwid = sw + 44 + dr.textlength(lab, font=f_sc) + 24
+    cx0, cy0 = W - 64 - cwid, H - 64 - 62
+    rrect(dr, [cx0, cy0, cx0 + cwid, H - 64], 12, fill=(8, 12, 14, 195))
+    sx, sy = cx0 + 22, cy0 + 20
+    for seg in ([sx, sy + 11, sx + sw, sy + 11], [sx, sy + 2, sx, sy + 20],
+                [sx + sw, sy + 2, sx + sw, sy + 20]):
+        dr.line(seg, fill=(232, 232, 232, 235), width=4)
+    dr.text((sx + sw + 22, cy0 + 16), lab, font=f_sc, fill=(232, 232, 232, 235))
+
+    # 아래쪽 글자는 밝은 뭍 위에서 안 보이므로 범례와 같은 어두운 칩에 얹습니다
+    f_at = font("Regular", 22)
+    aw = dr.textlength(attribution, font=f_at)
+    ax = 64 + tw + 92 + 16
+    rrect(dr, [ax, H - 64 - 62, ax + aw + 44, H - 64], 12, fill=(8, 12, 14, 195))
+    dr.text((ax + 22, H - 64 - 44), attribution, font=f_at, fill=(176, 176, 176, 235))
+    return im, shown
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--weights", default="weights/yolo11s_dota.pt")
@@ -194,83 +268,21 @@ def main():
     print("  밝기 차 중앙값 — 겹친 배 {hit:.0f} · 놓친 배 {miss:.0f} · "
           "짝 없는 탐지 {unmatched:.0f} DN".format(**dn))
 
-    S = a.scale
-    W, H = ww * S, hh * S
-    shown = tone(stretch(img))
-    base = cv2.resize(shown, (W, H), interpolation=cv2.INTER_LANCZOS4)
-
-    # 청록 박스입니다. 배가 5 화소라 실제 크기대로 그리면 화면에서 선 두 줄이
-    # 됩니다. 최소 한 변을 두어 눈에 걸리게 하되, 중심과 방향은 탐지 결과
-    # 그대로입니다.
-    MIN = 30
-    boxes = []
-    for p in polys:
-        (cx, cy), (bw, bh), ang = cv2.minAreaRect((p * S).astype(np.float32))
-        r = cv2.boxPoints(((cx, cy), (max(bw, MIN), max(bh, MIN)), ang))
-        boxes.append(r.astype(np.int32))
-    over = base.copy()
-    for q in boxes:
-        cv2.fillPoly(over, [q], CYAN)
-    base = cv2.addWeighted(over, 0.13, base, 0.87, 0)
-    for q in boxes:
-        cv2.polylines(base, [q], True, CYAN, 3, cv2.LINE_AA)
-
-    # 글자는 Pretendard 로 얹습니다 — 슬라이드 본문과 같은 서체입니다
-    im = Image.fromarray(cv2.cvtColor(base, cv2.COLOR_BGR2RGB))
-    dr = ImageDraw.Draw(im, "RGBA")
-    cy = (38, 228, 228, 255)
-
-    f_big, f_lab = font("Bold", 104), font("SemiBold", 27)
-    num = str(len(polys))
-    nw = dr.textlength(num, font=f_big)
-    lw = dr.textlength("탐지된 선박", font=f_lab)
-    bw = int(max(nw, lw) + 72)
-    bx, by = W - 64 - bw, 64
-    rrect(dr, [bx, by, bx + bw, by + 158], 16, fill=(8, 12, 14, 195),
-          outline=(38, 228, 228, 95), width=2)
-    dr.text((bx + bw / 2 - lw / 2, by + 22), "탐지된 선박", font=f_lab,
-            fill=(150, 235, 235, 255))
-    dr.text((bx + bw / 2 - nw / 2, by + 46), num, font=f_big, fill=cy)
-
-    f_leg = font("Medium", 27)
-    tw = dr.textlength("모델이 찾은 선박", font=f_leg)
-    rrect(dr, [64, H - 64 - 62, 64 + tw + 92, H - 64], 12, fill=(8, 12, 14, 195))
-    rrect(dr, [86, H - 64 - 41, 108, H - 64 - 19], 3,
-          fill=(38, 228, 228, 55), outline=cy, width=3)
-    dr.text((126, H - 64 - 47), "모델이 찾은 선박", font=f_leg, fill=(232, 232, 232, 255))
-
-    # 축척 막대 — 화소 하나가 10 m 입니다
-    f_sc = font("Medium", 25)
-    mbar, sw = 200, 200 * S
-    lab = f"{mbar * 10 // 1000} km"
-    cwid = sw + 44 + dr.textlength(lab, font=f_sc) + 24
-    cx0, cy0 = W - 64 - cwid, H - 64 - 62
-    rrect(dr, [cx0, cy0, cx0 + cwid, H - 64], 12, fill=(8, 12, 14, 195))
-    sx, sy = cx0 + 22, cy0 + 20
-    for seg in ([sx, sy + 11, sx + sw, sy + 11], [sx, sy + 2, sx, sy + 20],
-                [sx + sw, sy + 2, sx + sw, sy + 20]):
-        dr.line(seg, fill=(232, 232, 232, 235), width=4)
-    dr.text((sx + sw + 22, cy0 + 16), lab, font=f_sc, fill=(232, 232, 232, 235))
-
-    # 아래쪽 글자는 밝은 뭍 위에서 안 보이므로 범례와 같은 어두운 칩에 얹습니다
     d = key.split("_")[1]
-    at = f"Copernicus Sentinel-2 L2A · {a.tile} {d[:4]}-{d[4:6]}-{d[6:]}"
-    f_at = font("Regular", 22)
-    aw = dr.textlength(at, font=f_at)
-    ax = 64 + tw + 92 + 16
-    rrect(dr, [ax, H - 64 - 62, ax + aw + 44, H - 64], 12, fill=(8, 12, 14, 195))
-    dr.text((ax + 22, H - 64 - 44), at, font=f_at, fill=(176, 176, 176, 235))
+    im, shown = render(img, polys, a.scale,
+                       f"Copernicus Sentinel-2 L2A · {a.tile} "
+                       f"{d[:4]}-{d[4:6]}-{d[6:]}")
 
     os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
     im.save(f"{a.out}_det.png")
     cv2.imwrite(f"{a.out}_raw.png",
-                cv2.resize(shown, (W, H), interpolation=cv2.INTER_LANCZOS4))
+                cv2.resize(shown, im.size, interpolation=cv2.INTER_LANCZOS4))
     json.dump({"scene": key, "window": [x0, y0, ww, hh], "km": [ww / 100, hh / 100],
                "gt": int(len(gw)), "det_raw": len(raw), "det": len(polys), "hit": hit,
                "unmatched": len(polys) - tp, "dn": {k: round(v) for k, v in dn.items()},
                "conf": a.conf, "nms": a.iou},
               open(f"{a.out}.json", "w", encoding="utf-8"), indent=2)
-    print(f"저장: {a.out}_det.png / {a.out}_raw.png  ({W}x{H})")
+    print(f"저장: {a.out}_det.png / {a.out}_raw.png  ({im.size[0]}x{im.size[1]})")
 
 
 if __name__ == "__main__":

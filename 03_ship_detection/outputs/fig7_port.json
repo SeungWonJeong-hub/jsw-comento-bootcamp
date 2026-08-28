@@ -1,0 +1,27 @@
+{
+  "port": "busan_anchorage",
+  "label": "\ubd80\uc0b0 \uc678\ud56d \uc815\ubc15\uc9c0",
+  "scene": "S2A_52SED_20221011_0_L2A",
+  "window": [
+    0,
+    0,
+    1440,
+    810
+  ],
+  "km": [
+    14.4,
+    8.1
+  ],
+  "gt": 67,
+  "det": 70,
+  "hit": 36,
+  "unmatched": 34,
+  "err_px": 0.88,
+  "gt_scene": 83,
+  "ais": 46,
+  "det_scene": 80,
+  "median_m": 112,
+  "conf": 0.05,
+  "show_conf": 0.05,
+  "nms": 0.1
+}
