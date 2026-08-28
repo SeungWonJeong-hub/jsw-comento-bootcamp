@@ -201,6 +201,8 @@ def main():
     ap.add_argument("--iou", type=float, default=0.5)
     ap.add_argument("--win", type=int, default=640, help="창의 가로 (화소)")
     ap.add_argument("--scale", type=int, default=6, help="화면 배율")
+    ap.add_argument("--scene", default="", help="장면을 직접 지정 (예: 34WFT_20220712)")
+    ap.add_argument("--at", default="", help="창 좌상단을 직접 지정 (예: 1285,454)")
     ap.add_argument("--out", default="outputs/fig6_hero")
     a = ap.parse_args()
 
@@ -233,7 +235,18 @@ def main():
         cand.append((con, n, key, href, T, x0, y0, cs, im0))
         print(f"  {key}  창 안 {n:>3}척 · 배 대비 중앙값 {con:4.0f} DN · "
               f"구름 {sc.get('cloud') or 0:.1f}%")
+    if a.scene:
+        cand = [c for c in cand if c[2] == a.scene] or cand
     con, n_gt, key, href, T, x0, y0, cs, img = max(cand, key=lambda t: (t[1], t[0]))
+    if a.at:
+        # 창을 직접 지정하면 그 자리를 그대로 씁니다. 어느 자리를 왜 골랐는지는
+        # 그림 옆 수치로 밝힙니다.
+        x0, y0 = (int(v) for v in a.at.split(","))
+        arr, _, _ = fetch(href, (*(T * (x0, y0 + hh)), *(T * (x0 + ww, y0))))
+        img = np.ascontiguousarray(np.transpose(arr[:3], (1, 2, 0))[:, :, ::-1])
+        n_gt = int(((cs[:, 0] >= x0) & (cs[:, 0] < x0 + ww)
+                    & (cs[:, 1] >= y0) & (cs[:, 1] < y0 + hh)).sum())
+        print(f"창 직접 지정 ({x0},{y0}) · 정답 {n_gt}척")
     print(f"장면 {key} · 창 ({x0},{y0}) {ww}x{hh} = "
           f"{ww * 10 / 1000:.1f} x {hh * 10 / 1000:.1f} km · 정답 {n_gt}척 · 대비 {con:.0f} DN")
 
