@@ -1,22 +1,22 @@
 """핀란드 연안 선박 데이터셋 구축 — 코멘토 3차 업무 / 정승원
 
-Zenodo 에는 주석(GeoPackage)만 있고 위성 사진은 없다.
-사진은 AWS 공개 COG(Sentinel-2 L1C)에서 인증 없이 받아 맞춘다.
+Zenodo 에는 주석(GeoPackage)만 있고 위성 사진은 없습니다.
+사진은 AWS 공개 COG(Sentinel-2 L1C)에서 인증 없이 받아 맞춥니다.
 
 절차
 ----
 1. 타일·날짜별 주석 폴리곤을 읽는다 (EPSG:32634 / 32635)
-2. 같은 타일·날짜의 Sentinel-2 L1C 장면을 AWS 에서 찾는다
-3. 주석이 몰려 있는 영역만 창으로 잘라 온다 (전체 타일은 10,980² 이라 과하다)
-4. 폴리곤을 픽셀 좌표로 옮기고 최소면적 회전 사각형(OBB)으로 바꾼다
-5. 320x320 타일로 자르고 YOLO-OBB 라벨을 쓴다
-6. 선박이 없는 타일도 일부 남긴다 (오탐을 재려면 음성 표본이 필요하다)
+2. 같은 타일·날짜의 Sentinel-2 L1C 장면을 AWS 에서 찾습니다
+3. 주석이 몰려 있는 영역만 창으로 잘라 온다 (전체 타일은 10,980² 이라 과합니다)
+4. 폴리곤을 픽셀 좌표로 옮기고 최소면적 회전 사각형(OBB)으로 바꿉니다
+5. 320x320 타일로 자르고 YOLO-OBB 라벨을 씁니다
+6. 선박이 없는 타일도 일부 남긴다 (오탐을 재려면 음성 표본이 필요합니다)
 
 주의
 ----
-- 논문은 L1C 의 TCI(트루컬러 8비트)로 학습했다. 여기서도 같은 자산을 쓴다.
-- 타일 경계에 걸친 선박은 잘린 조각이 아니라 통째로 들어간 것만 남긴다.
-  잘린 조각을 라벨로 두면 "절반짜리 배"를 학습하게 된다.
+- 논문은 L1C 의 TCI(트루컬러 8비트)로 학습했습니다. 여기서도 같은 자산을 씁니다.
+- 타일 경계에 걸친 선박은 잘린 조각이 아니라 통째로 들어간 것만 남깁니다.
+  잘린 조각을 라벨로 두면 "절반짜리 배"를 학습하게 됩니다.
 """
 import os, json, glob, argparse, math
 import numpy as np
@@ -42,11 +42,11 @@ def load_annotations(gpkg_dir):
 
 
 def resolve_scenes(ann, out_path):
-    """타일·날짜 → AWS 공개 COG 주소. 없으면 STAC 에 물어 만든다.
+    """타일·날짜 → AWS 공개 COG 주소. 없으면 STAC 에 물어 만듭니다.
 
-    주석은 L1C 기준으로 그려졌지만 L1C 자산은 요청자 부담 S3 라 무료로 못 받는다.
-    L2A COG 는 같은 촬영·같은 격자라 기하가 동일하므로 그대로 쓸 수 있다.
-    (대기 보정으로 화소값은 달라지지만 선박 위치는 안 바뀐다)
+    주석은 L1C 기준으로 그려졌지만 L1C 자산은 요청자 부담 S3 라 무료로 못 받습니다.
+    L2A COG 는 같은 촬영·같은 격자라 기하가 동일하므로 그대로 쓸 수 있습니다.
+    (대기 보정으로 화소값은 달라지지만 선박 위치는 안 바뀝니다)
     """
     import requests
     if os.path.exists(out_path):
@@ -85,7 +85,7 @@ def scene_window(gdf, pad=2000):
 
 
 def fetch(href, bounds, out_crs_check=None):
-    """COG 에서 창 하나를 읽어 (배열, affine, crs) 로 돌려준다."""
+    """COG 에서 창 하나를 읽어 (배열, affine, crs) 로 돌려줍니다."""
     import rasterio
     from rasterio.windows import from_bounds
     for k, v in dict(GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR",
@@ -94,9 +94,9 @@ def fetch(href, bounds, out_crs_check=None):
         os.environ.setdefault(k, v)
     with rasterio.open(href) as s:
         w = from_bounds(*bounds, s.transform).round_offsets().round_lengths()
-        # 창이 래스터 밖으로 나가면 read() 는 알아서 잘라 더 작은 배열을 준다.
-        # 그런데 window_transform() 은 '요청한' 창 기준이라, 자른 만큼 라벨이 통째로 밀린다.
-        # 주석이 타일 가장자리까지 닿아 있어 실제로 매번 발생한다. 먼저 잘라서 맞춘다.
+        # 창이 래스터 밖으로 나가면 read() 는 알아서 잘라 더 작은 배열을 줍니다.
+        # 그런데 window_transform() 은 '요청한' 창 기준이라, 자른 만큼 라벨이 통째로 밀립니다.
+        # 주석이 타일 가장자리까지 닿아 있어 실제로 매번 발생합니다. 먼저 잘라서 맞춥니다.
         w = w.crop(s.height, s.width)
         arr = s.read(window=w)
         return arr, s.window_transform(w), s.crs
@@ -126,7 +126,7 @@ def inside_ratio(box, x0, y0, size):
 
 
 def cut_tiles(img, boxes, stride, keep_empty_ratio, rng):
-    """320x320 타일로 자르고 (이미지, 라벨) 목록을 만든다."""
+    """320x320 타일로 자르고 (이미지, 라벨) 목록을 만듭니다."""
     H, Wd = img.shape[:2]
     pos, neg = [], []
     for y0 in range(0, max(1, H - TILE + 1), stride):
@@ -177,8 +177,8 @@ def main():
     ap.add_argument("--stride", type=int, default=256)
     ap.add_argument("--empty-ratio", type=float, default=0.65,
                     help="선박 있는 타일 대비 남길 빈 타일 비율")
-    ap.add_argument("--val-tile", default="34VER", help="이 타일은 val 로 뺀다")
-    ap.add_argument("--test-tile", default="34WFT", help="이 타일은 test 로 뺀다")
+    ap.add_argument("--val-tile", default="34VER", help="이 타일은 val 로 뺍니다")
+    ap.add_argument("--test-tile", default="34WFT", help="이 타일은 test 로 뺍니다")
     a = ap.parse_args()
 
     rng = np.random.default_rng(0)
@@ -199,8 +199,8 @@ def main():
             continue
 
         split = "val" if tile == a.val_tile else ("test" if tile == a.test_tile else "train")
-        # 학습은 겹쳐 잘라 표본을 늘리지만, 평가는 겹치면 같은 배를 여러 번 세게 된다.
-        # 겹침 잘라내기로 만든 val/test 는 인스턴스가 1.5배로 부풀어 성능이 왜곡된다.
+        # 학습은 겹쳐 잘라 표본을 늘리지만, 평가는 겹치면 같은 배를 여러 번 세게 됩니다.
+        # 겹침 잘라내기로 만든 val/test 는 인스턴스가 1.5배로 부풀어 성능이 왜곡됩니다.
         stride = a.stride if split == "train" else TILE
         bounds = scene_window(gdf)
         arr, affine, crs = fetch(href, bounds)

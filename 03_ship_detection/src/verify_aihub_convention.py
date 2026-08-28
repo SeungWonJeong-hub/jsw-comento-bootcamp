@@ -2,13 +2,13 @@
 
 왜 필요한가
 -----------
-형식과 규약은 다르다. 핀란드 S2Ships 는 8좌표 OBB '형식' 으로 배포되지만
-실제 좌표를 13,069개 전수 측정하니 100% 축 정렬이었다. 형식만 보고 회전
-박스라고 단정하는 바람에 학습·평가가 통째로 어긋나 있었다. 같은 실수를
-AI Hub 에서 반복하지 않기 위한 스크립트다.
+형식과 규약은 다릅니다. 핀란드 S2Ships 는 8좌표 OBB '형식' 으로 배포되지만
+실제 좌표를 13,069개 전수 측정하니 100% 축 정렬이었습니다. 형식만 보고 회전
+박스라고 단정하는 바람에 학습·평가가 통째로 어긋나 있었습니다. 같은 실수를
+AI Hub 에서 반복하지 않기 위한 스크립트입니다.
 
 AI Hub 공개 설명에는 [중심 x, 중심 y, 박스 높이 H, 박스 너비 W, 회전각 theta]
-라고만 적혀 있고, 다음이 명시돼 있지 않다. 이 스크립트가 실측으로 확정한다.
+라고만 적혀 있고, 다음이 명시돼 있지 않습니다. 이 스크립트가 실측으로 확정합니다.
 
   - 좌표가 픽셀인가 지도좌표인가
   - 픽셀 원점이 좌상단인가
@@ -21,15 +21,15 @@ AI Hub 공개 설명에는 [중심 x, 중심 y, 박스 높이 H, 박스 너비 W
 방법
 ----
 후보 규약을 모두 만들어 각각 박스를 그리고, 박스 안 밝은 화소의 주축(PCA)과
-박스 장변이 이루는 각을 잰다. 규약이 맞으면 이 각이 0 에 가깝다.
-사람 눈으로 확인할 그림도 같이 낸다. 자동 점수만 믿지 않는다.
+박스 장변이 이루는 각을 잽니다. 규약이 맞으면 이 각이 0 에 가깝습니다.
+사람 눈으로 확인할 그림도 같이 냅니다. 자동 점수만 믿지 않습니다.
 
 주석 규약의 기준
 ----------------
-DOTA (Ding et al., 2021) 가 문서화한 표준을 따른다.
+DOTA (Ding et al., 2021) 가 문서화한 표준을 따릅니다.
   네 꼭짓점을 시계방향으로, 첫 점은 HEAD (선박의 뱃머리).
-  시각 단서가 없으면 좌상단을 시작점으로 한다.
-회귀 표현은 (x, y, w, h, theta) 를 쓴다.
+  시각 단서가 없으면 좌상단을 시작점으로 합니다.
+회귀 표현은 (x, y, w, h, theta) 를 씁니다.
 
 사용법
 ------
@@ -44,7 +44,7 @@ import itertools
 import numpy as np
 
 
-# 설명서가 답하지 않는 자유도들. 곱집합으로 전부 시험한다.
+# 설명서가 답하지 않는 자유도들. 곱집합으로 전부 시험합니다.
 ANGLE_MAPS = {
     "theta": lambda t: t,
     "-theta": lambda t: -t,
@@ -52,13 +52,13 @@ ANGLE_MAPS = {
     "theta+90": lambda t: t + 90.0,
 }
 
-# 좌표 필드 이름 후보 — AI Hub 배포본마다 다르다
+# 좌표 필드 이름 후보 — AI Hub 배포본마다 다릅니다
 COORD_KEYS = ["object_imcoords", "object_angle", "bbox", "coords",
               "obb", "rbox", "geometry"]
 
 
 def corners(cx, cy, w, h, theta_deg, cw_positive=True):
-    """중심·크기·각도 -> 네 꼭짓점. 영상 좌표계라 y 는 아래로 증가한다."""
+    """중심·크기·각도 -> 네 꼭짓점. 영상 좌표계라 y 는 아래로 증가합니다."""
     t = math.radians(theta_deg if cw_positive else -theta_deg)
     c, s = math.cos(t), math.sin(t)
     hw, hh = w / 2.0, h / 2.0
@@ -100,7 +100,7 @@ def angdiff(a, b):
 
 
 def read_records(feats, limit):
-    """GeoJSON 에서 [cx, cy, H, W, theta] 를 뽑는다. 키 이름은 배포본마다 다르다."""
+    """GeoJSON 에서 [cx, cy, H, W, theta] 를 뽑습니다. 키 이름은 배포본마다 다릅니다."""
     out = []
     for f in feats[:limit]:
         p = f.get("properties", f) if isinstance(f, dict) else f
@@ -154,7 +154,7 @@ def main():
     print(f"         -> {'픽셀 좌표' if in_px else '지도좌표 (affine 재투영 필요)'}")
     if not in_px:
         print("         지도좌표면 10 m 영상의 좌표계·affine 으로 네 꼭짓점을")
-        print("         재투영해야 한다. 해상도 비율만 곱하면 틀린다.")
+        print("         재투영해야 합니다. 해상도 비율만 곱하면 틀립니다.")
 
     # --- 2) 각도 단위와 범위 ---
     th = R[:, 4].copy()
@@ -195,10 +195,10 @@ def main():
           f"(중앙 오차 {best[1]['median_err']:.2f}도, "
           f"{100 * best[1]['frac_under15']:.1f}% 가 15도 이내)")
     if best[1]["median_err"] > 20:
-        print("경고: 최선 후보도 오차가 크다. 그림을 눈으로 확인하고,")
+        print("경고: 최선 후보도 오차가 큽니다. 그림을 눈으로 확인하고,")
         print("      그래도 안 맞으면 한국항공우주연구원에 좌표계·각도 정의·")
         print("      W/H 기준을 서면 문의해 확정할 것. 규약이 확정되기 전에는")
-        print("      학습·평가 데이터를 만들지 않는다.")
+        print("      학습·평가 데이터를 만들지 않습니다.")
 
     # --- 5) 눈으로 확인 ---
     try:
@@ -239,9 +239,9 @@ def main():
     print(f"[폭]     중앙값 {np.median(Wm):.1f} m "
           f"-> 10 m 영상에서 {np.median(Wm) / 10:.2f} px")
     if np.median(Wm) / 10 < 2.0:
-        print("         폭이 2 px 미만이다. 이 크기에서는 회전 박스보다")
-        print("         중심점 또는 점 주변 고정 크기 박스가 안정적이다.")
-        print("         xView3-SAR 이 10 m 에서 점 기반 F1 을 쓴 이유와 같다.")
+        print("         폭이 2 px 미만입니다. 이 크기에서는 회전 박스보다")
+        print("         중심점 또는 점 주변 고정 크기 박스가 안정적입니다.")
+        print("         xView3-SAR 이 10 m 에서 점 기반 F1 을 쓴 이유와 같습니다.")
 
     os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
     json.dump(dict(coords="pixel" if in_px else "map",

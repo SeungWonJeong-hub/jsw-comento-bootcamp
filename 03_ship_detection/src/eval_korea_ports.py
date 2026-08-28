@@ -1,20 +1,20 @@
 """한국 항만 정량 평가 — 코멘토 3차 업무 / 정승원
 
-지금까지 한국 결과는 정답이 없어 '탐지가 물 위에 있는 비율'로 간접 추정했다.
-GFW 가 한국 근해 443,344건을 주므로 이제 진짜 수치를 잰다.
+지금까지 한국 결과는 정답이 없어 '탐지가 물 위에 있는 비율'로 간접 추정했습니다.
+GFW 가 한국 근해 443,344건을 주므로 이제 진짜 수치를 잽니다.
 
 절차
 ----
-1. 항만 사각형 안에서, 그 장면과 같은 날짜의 GFW 탐지를 정답으로 모은다
-2. 같은 장면 사진을 받아 모델을 돌린다
+1. 항만 사각형 안에서, 그 장면과 같은 날짜의 GFW 탐지를 정답으로 모읍니다
+2. 같은 장면 사진을 받아 모델을 돌립니다
 3. 점 기반으로 맞춘다 — 3 픽셀 물체에 IoU 를 요구하는 것은 지표의 함정이고,
-   GFW 정답이 애초에 점이라 점 기반이 정답의 성격에 맞다
+   GFW 정답이 애초에 점이라 점 기반이 정답의 성격에 맞습니다
 
 주의
 ----
-GFW 도 완벽한 정답이 아니다. 딥러닝 탐지 결과이고, 자체 선박확률이 붙어 있다.
-그래서 확률 하한을 두고, 인프라·얼음은 뺀다. '정답'이라기보다 '독립적인 참조'다.
-이 한계는 결과에 명시한다.
+GFW 도 완벽한 정답이 아닙니다. 딥러닝 탐지 결과이고, 자체 선박확률이 붙어 있습니다.
+그래서 확률 하한을 두고, 인프라·얼음은 뺍니다. '정답'이라기보다 '독립적인 참조'다.
+이 한계는 결과에 명시합니다.
 """
 import os, csv, json, math, argparse, collections
 import numpy as np
@@ -85,9 +85,9 @@ def poly_iou(a, b):
 def match_iou(pred_polys, gt_polys, thr):
     """IoU 기반 매칭. (맞았나, 신뢰도, IoU)
 
-    주의 — 정답 박스는 GFW 의 점 + 길이 + 방향으로 '합성'한 것이다.
+    주의 — 정답 박스는 GFW 의 점 + 길이 + 방향으로 '합성'한 것입니다.
     따라서 여기서 재는 IoU 오차에는 모델의 위치 오차뿐 아니라
-    내 박스 합성 오차도 섞여 있다. 점 기반 결과와 나란히 봐야 한다.
+    내 박스 합성 오차도 섞여 있습니다. 점 기반 결과와 나란히 봐야 합니다.
     """
     used, recs = set(), []
     for poly, cf in sorted(pred_polys, key=lambda p: -p[1]):
@@ -134,7 +134,7 @@ def main():
     summary = {}
     for name in a.ports:
         label, *bbox = PORTS[name]
-        # GFW 는 2022년 자료이므로 그 해 장면을 쓴다
+        # GFW 는 2022년 자료이므로 그 해 장면을 씁니다
         sc = find_scene(bbox, a.max_cloud, start=a.start, end=a.end)
         if not sc:
             print(f"{label:<16} 장면 없음")
@@ -171,7 +171,7 @@ def main():
         err = [r[2] for r in recs if r[0] == 1]
 
         # --- IoU 기반 ---
-        # GFW 의 점+길이+방향으로 정답 회전 박스를 합성한다
+        # GFW 의 점+길이+방향으로 정답 회전 박스를 합성합니다
         gt_polys = [obb_from(cx, cy, L / 10.0, H)
                     for (cx, cy, L), H in zip(gts, headings)]
         iou_out = {}
@@ -203,7 +203,7 @@ def main():
     os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
     json.dump(summary, open(a.out, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
     print(f"\n저장: {a.out}")
-    print("주의: GFW 도 딥러닝 탐지 결과이므로 완전한 정답이 아니다. 독립적인 참조로 본다.")
+    print("주의: GFW 도 딥러닝 탐지 결과이므로 완전한 정답이 아닙니다. 독립적인 참조로 봅니다.")
 
 
 if __name__ == "__main__":

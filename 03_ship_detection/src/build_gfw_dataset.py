@@ -2,32 +2,32 @@
 
 핀란드 데이터의 한계
 --------------------
-맑은 발트해에서 사람이 손으로 그린 박스였다. 한국(특히 서해)에 가져가니
+맑은 발트해에서 사람이 손으로 그린 박스였습니다. 한국(특히 서해)에 가져가니
 탁도 때문에 눈에 보이는 배를 놓쳤고, 박스도 뭉툭해서(길이 53m 인데 폭 43m)
-회전 정보가 사실상 없었다.
+회전 정보가 사실상 없었습니다.
 
 GFW 가 주는 것
 --------------
   점(lat, lon) + 길이(m) + 방향(도) + 선박확률 + 인프라 여부 + AIS 매칭
   황해 103만건 / 동중국해 67만건 / 한국 44만건, 전부 Sentinel-2 10 m
 
-길이와 방향이 있으니 회전 박스를 계산으로 만든다. 추정할 필요가 없다.
-그리고 AIS 매칭이 57~77% — 사람 판단이 아니라 선박 자신의 송신으로 검증된 정답이다.
+길이와 방향이 있으니 회전 박스를 계산으로 만듭니다. 추정할 필요가 없습니다.
+그리고 AIS 매칭이 57~77% — 사람 판단이 아니라 선박 자신의 송신으로 검증된 정답입니다.
 
 어떻게 쓰는가
 -------------
-  train  황해 + 동중국해   탁수·소형선·양식장·항만 구조물을 배운다
+  train  황해 + 동중국해   탁수·소형선·양식장·항만 구조물을 배웁니다
   val    한국 (일부 장면)
-  test   한국 (다른 장면)  ← 학습에 안 쓴 한국 장면으로만 평가한다
+  test   한국 (다른 장면)  ← 학습에 안 쓴 한국 장면으로만 평가합니다
 
 주의할 점
 ---------
-  - 인프라(likely_infrastructure)는 배가 아니다. 라벨에서 빼되, 그 타일은
-    음성 표본으로 남긴다. "여기 이렇게 생긴 건 배가 아니다"를 배워야 한다.
-  - 선박확률이 낮은 탐지는 GFW 자신도 확신하지 않는다. 하한을 둔다.
-  - 얼음(potential_ice)도 뺀다.
-  - 한 장면에 최대 2,000 탐지가 있다. 전부 쓰면 몇 장면이 데이터를 지배하므로
-    장면당 상한을 둔다.
+  - 인프라(likely_infrastructure)는 배가 아닙니다. 라벨에서 빼되, 그 타일은
+    음성 표본으로 남깁니다. "여기 이렇게 생긴 건 배가 아닙니다"를 배워야 합니다.
+  - 선박확률이 낮은 탐지는 GFW 자신도 확신하지 않습니다. 하한을 둡니다.
+  - 얼음(potential_ice)도 뺍니다.
+  - 한 장면에 최대 2,000 탐지가 있습니다. 전부 쓰면 몇 장면이 데이터를 지배하므로
+    장면당 상한을 둡니다.
 """
 import os, csv, json, math, random, argparse, collections
 import numpy as np
@@ -42,13 +42,13 @@ def load_detections(path, min_presence, max_per_scene, rng):
 
     주의 — max_per_scene 은 기본적으로 쓰지 않는다 (0 = 무제한).
 
-    처음에는 "몇 장면이 데이터를 지배하지 않게" 장면당 60개로 무작위 추출했다.
-    그런데 버려진 배는 사진에서 사라지지 않는다. 타일 안에 그대로 있는데
-    라벨만 없어져, 학습에서 "저건 배가 아니다"로 배운다.
-    실제로 탐지의 80%를 버렸고 재현율이 0.13~0.24 로 무너졌다.
-    라벨 정렬은 97% 로 멀쩡했기 때문에 정렬 검사로는 안 잡히는 종류의 오류였다.
+    처음에는 "몇 장면이 데이터를 지배하지 않게" 장면당 60개로 무작위 추출했습니다.
+    그런데 버려진 배는 사진에서 사라지지 않습니다. 타일 안에 그대로 있는데
+    라벨만 없어져, 학습에서 "저건 배가 아닙니다"로 배웁니다.
+    실제로 탐지의 80%를 버렸고 재현율이 0.13~0.24 로 무너졌습니다.
+    라벨 정렬은 97% 로 멀쩡했기 때문에 정렬 검사로는 안 잡히는 종류의 오류였습니다.
 
-    장면 수로 규모를 조절하고, 고른 장면 안의 탐지는 전부 쓴다.
+    장면 수로 규모를 조절하고, 고른 장면 안의 탐지는 전부 씁니다.
     """
     by_scene = collections.defaultdict(list)
     with open(path, encoding="utf-8") as f:
@@ -92,7 +92,7 @@ def parse_scene(scene_id):
 
 
 def resolve_cog(scene_ids, cache_path):
-    """장면 ID → AWS 공개 COG (L2A TCI). L1C 자산은 요청자 부담 S3 라 무료로 못 받는다."""
+    """장면 ID → AWS 공개 COG (L2A TCI). L1C 자산은 요청자 부담 S3 라 무료로 못 받습니다."""
     import requests
     cache = json.load(open(cache_path, encoding="utf-8")) if os.path.exists(cache_path) else {}
     todo = [s for s in scene_ids if s not in cache]
@@ -124,8 +124,8 @@ def obb_from(cx, cy, length_px, heading_deg, width_ratio=0.28, min_w=2.0):
     """중심 + 길이 + 방향 → 회전 박스 4점.
 
     폭은 주지 않으므로 길이에 비례해 잡는다 (선박 길이:폭 = 대략 1:0.2~0.3).
-    아주 작은 배는 최소 폭을 준다 — 10 m 해상도에서 0 폭 박스는 의미가 없다.
-    방향은 북쪽 기준 시계방향(항해 관례)이므로 영상 좌표계로 바꾼다.
+    아주 작은 배는 최소 폭을 준다 — 10 m 해상도에서 0 폭 박스는 의미가 없습니다.
+    방향은 북쪽 기준 시계방향(항해 관례)이므로 영상 좌표계로 바꿉니다.
     """
     w = max(min_w, length_px * width_ratio)
     th = math.radians(90.0 - heading_deg)      # 북 기준 -> x축 기준
@@ -155,7 +155,7 @@ def cut_scene(href, dets, out_root, split, prefix, counter,
     with rasterio.open(href) as s:
         xs, ys = transform("EPSG:4326", s.crs, lons, lats)
         px = [(~s.transform) * (x, y) for x, y in zip(xs, ys)]
-        # 탐지를 타일 격자로 묶는다 (한 탐지마다 자르면 겹침이 심해진다)
+        # 탐지를 타일 격자로 묶는다 (한 탐지마다 자르면 겹침이 심해집니다)
         buckets = collections.defaultdict(list)
         for (cx, cy), d in zip(px, dets):
             buckets[(int(cy) // TILE, int(cx) // TILE)].append((cx, cy, d))
@@ -174,7 +174,7 @@ def cut_scene(href, dets, out_root, split, prefix, counter,
             for cx, cy, d in items:
                 lon, lat, L, H, infra = d
                 if infra:
-                    continue                       # 인프라는 라벨에서 뺀다
+                    continue                       # 인프라는 라벨에서 뺍니다
                 box = obb_from(cx - x0, cy - y0, L / 10.0, H)
                 if box.min() < -8 or box.max() > TILE + 8:
                     continue
@@ -200,7 +200,7 @@ def main():
     ap.add_argument("--min-presence", type=float, default=0.8)
     ap.add_argument("--max-per-scene", type=int, default=0,
                 help="장면당 탐지 상한. 0=무제한. 상한을 걸면 버려진 배가 "
-                     "라벨 없는 배로 남아 재현율이 무너진다")
+                     "라벨 없는 배로 남아 재현율이 무너집니다")
     ap.add_argument("--train-scenes", type=int, default=110)
     ap.add_argument("--korea-scenes", type=int, default=45)
     ap.add_argument("--seed", type=int, default=0)

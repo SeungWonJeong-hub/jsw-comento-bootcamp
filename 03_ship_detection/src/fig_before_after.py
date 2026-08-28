@@ -1,20 +1,20 @@
 """원본과 탐지 결과 대비 그림 — 코멘토 3차 업무 / 정승원
 
-PPT 3장에 들어간다. 왼쪽은 받은 그대로의 위성사진, 오른쪽은 같은 사진에
-모델이 찾은 선박을 얹은 것이다. 수치 표만 있으면 "정말 배를 찾는가" 를
-확인할 수 없으므로, 눈으로 볼 수 있는 증거를 함께 낸다.
+PPT 3장에 들어갑니다. 왼쪽은 받은 그대로의 위성사진, 오른쪽은 같은 사진에
+모델이 찾은 선박을 얹은 것입니다. 수치 표만 있으면 "정말 배를 찾는가" 를
+확인할 수 없으므로, 눈으로 볼 수 있는 증거를 함께 냅니다.
 
 왜 잘라내나
 -----------
-320 px 타일을 통째로 넣으면 배가 3~5 px 이라 화면에서 보이지 않는다. 처음에
-그렇게 만들었더니 노란 박스만 보이고 그 안에 무엇이 있는지 알 수 없었다.
-그래서 선박이 몰린 자리를 작게 잘라 크게 확대한다. 발트해는 물과 숲이 모두
-어두워 대비도 함께 늘린다.
+320 px 타일을 통째로 넣으면 배가 3~5 px 이라 화면에서 보이지 않습니다. 처음에
+그렇게 만들었더니 노란 박스만 보이고 그 안에 무엇이 있는지 알 수 없었습니다.
+그래서 선박이 몰린 자리를 작게 잘라 크게 확대합니다. 발트해는 물과 숲이 모두
+어두워 대비도 함께 늘립니다.
 
 고르는 기준
 -----------
-평가셋(34WFT, 학습에 안 쓴 해역)에서 고른다. 같은 장면이 반복되지 않도록
-촬영일이 겹치면 한 장만 쓴다.
+평가셋(34WFT, 학습에 안 쓴 해역)에서 고릅니다. 같은 장면이 반복되지 않도록
+촬영일이 겹치면 한 장만 씁니다.
 
 사용법
 ------
@@ -41,7 +41,7 @@ def load_gt(label_path, tile):
 
 
 def stretch(img, lo=1.0, hi=99.5):
-    """백분위 대비 늘리기. 발트해는 물도 숲도 어두워 그냥은 안 보인다."""
+    """백분위 대비 늘리기. 발트해는 물도 숲도 어두워 그냥은 안 보입니다."""
     out = np.empty_like(img)
     for c in range(img.shape[2]):
         ch = img[:, :, c].astype(np.float32)
@@ -58,7 +58,7 @@ def best_crop(gt, tile, size):
         return None, 0
     cs = np.array([[p[:, 0].mean(), p[:, 1].mean()] for p in gt])
     best, bn = None, 0
-    for cx, cy in cs:                       # 각 선박을 중심으로 후보 창을 놓는다
+    for cx, cy in cs:                       # 각 선박을 중심으로 후보 창을 놓습니다
         x = int(np.clip(cx - size / 2, 0, tile - size))
         y = int(np.clip(cy - size / 2, 0, tile - size))
         n = int(((cs[:, 0] >= x) & (cs[:, 0] < x + size)
@@ -74,7 +74,7 @@ def main():
     ap.add_argument("--data", default="C:/Users/seung/datasets/S2Ships/yolo")
     ap.add_argument("--split", default="test")
     ap.add_argument("--conf", type=float, default=0.25)
-    # DOTA 는 OBB 실험에 NMS 0.1 을 쓴다. 기본값 0.7 은 같은 배를 겹쳐 남긴다.
+    # DOTA 는 OBB 실험에 NMS 0.1 을 씁니다. 기본값 0.7 은 같은 배를 겹쳐 남깁니다.
     ap.add_argument("--iou", type=float, default=0.2)
     ap.add_argument("--grid", type=int, default=2)
     ap.add_argument("--tile", type=int, default=320)
@@ -99,8 +99,8 @@ def main():
             cands.append((n, ip, xy))
     cands.sort(key=lambda t: -t[0])
 
-    # 같은 촬영일이 반복되면 그림이 단조로워진다. 날짜당 최대 두 장까지만.
-    # 한 장으로 제한하면 평가셋에 날짜가 셋뿐이라 격자가 빈다.
+    # 같은 촬영일이 반복되면 그림이 단조로워집니다. 날짜당 최대 두 장까지만.
+    # 한 장으로 제한하면 평가셋에 날짜가 셋뿐이라 격자가 빕니다.
     need = a.grid * a.grid
     picked, cnt = [], {}
     for cap in (1, 2, 99):
@@ -133,7 +133,9 @@ def main():
                 else [p.reshape(4, 2) for p in r.obb.xyxyxyxy.cpu().numpy()])
 
         sub = stretch(img[y0:y0 + a.crop, x0:x0 + a.crop])
-        big = cv2.resize(sub, (S, S), interpolation=cv2.INTER_LANCZOS4)
+        # 최근접으로 늘립니다. 위성사진은 화소 하나가 10 m 이므로, 보간해서
+        # 매끄럽게 만들면 없는 정보를 지어내면서 오히려 흐려 보입니다.
+        big = cv2.resize(sub, (S, S), interpolation=cv2.INTER_NEAREST)
         vis = big.copy()
         kept = 0
         for poly in dets:

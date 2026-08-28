@@ -3,21 +3,21 @@
 
 왜 이 데이터인가
 ----------------
-핀란드 데이터로 학습한 모델을 한국에 가져오니 인천에서 눈에 보이는 배를 놓쳤다.
-발트해는 맑고 서해는 탁해서, "어두운 물 위 밝은 배"라는 전제가 깨지기 때문이다.
-그러면 탁한 물에서 라벨된 데이터가 필요한데, GFW 가 그걸 전 지구로 갖고 있다.
+핀란드 데이터로 학습한 모델을 한국에 가져오니 인천에서 눈에 보이는 배를 놓쳤습니다.
+발트해는 맑고 서해는 탁해서, "어두운 물 위 밝은 배"라는 전제가 깨지기 때문입니다.
+그러면 탁한 물에서 라벨된 데이터가 필요한데, GFW 가 그걸 전 지구로 갖고 있습니다.
 
   Sentinel-2 10 m · 2019년~현재 · 대부분의 EEZ 와 해양보호구역
   탐지마다 위치 · 길이 · 방향 · 속도 · 선박일 확률
   Zenodo 16363632 (2022년 연간)
 
-길이와 방향이 있으니 회전 박스를 직접 만들 수 있다. 폴리곤에서 추정할 필요가 없다.
+길이와 방향이 있으니 회전 박스를 직접 만들 수 있습니다. 폴리곤에서 추정할 필요가 없습니다.
 
 문제와 해법
 ----------
-탐지 파일이 6 GB 다. 그런데 우리가 쓸 건 한국 근해뿐이다.
-전부 받아 저장하지 말고, 스트리밍으로 읽으면서 관심 사각형 안의 행만 남긴다.
-디스크에는 필요한 것만 떨어진다.
+탐지 파일이 6 GB 다. 그런데 우리가 쓸 건 한국 근해뿐입니다.
+전부 받아 저장하지 말고, 스트리밍으로 읽으면서 관심 사각형 안의 행만 남깁니다.
+디스크에는 필요한 것만 떨어집니다.
 """
 import os, csv, io, json, argparse, time
 
@@ -34,7 +34,7 @@ REGIONS = {
 
 
 def stream_filter(url, boxes, out_dir, chunk=1 << 20, progress_every=200):
-    """CSV 를 흘려 읽으며 관심 사각형 안의 행만 파일로 뺀다."""
+    """CSV 를 흘려 읽으며 관심 사각형 안의 행만 파일로 뺍니다."""
     import requests
     os.makedirs(out_dir, exist_ok=True)
     r = requests.get(url, stream=True, timeout=300)
@@ -52,7 +52,7 @@ def stream_filter(url, boxes, out_dir, chunk=1 << 20, progress_every=200):
         read += len(raw)
         buf += raw.decode("utf-8", errors="replace")
         lines = buf.split("\n")
-        buf = lines.pop()                      # 마지막 조각은 다음 덩어리와 이어 붙인다
+        buf = lines.pop()                      # 마지막 조각은 다음 덩어리와 이어 붙입니다
         for ln in lines:
             if header is None:
                 header = next(csv.reader([ln]))

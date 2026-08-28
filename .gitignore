@@ -19,3 +19,8 @@ Thumbs.db
 # 발표 자료는 저장소에 두지 않는다 (제출은 로컬 파일로)
 *.pptx
 02_2d_to_3d/report/
+
+# 한국 적용 산출물 — 4차 과제 자료라 저장소에 두지 않습니다
+03_ship_detection/outputs/korea/
+03_ship_detection/outputs/conf_sweep/
+03_ship_detection/outputs/korea_quant.json

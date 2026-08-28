@@ -50,7 +50,7 @@ def fig_samples(root, out, tile=320):
 
 
 def fig_strata(j_test, j_val, out):
-    """그림 2 — 크기별 층화. 작을수록 못 찾고, 찾아도 헐겁다."""
+    """그림 2 — 크기별 층화. 작을수록 못 찾고, 찾아도 헐겁습니다."""
     a = json.load(open(j_test, encoding='utf-8'))['bins']
     b = json.load(open(j_val, encoding='utf-8'))['bins']
     keep = [i for i, r in enumerate(a) if r['n_gt'] > 0 and r['ap50'] == r['ap50']]
@@ -63,7 +63,7 @@ def fig_strata(j_test, j_val, out):
     ax[0].bar(x + w/2, [b[i]['recall'] for i in keep if i < len(b)], w,
               label='val (34VER)', color='#9ab8d8')
     ax[0].set_ylabel('Recall'); ax[0].set_ylim(0, 1.05)
-    ax[0].set_title('작은 배일수록 놓친다', fontsize=12)
+    ax[0].set_title('작은 배일수록 놓칩니다', fontsize=12)
     ax[0].legend(fontsize=9)
 
     ax[1].plot(x, [a[i]['mean_iou'] for i in keep], 'o-', color=ACC, lw=2.2, ms=8,
@@ -73,7 +73,7 @@ def fig_strata(j_test, j_val, out):
     ax[1].axhline(0.5, ls=':', c=WARN, lw=1.4)
     ax[1].text(0.05, 0.52, 'IoU 0.5 — 매칭 기준선', color=WARN, fontsize=9)
     ax[1].set_ylabel('평균 IoU'); ax[1].set_ylim(0.4, 0.85)
-    ax[1].set_title('작은 배일수록 박스가 헐겁다', fontsize=12)
+    ax[1].set_title('작은 배일수록 박스가 헐겁습니다', fontsize=12)
     ax[1].legend(fontsize=9)
     for a_ in ax:
         a_.set_xticks(x); a_.set_xticklabels(lab, fontsize=9)
@@ -84,7 +84,7 @@ def fig_strata(j_test, j_val, out):
 
 
 def fig_operating(j_test, j_val, out):
-    """그림 3 — 운용 임계값. 재학습 없이 오탐을 97% 줄인다."""
+    """그림 3 — 운용 임계값. 재학습 없이 오탐을 97% 줄입니다."""
     a = json.load(open(j_test, encoding='utf-8'))
     b = json.load(open(j_val, encoding='utf-8'))
     fig, ax = plt.subplots(1, 2, figsize=(13.5, 4.4))
@@ -97,7 +97,7 @@ def fig_operating(j_test, j_val, out):
         bf = d['best_f1']
         ax[1].plot(bf['recall'], bf['precision'], '*', color=WARN, ms=18, zorder=5)
     ax[0].set_yscale('log'); ax[0].set_xlabel('신뢰도 임계값'); ax[0].set_ylabel('오탐 수 (로그)')
-    ax[0].set_title('임계값만 올려도 오탐이 사라진다', fontsize=12)
+    ax[0].set_title('임계값만 올려도 오탐이 사라집니다', fontsize=12)
     ax[1].set_xlabel('Recall'); ax[1].set_ylabel('Precision')
     ax[1].set_title('PR 곡선 — 별표가 F1 최대점', fontsize=12)
     for a_ in ax:
@@ -146,8 +146,8 @@ def fig_training(curve_dir, out):
         ep = [int(x['epoch']) for x in r]
         ax[0].plot(ep, [float(x['metrics/mAP50(B)']) for x in r], ls, color=c, lw=2, label=lab)
         ax[1].plot(ep, [float(x['metrics/mAP50-95(B)']) for x in r], ls, color=c, lw=2, label=lab)
-    ax[0].set_ylabel('mAP50'); ax[0].set_title('mAP50 — 증강을 끄면 크게 떨어진다', fontsize=12)
-    ax[1].set_ylabel('mAP50-95'); ax[1].set_title('mAP50-95 — 절반 수준에 머문다', fontsize=12)
+    ax[0].set_ylabel('mAP50'); ax[0].set_title('mAP50 — 증강을 끄면 크게 떨어집니다', fontsize=12)
+    ax[1].set_ylabel('mAP50-95'); ax[1].set_title('mAP50-95 — 절반 수준에 머뭅니다', fontsize=12)
     for a_ in ax:
         a_.set_xlabel('epoch'); a_.grid(alpha=.25, ls=':'); a_.legend(fontsize=9)
     fig.suptitle('학습 곡선 — Tesla T4 · 100 epoch · imgsz 320', fontsize=13)

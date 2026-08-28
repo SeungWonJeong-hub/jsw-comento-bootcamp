@@ -1,12 +1,12 @@
 """선박 크기별 층화 평가 — 코멘토 3차 업무 / 정승원
 
-전체 mAP 하나가 가리는 것을 크기 축으로 펼친다.
+전체 mAP 하나가 가리는 것을 크기 축으로 펼칩니다.
 
 왜 크기인가
 -----------
-10 m 해상도에서 선박은 2~70 px 다. 중앙값이 5.2 px 이니 대부분이 손톱만 하다.
-그런데 mAP 는 큰 배와 작은 배를 한데 섞어 평균 낸다.
-크기가 곧 "이 해상도에서 볼 수 있느냐"를 가르는 축이므로 그 축으로 나눠 본다.
+10 m 해상도에서 선박은 2~70 px 다. 중앙값이 5.2 px 이니 대부분이 손톱만 합니다.
+그런데 mAP 는 큰 배와 작은 배를 한데 섞어 평균 냅니다.
+크기가 곧 "이 해상도에서 볼 수 있느냐"를 가르는 축이므로 그 축으로 나눠 봅니다.
 
 무엇을 재는가
 -----------
@@ -14,9 +14,9 @@
   Recall    놓치지 않았는가
   평균 IoU  찾은 것이 얼마나 딱 맞는가  ← AP 만으로는 안 보이는 축
 
-학습 결과에서 mAP50(0.86)과 mAP50-95(0.46)의 격차가 매우 컸다.
-IoU 문턱을 올리면 급락한다는 뜻이고, 박스가 헐겁게 맞고 있다는 신호다.
-그 헐거움이 크기에 따라 어떻게 달라지는지가 이 평가의 초점이다.
+학습 결과에서 mAP50(0.86)과 mAP50-95(0.46)의 격차가 매우 컸습니다.
+IoU 문턱을 올리면 급락한다는 뜻이고, 박스가 헐겁게 맞고 있다는 신호입니다.
+그 헐거움이 크기에 따라 어떻게 달라지는지가 이 평가의 초점입니다.
 """
 import os, sys, glob, math, json, argparse
 import numpy as np
@@ -124,10 +124,10 @@ def main():
                 used.add(bi)
                 recs.append((obb_long(items[bi]), 1, cf, best))
             else:
-                # 오탐은 정답이 없으니 GT 크기를 못 쓴다. 대신 '예측한 박스의 크기'로
-                # 구간에 넣는다. 4px 짜리 오탐은 소형선 구간의 오탐이다.
+                # 오탐은 정답이 없으니 GT 크기를 못 씁니다. 대신 '예측한 박스의 크기'로
+                # 구간에 넣습니다. 4px 짜리 오탐은 소형선 구간의 오탐입니다.
                 # 모든 구간에 공통으로 더하면, GT 가 적은 대형선 구간이 오탐 수천 건에
-                # 짓눌려 AP 가 구간끼리 비교 불가능해진다.
+                # 짓눌려 AP 가 구간끼리 비교 불가능해집니다.
                 recs.append((obb_long(poly), 0, cf, np.nan))
         for i, g in enumerate(items):
             if i not in used:
@@ -151,7 +151,7 @@ def main():
         table.append(dict(bin=f'{b[0]}-{b[1]}', metres=rng, n_gt=n_gt_bin[b],
                           n_fp=fp, ap50=A, recall=R, mean_iou=mIoU))
 
-    print(f'\n오탐 합계 {n_fp}건 (신뢰도 하한 {a.conf} — PR 곡선을 그리려면 낮게 둔다)')
+    print(f'\n오탐 합계 {n_fp}건 (신뢰도 하한 {a.conf} — PR 곡선을 그리려면 낮게 둡니다)')
     os.makedirs(os.path.dirname(a.out) or '.', exist_ok=True)
     json.dump(dict(split=a.split, iou=a.iou, weights=os.path.basename(a.weights),
                    n_instances=n_inst, n_fp=n_fp, bins=table),

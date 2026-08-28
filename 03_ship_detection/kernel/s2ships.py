@@ -1,13 +1,13 @@
 """S2Ships — 카글 GPU 학습
 코멘토 3차 업무 · 정승원
 
-핀란드 연안 Sentinel-2 선박 데이터로 회전 박스(OBB) 탐지기를 학습한다.
-한국 항만에 적용하는 것이 목표라, 여기서 나온 가중치를 그대로 가져다 쓴다.
+핀란드 연안 Sentinel-2 선박 데이터로 회전 박스(OBB) 탐지기를 학습합니다.
+한국 항만에 적용하는 것이 목표라, 여기서 나온 가중치를 그대로 가져다 씁니다.
 
 설계 원칙
   무거운 것은 /kaggle/temp (출력 제외), 결과만 /kaggle/working.
-  단계마다 결과를 즉시 저장해 중간에 죽어도 앞 결과는 남는다.
-  GPU 는 T4 로 지정한다 (P100 은 PyTorch cu128 이 sm_60 을 안 만든다).
+  단계마다 결과를 즉시 저장해 중간에 죽어도 앞 결과는 남습니다.
+  GPU 는 T4 로 지정한다 (P100 은 PyTorch cu128 이 sm_60 을 안 만듭니다).
 """
 import os, sys, time, json, subprocess, traceback
 
@@ -62,10 +62,10 @@ def _():
 # ------------------------------------------------------------------ 2 데이터
 @stage("데이터 구축")
 def _():
-    """업로드하지 않고 커널이 직접 만든다.
+    """업로드하지 않고 커널이 직접 만듭니다.
 
-    주석(2.6MB)은 Zenodo 에서, 위성 사진은 AWS 공개 COG 에서 받는다.
-    둘 다 인증이 필요 없어서, 7천 장짜리 타일을 올릴 이유가 없다.
+    주석(2.6MB)은 Zenodo 에서, 위성 사진은 AWS 공개 COG 에서 받습니다.
+    둘 다 인증이 필요 없어서, 7천 장짜리 타일을 올릴 이유가 없습니다.
     """
     sh("pip install -q rasterio geopandas pyogrio requests")
     os.makedirs(DATA, exist_ok=True)
@@ -73,7 +73,7 @@ def _():
         p = f"{DATA}/{t}.gpkg"
         if not os.path.exists(p):
             sh(f'curl -sL "https://zenodo.org/api/records/15019034/files/{t}.gpkg/content" -o {p}')
-    # 저장소의 build_dataset.py 를 그대로 쓴다 (코드 중복을 만들지 않는다)
+    # 저장소의 build_dataset.py 를 그대로 쓴다 (코드 중복을 만들지 않습니다)
     sh("git clone --depth 1 https://github.com/SeungWonJeong-hub/jsw-comento-bootcamp.git "
        f"{TMP}/repo -b feature/ship-detection", check=False)
     build = f"{TMP}/repo/03_ship_detection/src/build_dataset.py"
@@ -111,9 +111,9 @@ from ultralytics import YOLO
 EPOCHS = int(os.environ.get("EPOCHS", 100))
 YAML = f"{DATA}/yolo/s2ships.yaml"
 
-# 항공기 때 배운 것을 그대로 적용한다:
-#   mosaic 과 HSV 가 동시에 켜지면 발산한 사례가 있었다.
-#   여기서는 아키텍처가 달라 그대로는 아니겠지만, 대조군을 같이 돌려 확인한다.
+# 항공기 때 배운 것을 그대로 적용합니다:
+#   mosaic 과 HSV 가 동시에 켜지면 발산한 사례가 있었습니다.
+#   여기서는 아키텍처가 달라 그대로는 아니겠지만, 대조군을 같이 돌려 확인합니다.
 NOAUG = dict(hsv_h=0, hsv_s=0, hsv_v=0, degrees=0, translate=0,
              scale=0, fliplr=0, flipud=0, mosaic=0, erasing=0)
 
