@@ -48,7 +48,7 @@ PORTS = {
         "weights": "weights/naantali.pt",
         "thr": 0.25,
         "metrics": {"precision": 0.8544, "recall": 0.8230,
-                    "f1": 0.8384, "mAP50": 0.8669, "mAP50_95": 0.3982},
+                    "f1": 0.8384, "AP50": 0.8669, "AP50_95": 0.3982},
     },
     "tianjin": {
         "label": "🇨🇳  중국 · 톈진",
@@ -92,9 +92,9 @@ st.sidebar.markdown("### 📊 모델 성능")
 m = P["metrics"]
 if P["kind"] == "box":
     st.sidebar.table({
-        "지표": ["precision", "recall", "F1", "mAP50", "mAP50-95"],
+        "지표": ["precision", "recall", "F1", "AP50", "AP50-95"],
         "값": ["%.3f" % m["precision"], "%.3f" % m["recall"],
-               "%.3f" % m["f1"], "%.3f" % m["mAP50"], "%.3f" % m["mAP50_95"]],
+               "%.3f" % m["f1"], "%.3f" % m["AP50"], "%.3f" % m["AP50_95"]],
     })
     st.sidebar.caption("학습에 쓰지 않은 자료에서 잰 값입니다.")
 else:
