@@ -26,3 +26,11 @@ Thumbs.db
 03_ship_detection/outputs/korea_quant.json
 03_ship_detection/outputs/fig7_port_*.png
 03_ship_detection/outputs/fig8_c_*.png
+
+# 4차 과제 — 체크포인트·빌드 산출물은 저장소에 두지 않습니다
+04_ship_detection_real_labels/weights/
+04_ship_detection_real_labels/dist/
+04_ship_detection_real_labels/build/
+04_ship_detection_real_labels/__pycache__/
+04_ship_detection_real_labels/.pytest_cache/
+04_ship_detection_real_labels/tests/__pycache__/
