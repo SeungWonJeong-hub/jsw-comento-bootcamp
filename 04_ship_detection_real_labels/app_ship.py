@@ -96,8 +96,6 @@ st.sidebar.table({
     "값": ["%.3f" % M["precision"], "%.3f" % M["recall"], "%.3f" % M["f1"], "%.3f" % M["AP50"]],
 })
 st.sidebar.caption("test %d장 · 선박 %d척 · conf %.2f · IoU 0.5" % (M["n_images"], M["n_ships"], CONF))
-if M["n_ships"] < 80:
-    st.sidebar.warning("표본이 적어 참고값입니다.")
 show_gt = st.sidebar.checkbox("정답(노랑) 표시", value=True)
 
 # ==================================================================== 본문
@@ -160,14 +158,3 @@ a.metric("정답", len(gt))
 b.metric("맞힘", len(hit))
 c.metric("오탐", len(dets) - len(hit))
 d_.metric("놓침", len(gt) - len(used))
-
-if dets:
-    rows = sorted(dets, key=lambda d: -d["score"])
-    st.dataframe({"ID": ["#%d" % (k + 1) for k in range(len(rows))],
-                  "점수": [round(d["score"], 3) for d in rows],
-                  "길이(m)": [round(d["len"] * GSD) for d in rows],
-                  "폭(m)": [round(d["wid"] * GSD) for d in rows],
-                  "방향(°)": [round(d["ang"]) for d in rows],
-                  "판정": ["맞힘" if k in hit else "오탐" for k, _ in
-                          sorted(enumerate(dets), key=lambda kd: -kd[1]["score"])]},
-                 use_container_width=True, height=300)
