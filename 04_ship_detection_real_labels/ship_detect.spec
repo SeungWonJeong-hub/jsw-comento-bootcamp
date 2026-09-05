@@ -22,7 +22,8 @@ for pkg in ("streamlit", "ultralytics", "torch", "numpy", "opencv-python"):
         pass
 
 # 앱 본체와 가중치는 실행 파일 옆이 아니라 안에 넣습니다
-datas += [("app_ship.py", "."), ("ship_core.py", "."), ("point_net.py", "."),
+# 항만 5곳 test 영상·라벨·manifest 도 같이 넣습니다 — 실행 파일만으로 돌아가게
+datas += [("app_ship.py", "."), ("ship_core.py", "."), ("data/hrsc", "data/hrsc"),
           ("weights", "weights")]
 
 hiddenimports += ["streamlit.web.cli", "streamlit.runtime.scriptrunner.magic_funcs",
