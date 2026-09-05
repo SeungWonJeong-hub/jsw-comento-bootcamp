@@ -1,0 +1,57 @@
+{
+ "everett": {
+  "precision": 0.839,
+  "recall": 1.0,
+  "f1": 0.912,
+  "AP50": 0.959,
+  "n_images": 39,
+  "n_ships": 52,
+  "TP": 52,
+  "FP": 10,
+  "FN": 0
+ },
+ "newport": {
+  "precision": 0.952,
+  "recall": 0.87,
+  "f1": 0.909,
+  "AP50": 0.942,
+  "n_images": 12,
+  "n_ships": 23,
+  "TP": 20,
+  "FP": 1,
+  "FN": 3
+ },
+ "mayport": {
+  "precision": 0.927,
+  "recall": 0.95,
+  "f1": 0.938,
+  "AP50": 0.94,
+  "n_images": 66,
+  "n_ships": 160,
+  "TP": 152,
+  "FP": 12,
+  "FN": 8
+ },
+ "norfolk": {
+  "precision": 0.946,
+  "recall": 0.964,
+  "f1": 0.955,
+  "AP50": 0.986,
+  "n_images": 117,
+  "n_ships": 308,
+  "TP": 297,
+  "FP": 17,
+  "FN": 11
+ },
+ "san_diego": {
+  "precision": 0.923,
+  "recall": 0.952,
+  "f1": 0.937,
+  "AP50": 0.966,
+  "n_images": 217,
+  "n_ships": 683,
+  "TP": 650,
+  "FP": 54,
+  "FN": 33
+ }
+}
