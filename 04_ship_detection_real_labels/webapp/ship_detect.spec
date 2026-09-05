@@ -10,8 +10,10 @@ streamlit 은 자기 버전을 importlib.metadata 로 읽어서 metadata 를 같
 """
 from PyInstaller.utils.hooks import collect_all, copy_metadata
 
+# 용량을 줄이려고 앱이 실제로 쓰는 것만 모읍니다. rasterio·pyproj 는 GeoTIFF
+# 업로드용이었는데 지금 앱엔 업로드가 없어 뺐습니다(-100 MB).
 datas, binaries, hiddenimports = [], [], []
-for pkg in ("streamlit", "ultralytics", "rasterio", "pyproj", "torch"):
+for pkg in ("streamlit", "ultralytics", "torch"):
     d, b, h = collect_all(pkg)
     datas += d; binaries += b; hiddenimports += h
 
@@ -36,7 +38,12 @@ a = Analysis(["launch.py"], pathex=["."], binaries=binaries, datas=datas,
              hiddenimports=hiddenimports, hookspath=[], runtime_hooks=[],
              # matplotlib 은 빼면 안 됩니다 — ultralytics 가 OBB 추론 경로에서
              # import 합니다. 빼고 빌드한 exe 가 화면을 열자마자 죽었습니다.
-             excludes=["tkinter", "PyQt5", "PySide2", "notebook", "IPython", "pytest"],
+             # ultralytics 가 끌고 오지만 이 앱이 안 쓰는 큰 패키지들 (약 -500 MB).
+             # matplotlib 은 빼면 안 됩니다 — OBB 추론 경로에서 import 합니다.
+             excludes=["tkinter", "PyQt5", "PySide2", "notebook", "IPython", "pytest",
+                       "polars", "_polars_runtime_32", "llvmlite", "numba", "pyarrow",
+                       "pyogrio", "transformers", "onnxruntime", "rasterio", "pyproj",
+                       "pandas.tests", "scipy.tests", "sklearn", "tensorboard"],
              noarchive=False)
 pyz = PYZ(a.pure)
 exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name="위성선박탐지",

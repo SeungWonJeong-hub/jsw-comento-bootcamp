@@ -57,7 +57,7 @@ def load_index():
     idx = {k: [] for k in PORTS}
     for r in csv.DictReader(io.open(os.path.join(DATA, "manifests", "split.csv"), encoding="utf-8")):
         if r["official"] == "test" and r["port"] in idx and \
-                os.path.exists(os.path.join(DATA, "images", r["image_id"] + ".png")):
+                os.path.exists(os.path.join(DATA, "images", r["image_id"] + ".jpg")):
             idx[r["port"]].append(r["image_id"])
     for k in idx:
         idx[k].sort(key=lambda i: -int(man[i]["n_ships"] or 0))
@@ -122,7 +122,7 @@ c3.markdown("**%s** · %d / %d · 촬영일 **%s** · %s × %s 화소 · GSD %.2
             % (label, i + 1, len(ids), date, m["width"], m["height"], GSD))
 
 # cv2.imread 는 윈도에서 한글 경로(예: dist/위성선박탐지/)를 못 읽습니다.
-bgr = cv2.imdecode(np.fromfile(os.path.join(DATA, "images", image_id + ".png"), np.uint8),
+bgr = cv2.imdecode(np.fromfile(os.path.join(DATA, "images", image_id + ".jpg"), np.uint8),
                    cv2.IMREAD_COLOR)
 H, W = bgr.shape[:2]
 gt = load_gt(image_id, W, H)
