@@ -58,15 +58,33 @@ py -m pytest tests/ -q
 
 ## 구성
 
+3차와 같은 얼개입니다 — `src/` 는 자료 준비·평가·그림, `kernel/` 은 Kaggle 학습, 나머지가 웹앱.
+
 ```
-app_ship.py      웹앱 화면
-ship_core.py     영상 읽기·정규화·좌표 변환
-launch.py        실행 파일 진입점
-make_ppt.py      발표자료 생성
-tests/           단위 시험
-outputs/         그림
-weights/         hrsc_hr045_seed{0,1,2}.pt   (저장소 밖)
-data/hrsc/       test 영상 451장 · 라벨 · manifest (저장소 밖)
+app_ship.py                    웹앱 화면
+ship_core.py                   영상 읽기·정규화·좌표 변환
+launch.py                      실행 파일 진입점
+ship_detect.spec               PyInstaller 설정
+src/
+  config.yaml                  경로·학습·평가 설정 (한 곳)
+  common.py                    설정 로드 · 항만 좌표표 · 진짜 GSD 계산
+  download_hrsc2016.py         Kaggle 내려받기 + RAR 추출 (bsdtar)
+  inspect_metadata.py          XML 전수 조사 · 좌표 군집
+  build_port_manifest.py       항만 식별 · GSD 검증 · manifest
+  convert_hrsc_to_yolo_obb.py  XML 회전상자 -> YOLO OBB
+  validate_labels.py           라벨 100장 시각검증
+  train_yolo.py                학습 (예산 자동조정 · 이어하기)
+  evaluate_yolo.py             P/R/F1/AP50/AP75/mAP · 항만별 · 크기별
+  port_metrics.py              웹앱용 항만별 실측표 (outputs/port_metrics.json)
+  fig_ports.py                 항만별 탐지 그림 (outputs/fig1_*.png)
+  make_ppt.py                  발표자료 3장
+kernel/
+  hrsc_train_kaggle.py         Kaggle T4 커널 (train -> evaluate 순서로 실행)
+  kernel-metadata.json
+tests/                         단위 시험
+outputs/                       그림 · 항만별 실측표
+weights/                       hrsc_hr045_seed0.pt            (저장소 밖)
+data/hrsc/                     test 영상 451장 · 라벨 · manifest (저장소 밖)
 ```
 
 ---
@@ -134,15 +152,19 @@ gsd = 156543.03392 * cos(lat) / 2^18      ->  노퍽 0.48 · 샌디에이고 0.5
 - epochs 는 100 을 계획했으나 GPU 예산(Kaggle T4 9시간)에 맞춰 67 로 낮췄습니다.
   모든 런에 똑같이 적용했고 시드 편차가 ±0.004 라 수렴은 충분합니다.
 
-## 자료 만들기
+## 자료 만들기 · 재현
 
 ```
-# hrsc-sr-project 에서
-py scripts/download_hrsc2016.py      # Kaggle guofeng/hrsc2016 (5분할 RAR, bsdtar 로 추출)
-py scripts/build_port_manifest.py --verify-gsd
-py scripts/convert_hrsc_to_yolo_obb.py
-py scripts/validate_labels.py --n 100
-# 학습(Kaggle T4): kaggle/hrsc_sr_kaggle.py
+py src/download_hrsc2016.py --dest ../../hrsc2016   # Kaggle guofeng/hrsc2016, 5분할 RAR 를 bsdtar 로 추출
+py src/inspect_metadata.py
+py src/build_port_manifest.py --verify-gsd          # 항만 식별 · GSD 검증 · manifest
+py src/convert_hrsc_to_yolo_obb.py                  # 회전상자 라벨
+py src/validate_labels.py --n 100
+py src/train_yolo.py --split official               # 로컬 GPU 가 있으면. 없으면 kernel/ 로 Kaggle
+py src/evaluate_yolo.py --split official
+py src/port_metrics.py                              # 웹앱 항만별 표
+py src/fig_ports.py                                 # 항만별 그림
+py src/make_ppt.py
 ```
 
 ## 라이선스와 한계

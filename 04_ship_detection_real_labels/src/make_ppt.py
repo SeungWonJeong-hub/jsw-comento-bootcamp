@@ -1,6 +1,6 @@
 """4차 업무 PPT 생성 — 코멘토 4차 업무 / 정승원
 
-    py make_ppt.py --out 4차업무_정승원.pptx
+    py src/make_ppt.py --out 4차업무_정승원.pptx
 
 2·3차 업무 PPT 서식을 그대로 따릅니다.
   13.333 x 7.5 in · 배경 #FAFAFA · 카드 #FFFFFF + #EBEBEB 0.75pt 테두리
@@ -28,7 +28,7 @@ ACC, WARN = "0070F3", "D4443C"
 SANS, SEMI, MED, MONO = ("Pretendard", "Pretendard SemiBold",
                          "Pretendard Medium", "Cascadia Mono")
 TOTAL = 3
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # 04 폴더
 FIG = os.path.join(HERE, "outputs")
 
 

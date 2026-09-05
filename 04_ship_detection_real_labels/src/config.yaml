@@ -1,0 +1,70 @@
+# 4차 업무 설정 — HRSC2016 미국 해군기지 5곳 · YOLO11m-OBB
+#
+# 학습·평가 값은 여기 한 곳에만 둡니다. 경로는 이 폴더(04_ship_detection_real_labels)
+# 기준이고, 원본 자료(hrsc2016)는 저장소 밖에 둡니다.
+
+paths:
+  raw_root: ../../hrsc2016
+  annotations: ../../hrsc2016/ann/HRSC2016/FullDataSet/Annotations
+  images: ../../hrsc2016/full/HRSC2016/FullDataSet/AllImages
+  imagesets: ../../hrsc2016/ann/HRSC2016/ImageSets
+  data: data            # labels_obb/ 등 파생물 (저장소 밖)
+  manifests: data/hrsc/manifests
+  results: results
+
+# ---------------------------------------------------------------- 해상도
+gsd:
+  # XML 의 Img_Resolution(1.07) 은 위도 보정이 안 된 명목값이라 쓰지 않습니다.
+  #     gsd = 156543.03392 * cos(lat) / 2^zoom
+  # 검증: 미국 항만 선박 2,964척 장변 p99 = 347 m ↔ Nimitz 급 333 m (+4 %).
+  source: formula
+  target_m: 10.0        # (GSD 실험용 · 4차 본 실험에서는 쓰지 않음)
+
+# ---------------------------------------------------------------- 학습
+train:
+  model: yolo11m-obb.pt
+  task: obb
+  imgsz: 640
+  epochs: 100           # Kaggle T4 예산에 맞춰 실제로는 67 로 자동 조정됐음
+  batch: 32
+  val_during_train: false   # best.pt 선택이 런마다 epoch 을 달리 고르면 비교가 안 됨 -> 고정 epoch + last.pt
+  use_weights: last
+  optimizer: auto
+  seeds: [0, 1, 2]
+  patience: 0
+  deterministic: true
+  augment:
+    hsv_h: 0.015
+    hsv_s: 0.7
+    hsv_v: 0.4
+    degrees: 180.0      # 회전상자라 회전 증강이 유효
+    translate: 0.1
+    scale: 0.5
+    fliplr: 0.5
+    flipud: 0.5
+    mosaic: 1.0
+
+# ---------------------------------------------------------------- 평가
+eval:
+  conf_fixed: 0.25
+  nms_iou: 0.7
+  ap_ious: [0.5, 0.75]
+  size_bins_m: [0, 80, 160, 260, 100000]
+  bootstrap_n: 2000
+  scene_type_field: cus_type
+
+# ---------------------------------------------------------------- 분할
+splits:
+  - id: official        # HRSC2016 공식 ImageSets (주 결과)
+  - id: portwise        # 항만 단위 (누수 검증)
+    model: yolo11n-obb.pt
+    test_ports: [everett, newport]
+    val_ports: [mayport]
+    train_ports: [san_diego, norfolk]
+
+# ---------------------------------------------------------------- 예산
+budget:
+  session_hours: 9.0
+  reserve_hours: 0.5
+  calibrate_epochs: 5
+  min_epochs: 40
