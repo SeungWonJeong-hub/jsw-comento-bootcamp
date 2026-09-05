@@ -16,6 +16,7 @@ import os
 import csv
 import json
 import math
+import threading
 
 import numpy as np
 import cv2
@@ -44,10 +45,27 @@ def gsd_of(lat, zoom=18):
     return 156543.03392 * math.cos(math.radians(lat)) / (2.0 ** zoom)
 
 
+_PREDICT_LOCK = threading.Lock()
+
+
 @st.cache_resource(show_spinner=False)
 def get_model():
+    """모델을 한 번만 올리고, 여기서 바로 융합(fuse)까지 끝내 둡니다.
+
+    ultralytics 는 첫 predict 에서 층을 융합하는데, 세션 둘이 동시에 첫 추론을
+    걸면 한쪽이 융합 중인 모델을 다른 쪽이 또 융합하려다
+    'Conv' object has no attribute 'bn' 으로 죽습니다. 캐시 함수 안에서
+    빈 영상으로 한 번 돌려 융합을 마치면 그 뒤로는 안전합니다.
+    """
     from ultralytics import YOLO
-    return YOLO(os.path.join(HERE, WEIGHTS))
+    m = YOLO(os.path.join(HERE, WEIGHTS))
+    m.predict(np.zeros((64, 64, 3), np.uint8), imgsz=64, verbose=False, device="cpu")
+    return m
+
+
+def predict(model, bgr):
+    with _PREDICT_LOCK:
+        return model.predict(bgr, imgsz=640, conf=CONF, iou=NMS, verbose=False, device="cpu")[0]
 
 
 @st.cache_data(show_spinner=False)
@@ -128,7 +146,7 @@ bgr = cv2.imdecode(np.fromfile(os.path.join(DATA, "images", image_id + ".jpg"), 
 H, W = bgr.shape[:2]
 gt = load_gt(image_id, W, H)
 
-r = get_model().predict(bgr, imgsz=640, conf=CONF, iou=NMS, verbose=False, device="cpu")[0]
+r = predict(get_model(), bgr)
 dets = []
 if r.obb is not None and len(r.obb):
     for q, (cx, cy, w, h, ang), s_ in zip(r.obb.xyxyxyxy.cpu().numpy().reshape(-1, 4, 2),
