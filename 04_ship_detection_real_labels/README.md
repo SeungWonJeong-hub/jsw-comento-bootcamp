@@ -6,9 +6,13 @@
 **HRSC2016 의 미국 해군기지 5곳**이고, 정답은 사람이 그린 회전상자 2,964척입니다.
 **정답이 없으면 정밀도를 잴 수 없다**는 전제로, 실측 라벨이 있는 항만만 씁니다.
 
-![항만 5곳 탐지 예](outputs/fig1_ports_detections.png)
+항만마다 한 장씩, 전부 학습에 쓰지 않은 test 영상입니다. 초록 = 탐지, 노랑 = 정답.
 
-*초록 = 탐지, 노랑 = 정답. 전부 학습에 쓰지 않은 test 영상입니다.*
+| | |
+|---|---|
+| ![샌디에이고](outputs/fig1_san_diego.png) | ![노퍽](outputs/fig1_norfolk.png) |
+| ![메이포트](outputs/fig1_mayport.png) | ![에버렛](outputs/fig1_everett.png) |
+| ![뉴포트](outputs/fig1_newport.png) | |
 
 ## 핵심 결과
 

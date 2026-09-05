@@ -11,7 +11,9 @@
   01 자료    항만을 좌표로 식별하고 GSD 를 함급으로 검증
   02 결과    미국 해군기지 5곳 · 회전상자 · F1 0.936
   03 확인    탐지 결과를 항만마다 한 장씩
-  04 부록    10 m 로 내리면 초해상화가 도움이 되는가 — 재학습이 이깁니다
+
+10 m 초해상화 부록(slide4)은 발표에서 뺍니다 — README 에만 둡니다.
+함수는 지울 때가 아니라 다시 쓸 때를 위해 남겨 둡니다.
 """
 import os
 import argparse
@@ -28,7 +30,7 @@ HAIR, CANVAS, CARD = "EBEBEB", "FAFAFA", "FFFFFF"
 ACC, WARN, OK = "0070F3", "D4443C", "1F8A4C"
 SANS, SEMI, MED, MONO = ("Pretendard", "Pretendard SemiBold",
                          "Pretendard Medium", "Cascadia Mono")
-TOTAL = 4
+TOTAL = 3
 HERE = os.path.dirname(os.path.abspath(__file__))
 FIG = os.path.join(HERE, "outputs")
 
@@ -199,14 +201,29 @@ def slide2(prs):
 def slide3(prs):
     sl = base(prs, "03 / 확인", "항만마다 한 장씩 — 탐지(초록)와 정답(노랑)",
               "전부 학습에 쓰지 않은 test 영상. 웹앱에서 항만을 고르고 ◀ 이전 / 다음 ▶ 으로 돌아가며 같은 것을 볼 수 있습니다.", 3)
-    card(sl, .72, 1.80, 11.89, 4.85)
-    pic(sl, "fig1_ports_detections.png", .90, 2.55, w=11.5)
-    txt(sl, .90, 4.45, 11.5, 1.9,
-        "샌디에이고 GT 11 / 탐지 12 — 부두에 나란한 함정을 회전상자가 각각 감쌉니다.   "
-        "뉴포트 GT 3 / 탐지 1 — 계류 중인 민간 화물선 옆의 소형선 둘을 놓쳤습니다.\n"
+    # 항만 5곳, 한 장씩. 윗줄 3장 · 아랫줄 2장 + 설명 칸
+    ports = [("fig1_san_diego.png", "샌디에이고 · GT 11 / 탐지 12"),
+             ("fig1_norfolk.png", "노퍽 · GT 7 / 탐지 7"),
+             ("fig1_mayport.png", "메이포트 · GT 6 / 탐지 5"),
+             ("fig1_everett.png", "에버렛 · GT 4 / 탐지 5"),
+             ("fig1_newport.png", "뉴포트 · GT 3 / 탐지 1")]
+    cw, ch, gap = 3.85, 2.36, .17
+    for k, (f, cap) in enumerate(ports):
+        r, c = divmod(k, 3)
+        x, y = .72 + c * (cw + gap), 1.80 + r * (ch + .48)
+        card(sl, x, y, cw, ch + .34)
+        pic(sl, f, x + .10, y + .10, w=cw - .20, h=ch - .20)
+        txt(sl, x + .12, y + ch - .04, cw - .24, .3, cap, MED, 9.0, INK)
+    x, y = .72 + 2 * (cw + gap), 1.80 + (ch + .48)
+    card(sl, x, y, cw, ch + .34)
+    txt(sl, x + .18, y + .16, cw - .36, ch,
+        "초록 = 탐지(conf ≥ 0.25), 노랑 = 정답.\n\n"
+        "부두에 나란한 함정을 회전상자가 각각 감쌉니다.\n"
+        "뉴포트는 계류 중인 민간 화물선 옆의 소형선 둘을 놓쳤습니다 — "
+        "test 23척뿐이라 항만별 수치는 참고값입니다.\n\n"
         "웹앱은 정답이 있는 test 영상에서 맞힘·오탐·놓침을 IoU 0.5 로 세어 보여주고, "
         "GeoTIFF 를 올리면 회전상자를 GeoJSON 폴리곤으로 내보냅니다.",
-        SANS, 9.0, MUTE, line=1.5)
+        SANS, 9.0, BODY, line=1.5)
     return sl
 
 
@@ -243,7 +260,7 @@ def slide4(prs):
 def build(out):
     prs = Presentation()
     prs.slide_width, prs.slide_height = Inches(W), Inches(H)
-    for f in (slide1, slide2, slide3, slide4):
+    for f in (slide1, slide2, slide3):
         f(prs)
     prs.save(out)
     print("저장:", out)
