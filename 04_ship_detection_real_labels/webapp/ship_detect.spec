@@ -38,10 +38,11 @@ a = Analysis(["launch.py"], pathex=["."], binaries=binaries, datas=datas,
              hiddenimports=hiddenimports, hookspath=[], runtime_hooks=[],
              # matplotlib 은 빼면 안 됩니다 — ultralytics 가 OBB 추론 경로에서
              # import 합니다. 빼고 빌드한 exe 가 화면을 열자마자 죽었습니다.
-             # ultralytics 가 끌고 오지만 이 앱이 안 쓰는 큰 패키지들 (약 -500 MB).
-             # matplotlib 은 빼면 안 됩니다 — OBB 추론 경로에서 import 합니다.
+             # ultralytics 가 끌고 오지만 이 앱이 안 쓰는 큰 패키지들 (약 -420 MB).
+             # 빼면 안 되는 것 — matplotlib(ultralytics OBB 추론), pyarrow(streamlit 표).
+             # 둘 다 뺐다가 exe 가 화면을 열자마자 죽었습니다.
              excludes=["tkinter", "PyQt5", "PySide2", "notebook", "IPython", "pytest",
-                       "polars", "_polars_runtime_32", "llvmlite", "numba", "pyarrow",
+                       "polars", "_polars_runtime_32", "llvmlite", "numba",
                        "pyogrio", "transformers", "onnxruntime", "rasterio", "pyproj",
                        "pandas.tests", "scipy.tests", "sklearn", "tensorboard"],
              noarchive=False)
