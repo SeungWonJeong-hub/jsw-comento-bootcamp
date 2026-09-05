@@ -134,42 +134,6 @@ gsd = 156543.03392 * cos(lat) / 2^18      ->  노퍽 0.48 · 샌디에이고 0.5
 - epochs 는 100 을 계획했으나 GPU 예산(Kaggle T4 9시간)에 맞춰 67 로 낮췄습니다.
   모든 런에 똑같이 적용했고 시드 편차가 ±0.004 라 수렴은 충분합니다.
 
----
-
-## 부록 — 10 m 로 내리면 초해상화가 도움이 되는가
-
-같은 영상을 Sentinel-2 급 **10 m** 로 열화시킨 뒤(광학 PSF → 면적평균 축소 약
-1/22 → 포아송·가우시안 잡음 → JPEG), 세 입력을 같은 조건으로 비교했습니다.
-
-    A  Native LR 10 m       B  Bicubic ×4       C  Real-ESRGAN ×4
-
-DiffBIR 같은 확산 모델은 T4 로 50시간이 넘어 쓰지 못했고, Real-ESRGAN 은 이
-열화(blur+noise+JPEG)와 같은 가정으로 학습된 순전파 모델이라 골랐습니다.
-
-| Input | 학습 조건 | Precision | Recall | F1 | AP50 | AP50-95 |
-|---|---|---:|---:|---:|---:|---:|
-| HR 0.45 m | HR→HR (상한선) | 0.916 | 0.957 | **0.936** | 0.970 | 0.770 |
-| Native LR | 10 m 로 재학습 | 0.695 | 0.672 | **0.683** | 0.691 | 0.340 |
-| Bicubic | 10 m 로 재학습 | 0.701 | 0.679 | **0.690** | 0.697 | 0.340 |
-| Real-ESRGAN | 10 m 로 재학습 | 0.694 | 0.663 | **0.678** | 0.682 | 0.329 |
-| Native LR | HR 학습 → 그대로 적용 | 0.447 | 0.028 | 0.052 | 0.053 | 0.021 |
-| Bicubic | HR 학습 → 그대로 적용 | 0.430 | 0.024 | 0.045 | 0.061 | 0.023 |
-| Real-ESRGAN | HR 학습 → 그대로 적용 | 0.574 | 0.169 | **0.260** | 0.233 | 0.098 |
-
-paired bootstrap 95 % CI (같은 조건의 Native LR 대비):
-
-- 재학습 · Real-ESRGAN: AP50 **−0.009** [−0.016, −0.003] — 유의하게 *나쁨*
-- HR 학습 그대로 · Real-ESRGAN: AP50 **+0.180** [+0.169, +0.201] — 유의, 단 FP 3.7배
-
-![10 m vs SR](outputs/fig3_10m_vs_sr.png)
-
-**결론.** 탐지기를 10 m 로 다시 학습할 수 있으면 초해상화는 도움이 안 됩니다.
-HR 로 학습한 탐지기를 10 m 에 그대로 써야 할 때만 Real-ESRGAN 이 무너진 재현율을
-일부(0.03 → 0.17) 살리는데, 그래도 재학습(0.68)의 절반이 안 됩니다. 10 m 에서
-잃는 것은 80 m 미만 소형선(재현율 0.15)이고, 이건 어떤 SR 도 못 살립니다 —
-Real-ESRGAN 은 오히려 소형선을 더 놓칩니다(0.146 → 0.109). 실험 코드와 전체
-결과는 별도 저장소 `hrsc-sr-project` 에 있습니다.
-
 ## 자료 만들기
 
 ```
@@ -178,7 +142,6 @@ py scripts/download_hrsc2016.py      # Kaggle guofeng/hrsc2016 (5분할 RAR, bsd
 py scripts/build_port_manifest.py --verify-gsd
 py scripts/convert_hrsc_to_yolo_obb.py
 py scripts/validate_labels.py --n 100
-py scripts/generate_degraded_images.py
 # 학습(Kaggle T4): kaggle/hrsc_sr_kaggle.py
 ```
 

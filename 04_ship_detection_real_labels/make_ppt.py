@@ -11,9 +11,6 @@
   01 자료    항만을 좌표로 식별하고 GSD 를 함급으로 검증
   02 결과    미국 해군기지 5곳 · 회전상자 · F1 0.936
   03 확인    탐지 결과를 항만마다 한 장씩
-
-10 m 초해상화 부록(slide4)은 발표에서 뺍니다 — README 에만 둡니다.
-함수는 지울 때가 아니라 다시 쓸 때를 위해 남겨 둡니다.
 """
 import os
 import argparse
@@ -225,36 +222,6 @@ def slide3(prs):
         "웹앱은 정답이 있는 test 영상에서 맞힘·오탐·놓침을 IoU 0.5 로 세어 보여주고, "
         "GeoTIFF 를 올리면 회전상자를 GeoJSON 폴리곤으로 내보냅니다.",
         SANS, 9.0, BODY, line=1.5)
-    return sl
-
-
-def slide4(prs):
-    sl = base(prs, "04 / 부록", "10 m 로 내리면 초해상화가 도움이 되는가 — 재학습이 이깁니다",
-              "같은 영상을 Sentinel-2 급 10 m 로 열화(PSF → 면적평균 1/22 → 잡음 → JPEG) · Native · Bicubic ×4 · Real-ESRGAN ×4 · 같은 조건 · 시드 3 · paired bootstrap", 4)
-    card(sl, .72, 1.80, 6.1, 4.85)
-    txt(sl, .92, 1.95, 5.8, .22, "F1 · 고정 conf 0.25 · test 1,228척", SEMI, 11, INK)
-    rows(sl, .92, 2.30, ["입력", "10 m 재학습", "HR 학습 그대로"],
-         [["HR 0.45 m (상한선)", ("0.936", ACC), "—"],
-          ["Native LR", "0.683", ("0.052", WARN)],
-          ["Bicubic ×4", ("0.690", OK), ("0.045", WARN)],
-          ["Real-ESRGAN ×4", "0.678", ("0.260", OK)]],
-         [2.3, 1.7, 1.7])
-    txt(sl, .92, 3.75, 5.8, 2.8,
-        "재학습 · Real-ESRGAN vs Native   AP50 −0.009 [−0.016, −0.003]  유의하게 나쁨\n"
-        "HR 그대로 · Real-ESRGAN vs Native  AP50 +0.180 [+0.169, +0.201]  유의 · FP 3.7배\n\n"
-        "① 탐지기를 10 m 로 다시 학습할 수 있으면 SR 은 무효 — 세 입력이 같습니다.\n"
-        "② HR 탐지기를 그대로 써야 할 때만 SR 이 무너진 재현율(0.03)을 0.17 로 살립니다.\n"
-        "③ 그래도 재학습(0.68)의 절반이 안 됩니다. 답은 'SR 을 붙여라' 가 아니라 '10 m 로 학습하라'.\n"
-        "④ 10 m 에서 잃는 건 80 m 미만 소형선(재현율 0.15) — 어떤 SR 도 못 살리고, Real-ESRGAN 은 더 놓칩니다.",
-        SANS, 9.0, BODY, line=1.5)
-    card(sl, 7.05, 1.80, 5.56, 4.85)
-    pic(sl, "fig4_pr_curves_10m.png", 7.25, 1.98, w=5.2)
-    txt(sl, 7.25, 4.30, 5.2, 2.2,
-        "왼쪽(10 m 재학습): 세 곡선이 겹칩니다.\n"
-        "오른쪽(HR 학습 그대로): Real-ESRGAN 만 살아 있고 Native·Bicubic 은 재현율 0.1 을 못 넘습니다.\n\n"
-        "DiffBIR 은 T4 로 50 h+ 라 제외. Real-ESRGAN 은 이 열화(blur+noise+JPEG)와 같은 가정으로\n"
-        "학습된 순전파 모델이라 골랐습니다(1,068장 83초).",
-        SANS, 9.0, MUTE, line=1.5)
     return sl
 
 
