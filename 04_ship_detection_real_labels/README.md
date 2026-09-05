@@ -41,7 +41,7 @@ YOLO11m-OBB · 학습 429장 / test 451장(HRSC2016 공식 분할) · 67 epoch �
 > "자료 만들기" 에 있습니다.
 
 ```
-py -m streamlit run app_ship.py --server.port 8502
+py -m streamlit run webapp/app_ship.py --server.port 8502
 ```
 
 사이드바에서 항만을 고르면 그 항만의 test 영상을 **◀ 이전 / 다음 ▶** 으로
@@ -51,20 +51,22 @@ py -m streamlit run app_ship.py --server.port 8502
 ## 시험
 
 ```
-py -m pytest tests/ -q
+py -m pytest webapp/tests -q
 ```
 
 모델 정확도가 아니라 **모델 앞뒤의 배관**을 봅니다 — 영상 읽기·정규화·좌표 변환.
 
 ## 구성
 
-`pipeline/` 의 파일 번호가 곧 실행 순서입니다. `kaggle_train/` 은 GPU 학습, 나머지가 웹앱.
+`webapp/` 은 실행하는 것, `pipeline/` 은 만드는 과정(파일 번호가 곧 순서), `kaggle_train/` 은 GPU 학습.
 
 ```
-app_ship.py                              웹앱 화면
-ship_core.py                             영상 읽기·정규화·좌표 변환
-launch.py                                실행 파일 진입점
-ship_detect.spec                         PyInstaller 설정
+webapp/
+  app_ship.py                            웹앱 화면
+  ship_core.py                           영상 읽기·정규화·좌표 변환
+  launch.py                              실행 파일 진입점
+  ship_detect.spec                       PyInstaller 설정
+  tests/                                 단위 시험
 pipeline/
   config.yaml                            경로·학습·평가 설정 (한 곳)
   common.py                              설정 로드 · 항만 좌표표 · 진짜 GSD 계산
@@ -81,7 +83,6 @@ pipeline/
 kaggle_train/
   kaggle_train_and_evaluate.py           Kaggle T4 커널 (step6 -> step7)
   kernel-metadata.json
-tests/                                   단위 시험
 outputs/                                 그림 · 항만별 실측표
 weights/                                 hrsc_hr045_seed0.pt            (저장소 밖)
 data/hrsc/                               test 영상 451장 · 라벨 · manifest (저장소 밖)

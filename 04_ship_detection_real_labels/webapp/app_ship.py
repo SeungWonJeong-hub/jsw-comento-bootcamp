@@ -21,7 +21,10 @@ import numpy as np
 import cv2
 import streamlit as st
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+# 자료·가중치는 과제 폴더(04_ship_detection_real_labels) 바로 아래에 있습니다.
+# 개발 중엔 이 파일이 webapp/ 안에 있으니 한 단계 위, exe 로 묶이면 풀린 자리(_MEIPASS).
+import sys
+HERE = getattr(sys, "_MEIPASS", None) or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(HERE, "data", "hrsc")
 WEIGHTS = "weights/hrsc_hr045_seed0.pt"
 CONF, NMS = 0.25, 0.7

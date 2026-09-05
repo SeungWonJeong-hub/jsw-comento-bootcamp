@@ -31,6 +31,10 @@ Thumbs.db
 04_ship_detection_real_labels/weights/
 04_ship_detection_real_labels/results/
 04_ship_detection_real_labels/runs/
+04_ship_detection_real_labels/webapp/dist/
+04_ship_detection_real_labels/webapp/build/
+04_ship_detection_real_labels/webapp/__pycache__/
+04_ship_detection_real_labels/webapp/tests/__pycache__/
 04_ship_detection_real_labels/dist/
 04_ship_detection_real_labels/build/
 04_ship_detection_real_labels/__pycache__/

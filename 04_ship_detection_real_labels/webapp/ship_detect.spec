@@ -23,9 +23,10 @@ for pkg in ("streamlit", "ultralytics", "torch", "numpy", "opencv-python"):
 
 # 앱 본체와 가중치는 실행 파일 옆이 아니라 안에 넣습니다
 # 항만 5곳 test 영상·라벨·manifest 도 같이 넣습니다 — 실행 파일만으로 돌아가게
-datas += [("app_ship.py", "."), ("ship_core.py", "."), ("data/hrsc", "data/hrsc"),
-          ("outputs/port_metrics.json", "outputs"),
-          ("weights", "weights")]
+# 이 spec 은 webapp/ 안에 있고, 자료·가중치·그림은 한 단계 위(과제 폴더)에 있습니다.
+datas += [("app_ship.py", "."), ("ship_core.py", "."), ("../data/hrsc", "data/hrsc"),
+          ("../outputs/port_metrics.json", "outputs"),
+          ("../weights", "weights")]
 
 hiddenimports += ["streamlit.web.cli", "streamlit.runtime.scriptrunner.magic_funcs",
                   "pyproj._compat", "rasterio._shim", "rasterio.sample",
