@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """좌표 -> 항구 매핑과 manifests/images.csv · split.csv 생성.
 
-    py scripts/build_port_manifest.py
-    py scripts/build_port_manifest.py --verify-gsd
+    py pipeline/build_port_manifest.py
+    py pipeline/build_port_manifest.py --verify-gsd
 
 무엇을 근거로 항구를 정하는가
 -----------------------------

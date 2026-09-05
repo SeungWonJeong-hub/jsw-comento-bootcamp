@@ -1,7 +1,7 @@
 {
   "id": "seungwon21/hrsc-sr-ship-detection",
   "title": "HRSC SR ship detection",
-  "code_file": "hrsc_sr_kaggle.py",
+  "code_file": "kaggle_train_and_evaluate.py",
   "language": "python",
   "kernel_type": "script",
   "is_private": true,

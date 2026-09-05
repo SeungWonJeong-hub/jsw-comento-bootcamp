@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """OBB 탐지 평가 — 요구된 지표를 전부 직접 계산합니다.
 
-    py scripts/evaluate_yolo.py --split official
+    py pipeline/evaluate_yolo.py --split official
 
 Ultralytics 의 val() 대신 자체 평가기를 씁니다. TP/FP/FN, PR curve,
 최대 F1 임계값, 고정 임계값, 항구별·크기별·장면유형별, FP/km2, 환각 감사를

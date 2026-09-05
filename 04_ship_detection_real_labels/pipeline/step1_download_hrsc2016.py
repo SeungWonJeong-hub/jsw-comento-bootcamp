@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """HRSC2016 내려받기와 압축 풀기.
 
-    py scripts/download_hrsc2016.py --dest ../hrsc2016
+    py pipeline/download_hrsc2016.py --dest ../hrsc2016
 
 확인된 사실 (2026-09-04 실측)
 ----------------------------

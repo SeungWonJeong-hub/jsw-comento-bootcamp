@@ -10,7 +10,9 @@ import os
 import numpy as np
 import cv2
 
-GSD = 10.0                       # Sentinel-2 광학 밴드 한 화소의 지상 크기(m)
+# 한 화소의 지상 크기(m). HRSC2016 은 항만 위도에 따라 0.40~0.50 이라 app_ship.py 가
+# 항만마다 계산합니다. 여기 값은 시험용 기본값입니다.
+GSD = 0.45
 
 
 def stretch(v, min_range=40.0):

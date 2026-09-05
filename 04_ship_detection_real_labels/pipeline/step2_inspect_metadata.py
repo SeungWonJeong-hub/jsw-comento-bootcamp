@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """HRSC2016 XML 메타데이터 전수 조사.
 
-    py scripts/inspect_metadata.py
+    py pipeline/inspect_metadata.py
 
 추측하지 않습니다. XML 이 실제로 담고 있는 것만 집계하고, 좌표를 근접
 병합으로 묶어 군집별 표본 수·선박 수를 냅니다. 군집에 항구 이름을 붙이는

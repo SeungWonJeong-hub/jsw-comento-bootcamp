@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Kaggle T4 커널 — 학습·평가·비교를 9시간 세션 하나에서 끝냅니다.
+"""Kaggle T4 커널 — 학습과 평가를 9시간 세션 하나에서 끝냅니다.
 
 입력 데이터셋 (seungwon21/hrsc-sr-data)
     project/configs, project/scripts, project/manifests,
@@ -34,7 +34,7 @@ subprocess.run([sys.executable, "-m", "pip", "install", "-q",
 #   src/ · data/ (labels_obb, hrsc/manifests) · 원본 영상은 images/ 로
 src = None
 for root, dirs, files in os.walk("/kaggle/input"):
-    if ("src" in dirs or "src" in dirs) and "data" in dirs:
+    if ("pipeline" in dirs or "pipeline" in dirs) and "data" in dirs:
         src = root
         break
 if src is None:
@@ -44,7 +44,7 @@ print("project source:", src)
 
 # ---- 작업폴더로 복사 (data 는 심볼릭) --------------------------------
 os.makedirs(PROJ, exist_ok=True)
-for d in ("configs", "src", "manifests"):
+for d in ("configs", "pipeline", "manifests"):
     if os.path.exists(os.path.join(PROJ, d)):
         shutil.rmtree(os.path.join(PROJ, d))
     shutil.copytree(os.path.join(src, d), os.path.join(PROJ, d))
@@ -77,13 +77,13 @@ def left_h():
 
 
 def run(step, *args, budget=None):
-    cmd = [sys.executable, os.path.join(PROJ, "src", step)] + list(args)
+    cmd = [sys.executable, os.path.join(PROJ, "pipeline", step)] + list(args)
     if budget is not None:
         cmd += ["--budget-hours", "%.2f" % budget]
     print("\n" + "=" * 70)
     print(" ".join(cmd[1:]), "  (남은 %.2f h)" % left_h())
     print("=" * 70, flush=True)
-    r = subprocess.run(cmd, cwd=os.path.join(PROJ, "src"))
+    r = subprocess.run(cmd, cwd=os.path.join(PROJ, "pipeline"))
     if r.returncode != 0:
         print("!! %s 실패 (exit %d) — 다음 단계로 넘어갑니다" % (step, r.returncode))
     return r.returncode == 0
@@ -91,16 +91,14 @@ def run(step, *args, budget=None):
 
 # ---- 주 실험: official · medium -------------------------------------
 # 예산의 75% 를 주 실험에, 나머지를 portwise 부록에 둡니다.
-run("train_yolo.py", "--split", "official", budget=left_h() * 0.75 - 0.3)
-run("evaluate_yolo.py", "--split", "official")
-run("compare_results.py", "--split", "official")
+run("step6_train_yolo.py", "--split", "official", budget=left_h() * 0.75 - 0.3)
+run("step7_evaluate_yolo.py", "--split", "official")
 
 # ---- 부록: portwise · nano --------------------------------------------
 if left_h() > 1.0:
-    run("train_yolo.py", "--split", "portwise", "--model", "yolo11n-obb.pt",
+    run("step6_train_yolo.py", "--split", "portwise", "--model", "yolo11n-obb.pt",
         budget=left_h() - 0.4)
-    run("evaluate_yolo.py", "--split", "portwise")
-    run("compare_results.py", "--split", "portwise")
+    run("step7_evaluate_yolo.py", "--split", "portwise")
 else:
     print("portwise 부록은 시간이 부족해 건너뜁니다 (남은 %.2f h)" % left_h())
 

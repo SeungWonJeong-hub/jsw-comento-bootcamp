@@ -3,7 +3,7 @@
 웹앱 사이드바가 '그 해역에서 잰 값' 을 보여주기 위한 표입니다. 추측값 없음."""
 import os, json, collections, numpy as np, cv2
 from common import ROOT, PORTS, load_cfg, rel, read_csv, dump_json
-from evaluate_yolo import match, ap_from
+from step7_evaluate_yolo import match, ap_from
 from ultralytics import YOLO
 cfg = load_cfg(); m = YOLO(os.path.join(ROOT, "weights", "hrsc_hr045_seed0.pt"))
 man = {r["image_id"]: r for r in read_csv(os.path.join(rel(cfg, "manifests"), "images.csv"))}

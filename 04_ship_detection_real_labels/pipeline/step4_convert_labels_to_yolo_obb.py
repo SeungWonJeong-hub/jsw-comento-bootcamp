@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """HRSC2016 XML -> YOLO OBB 라벨.
 
-    py scripts/convert_hrsc_to_yolo_obb.py
+    py pipeline/convert_hrsc_to_yolo_obb.py
 
 출력 형식 (Ultralytics OBB)
     class_id x1 y1 x2 y2 x3 y3 x4 y4      모두 0~1 정규화

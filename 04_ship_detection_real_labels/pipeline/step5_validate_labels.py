@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """변환한 OBB 라벨을 영상 위에 다시 그려 눈으로 검증합니다.
 
-    py scripts/validate_labels.py --n 100
+    py pipeline/validate_labels.py --n 100
 
 변환식이 맞는지는 숫자로 못 봅니다. 각도 부호 하나만 뒤집혀도 IoU 는
 그럴듯하게 나오는데 상자는 배를 빗나갑니다. 그래서 최소 100장을 그려서

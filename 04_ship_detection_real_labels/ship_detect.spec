@@ -33,8 +33,9 @@ hiddenimports += ["streamlit.web.cli", "streamlit.runtime.scriptrunner.magic_fun
 
 a = Analysis(["launch.py"], pathex=["."], binaries=binaries, datas=datas,
              hiddenimports=hiddenimports, hookspath=[], runtime_hooks=[],
-             excludes=["matplotlib", "tkinter", "PyQt5", "PySide2", "notebook",
-                       "IPython", "pytest"],
+             # matplotlib 은 빼면 안 됩니다 — ultralytics 가 OBB 추론 경로에서
+             # import 합니다. 빼고 빌드한 exe 가 화면을 열자마자 죽었습니다.
+             excludes=["tkinter", "PyQt5", "PySide2", "notebook", "IPython", "pytest"],
              noarchive=False)
 pyz = PYZ(a.pure)
 exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name="위성선박탐지",

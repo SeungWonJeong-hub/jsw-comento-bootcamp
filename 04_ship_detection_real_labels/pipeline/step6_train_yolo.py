@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """YOLO OBB 학습 — 비교군·시드·분할을 돌면서 전부 같은 조건으로.
 
-    py scripts/train_yolo.py --split official
-    py scripts/train_yolo.py --split portwise --model yolo11n-obb.pt
+    py pipeline/train_yolo.py --split official
+    py pipeline/train_yolo.py --split portwise --model yolo11n-obb.pt
 
 공정성
 ------
