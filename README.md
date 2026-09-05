@@ -139,6 +139,7 @@ OpenCV로 위성 영상에서 특정 색상 화소를 검출하고, AI 학습용
   학습 시드 3개 평균이고 항만별 AP50 은 0.93~0.98 입니다. 군함은 부두에
   비스듬히 대므로 축정렬 상자 대신 회전상자를 냅니다 — 길이·폭·방향이 나옵니다.
 - 웹앱(항만 5곳을 돌아가며 test 영상에 탐지), 실행 파일, 단위 시험 포함.
+  실행 파일(exe, 391 MB zip): https://drive.google.com/file/d/1_UyBzz7vqwi1Rt795klzWUuBGtC9tKXH/view?usp=sharing
 
 ---
 

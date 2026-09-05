@@ -36,9 +36,15 @@ YOLO11m-OBB · 학습 429장 / test 451장(HRSC2016 공식 분할) · 67 epoch �
 
 ## 실행
 
+**실행 파일(exe):** https://drive.google.com/file/d/1_UyBzz7vqwi1Rt795klzWUuBGtC9tKXH/view?usp=sharing
+— `위성선박탐지_exe.zip`(391 MB)을 받아 풀고 `위성선박탐지\위성선박탐지.exe` 를 실행하면
+브라우저가 열립니다. 파이썬 설치 불필요, Windows 10/11 64bit.
+
 > 가중치(`weights/*.pt`)와 영상(`data/`)은 저장소에 넣지 않았습니다. HRSC2016 은
 > Google Earth 화면 수집 영상이라 재배포가 제한됩니다. 만드는 법은 아래
 > "자료 만들기" 에 있습니다.
+
+소스로 직접 돌리려면:
 
 ```
 py -m streamlit run webapp/app_ship.py --server.port 8502
