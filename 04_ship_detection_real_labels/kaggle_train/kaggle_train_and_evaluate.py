@@ -3,8 +3,7 @@
 
 입력 데이터셋 (seungwon21/hrsc-sr-data)
     project/configs, project/scripts, project/manifests,
-    project/data/{images_hr, images_A_native_lr, images_B_bicubic,
-                  images_C_realesrgan, labels_obb}
+    pipeline/ · data/labels_obb · data/hrsc/manifests · 원본 영상
 
 순서
     1. 프로젝트를 /kaggle/working/project 로 복사 (입력은 읽기전용)

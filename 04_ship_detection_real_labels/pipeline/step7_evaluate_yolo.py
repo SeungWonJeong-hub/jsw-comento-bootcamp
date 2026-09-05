@@ -10,8 +10,7 @@ Ultralytics 의 val() 대신 자체 평가기를 씁니다. TP/FP/FN, PR curve,
 좌표계
 ------
 예측은 Ultralytics 가 letterbox 를 되돌려 **원영상 화소좌표**로 줍니다.
-영상 크기로 나눠 정규화하면 비교군(LR·bicubic·SR)마다 영상 크기가 달라도
-같은 공간에서 맞댈 수 있습니다. 정답도 같은 정규화 좌표입니다.
+영상 크기로 나눠 정규화해 같은 공간에서 정답과 맞댑니다. 정답도 같은 정규화 좌표입니다.
 타일 추론을 쓰지 않으므로 타일 오프셋·오버랩 역변환은 없습니다.
 
 IoU
@@ -254,14 +253,11 @@ def main():
     print("test %d장 · 정답 %d척" % (len(stems), sum(len(v) for v in gt.values())))
 
     data = rel(cfg, "data")
-    arms = [x["id"] for x in cfg.get("arms", [])]      # 저해상도 비교군 (4차 본 실험엔 없음)
     results = []
     for key, run in state["done"].items():
         src, seed = run["source"], run["seed"]
-        targets = [src] if src != "hr" else ["hr"] + arms
-        for tgt in targets:
-            cond = "matched" if src != "hr" else \
-                ("upper_bound" if tgt == "hr" else "hr_trained")
+        for tgt in [src]:
+            cond = "test"
             img_dir = rel(cfg, "images") if tgt == "hr" else os.path.join(data, "images_" + tgt)
             det, ms = predict(run["weights"], img_dir, stems,
                               cfg["train"]["imgsz"], cfg["eval"]["nms_iou"],

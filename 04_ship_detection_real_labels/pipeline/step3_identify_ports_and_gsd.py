@@ -44,7 +44,7 @@ LONGEST_US_WARSHIP_M = 342.0        # USS Enterprise (CVN-65)
 NIMITZ_LEN_M = 332.8                # 현역 최장 — p99 가 여기 맞아야 합니다
 
 FIELDS = ["image_id", "source_image_id", "port", "country", "original_gsd",
-          "target_gsd", "modality", "degradation", "upscale_method",
+          "modality",
           "label_type", "split", "verification_status",
           "lat", "lon", "zoom", "width", "height", "n_ships",
           "scene_type", "ground_w_m", "ground_h_m", "field_gsd", "date"]
@@ -111,7 +111,6 @@ def verify_gsd(rows, ann_dir):
     k = q(.99) / NIMITZ_LEN_M
     print("    p99(%.0f m)가 Nimitz(%.0f m)라고 보면 계산식은 %+.0f%% 입니다."
           % (q(.99), NIMITZ_LEN_M, 100 * (k - 1)))
-    print("    -> 목표 10 m 는 실제로 약 %.1f m 입니다." % (10.0 / k))
 
     print("")
     print("(2) 눈으로 확인한 함정으로 배율 점검")
@@ -147,12 +146,10 @@ def verify_gsd(rows, ann_dir):
     print("표본이 3척뿐이라 배율 추정은 위 (1)의 p99 기준을 씁니다.")
     print("")
     print("이 오차는 모든 비교군(A/B/C)에 똑같이 걸리므로 비교를 왜곡하지 않습니다.")
-    print("영향은 '목표 10 m' 라는 이름표의 정확도뿐입니다.")
     dump_json(os.path.join(ROOT, "results", "gsd_verification.json"),
               dict(n_ships=len(lens), p50_m=q(.5), p99_m=q(.99),
                    max_m=lens[-1], over_longest=over,
-                   hull_samples=len(ratios), formula_over_hull=m,
-                   effective_target_m=10.0 / m))
+                   hull_samples=len(ratios), formula_over_hull=m))
 
 
 def main():
@@ -162,7 +159,6 @@ def main():
     a = ap.parse_args()
     cfg = load_cfg(a.config)
     ann_dir = rel(cfg, "annotations")
-    target = float(cfg["gsd"]["target_m"])
     use_formula = cfg["gsd"]["source"] == "formula"
     sets = read_imagesets(rel(cfg, "imagesets"))
 
@@ -194,8 +190,7 @@ def main():
             image_id=stem, source_image_id=stem,
             port=port, country=PORTS.get(port, {}).get("country", ""),
             original_gsd=("%.4f" % gsd) if gsd else "",
-            target_gsd="%.2f" % target,
-            modality="optical_rgb", degradation="none", upscale_method="none",
+            modality="optical_rgb",
             label_type="obb+hbb", split=sets.get(stem, "unassigned"),
             verification_status=status,
             lat=lat, lon=slon, zoom=zoom, width=w, height=h,
