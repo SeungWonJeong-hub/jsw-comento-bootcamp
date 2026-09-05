@@ -118,7 +118,9 @@ date = m["date"] if m["date"] and not m["date"].startswith("1900") else "미기�
 c3.markdown("**%s** · %d / %d · 촬영일 **%s** · %s × %s 화소 · GSD %.2f m"
             % (label, i + 1, len(ids), date, m["width"], m["height"], GSD))
 
-bgr = cv2.imread(os.path.join(DATA, "images", image_id + ".png"))
+# cv2.imread 는 윈도에서 한글 경로(예: dist/위성선박탐지/)를 못 읽습니다.
+bgr = cv2.imdecode(np.fromfile(os.path.join(DATA, "images", image_id + ".png"), np.uint8),
+                   cv2.IMREAD_COLOR)
 H, W = bgr.shape[:2]
 gt = load_gt(image_id, W, H)
 
