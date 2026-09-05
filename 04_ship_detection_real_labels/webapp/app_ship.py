@@ -94,10 +94,11 @@ idx, man, metrics = load_index()
 M = metrics[key]
 
 st.sidebar.markdown("### 📊 이 항만의 성능")
-st.sidebar.table({
-    "지표": ["precision", "recall", "F1", "AP50"],
-    "값": ["%.3f" % M["precision"], "%.3f" % M["recall"], "%.3f" % M["f1"], "%.3f" % M["AP50"]],
-})
+# st.table 은 pyarrow(81 MB)를 끌고 옵니다. 실행 파일 용량 때문에 마크다운 표로 씁니다.
+st.sidebar.markdown(
+    "| 지표 | 값 |\n|---|---:|\n"
+    "| precision | %.3f |\n| recall | %.3f |\n| F1 | %.3f |\n| AP50 | %.3f |"
+    % (M["precision"], M["recall"], M["f1"], M["AP50"]))
 st.sidebar.caption("test %d장 · 선박 %d척 · conf %.2f · IoU 0.5" % (M["n_images"], M["n_ships"], CONF))
 show_gt = st.sidebar.checkbox("정답(노랑) 표시", value=True)
 
