@@ -28,7 +28,9 @@ Thumbs.db
 03_ship_detection/outputs/fig8_c_*.png
 
 # 4차 과제 — 체크포인트·빌드 산출물·학습 중간물은 저장소에 두지 않습니다
-04_ship_detection_real_labels/weights/
+04_ship_detection_real_labels/weights/*
+# 배포 웹앱이 쓰는 가중치 한 벌은 재현을 위해 저장소에 둡니다 (42 MB)
+!04_ship_detection_real_labels/weights/hrsc_hr045_seed0.pt
 04_ship_detection_real_labels/results/
 04_ship_detection_real_labels/runs/
 04_ship_detection_real_labels/webapp/dist/
