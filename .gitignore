@@ -2,6 +2,8 @@
 data/
 # 4차 파생 라벨·매니페스트는 8 MB 라 저장소에 둡니다 (원본 bmp 는 아님)
 !04_ship_detection_real_labels/data/
+# 다만 HRSC2016 영상 자체는 Google Earth 수집물이라 재배포하지 않습니다.
+04_ship_detection_real_labels/data/hrsc/images/
 .cache/
 *.npy
 

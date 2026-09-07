@@ -98,7 +98,7 @@ kaggle_train/
   kernel-metadata.json
 outputs/                                 그림 · 항만별 실측표
 weights/                                 hrsc_hr045_seed0.pt (42 MB)
-data/hrsc/                               파생 라벨 451개 · 대표 영상 25장 · manifest
+data/hrsc/                               파생 라벨 451개 · manifest (영상은 재배포 제한)
 results/                                 평가 수치 · 표 · 캐글 세션 로그
 runs/                                    런별 args.yaml · results.csv (24런 중 21런)
 ```
