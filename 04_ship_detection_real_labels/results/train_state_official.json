@@ -1,0 +1,185 @@
+{
+ "done": {
+  "hr|0": {
+   "name": "official_hr_seed0",
+   "weights": "/kaggle/working/project/runs/official_hr_seed0/weights/last.pt",
+   "seconds": 1716.4,
+   "epochs": 67,
+   "model": "yolo11m-obb.pt",
+   "split": "official",
+   "source": "hr",
+   "seed": 0,
+   "counts": {
+    "train": 435,
+    "val": 180,
+    "test": 453
+   }
+  },
+  "hr|1": {
+   "name": "official_hr_seed1",
+   "weights": "/kaggle/working/project/runs/official_hr_seed1/weights/last.pt",
+   "seconds": 1442.7,
+   "epochs": 67,
+   "model": "yolo11m-obb.pt",
+   "split": "official",
+   "source": "hr",
+   "seed": 1,
+   "counts": {
+    "train": 435,
+    "val": 180,
+    "test": 453
+   }
+  },
+  "hr|2": {
+   "name": "official_hr_seed2",
+   "weights": "/kaggle/working/project/runs/official_hr_seed2/weights/last.pt",
+   "seconds": 1588.8,
+   "epochs": 67,
+   "model": "yolo11m-obb.pt",
+   "split": "official",
+   "source": "hr",
+   "seed": 2,
+   "counts": {
+    "train": 435,
+    "val": 180,
+    "test": 453
+   }
+  },
+  "A_native_lr|0": {
+   "name": "official_A_native_lr_seed0",
+   "weights": "/kaggle/working/project/runs/official_A_native_lr_seed0/weights/last.pt",
+   "seconds": 1118.0,
+   "epochs": 67,
+   "model": "yolo11m-obb.pt",
+   "split": "official",
+   "source": "A_native_lr",
+   "seed": 0,
+   "counts": {
+    "train": 435,
+    "val": 180,
+    "test": 453
+   }
+  },
+  "A_native_lr|1": {
+   "name": "official_A_native_lr_seed1",
+   "weights": "/kaggle/working/project/runs/official_A_native_lr_seed1/weights/last.pt",
+   "seconds": 1075.1,
+   "epochs": 67,
+   "model": "yolo11m-obb.pt",
+   "split": "official",
+   "source": "A_native_lr",
+   "seed": 1,
+   "counts": {
+    "train": 435,
+    "val": 180,
+    "test": 453
+   }
+  },
+  "A_native_lr|2": {
+   "name": "official_A_native_lr_seed2",
+   "weights": "/kaggle/working/project/runs/official_A_native_lr_seed2/weights/last.pt",
+   "seconds": 1084.8,
+   "epochs": 67,
+   "model": "yolo11m-obb.pt",
+   "split": "official",
+   "source": "A_native_lr",
+   "seed": 2,
+   "counts": {
+    "train": 435,
+    "val": 180,
+    "test": 453
+   }
+  },
+  "B_bicubic|0": {
+   "name": "official_B_bicubic_seed0",
+   "weights": "/kaggle/working/project/runs/official_B_bicubic_seed0/weights/last.pt",
+   "seconds": 1075.7,
+   "epochs": 67,
+   "model": "yolo11m-obb.pt",
+   "split": "official",
+   "source": "B_bicubic",
+   "seed": 0,
+   "counts": {
+    "train": 435,
+    "val": 180,
+    "test": 453
+   }
+  },
+  "B_bicubic|1": {
+   "name": "official_B_bicubic_seed1",
+   "weights": "/kaggle/working/project/runs/official_B_bicubic_seed1/weights/last.pt",
+   "seconds": 1080.2,
+   "epochs": 67,
+   "model": "yolo11m-obb.pt",
+   "split": "official",
+   "source": "B_bicubic",
+   "seed": 1,
+   "counts": {
+    "train": 435,
+    "val": 180,
+    "test": 453
+   }
+  },
+  "B_bicubic|2": {
+   "name": "official_B_bicubic_seed2",
+   "weights": "/kaggle/working/project/runs/official_B_bicubic_seed2/weights/last.pt",
+   "seconds": 1083.9,
+   "epochs": 67,
+   "model": "yolo11m-obb.pt",
+   "split": "official",
+   "source": "B_bicubic",
+   "seed": 2,
+   "counts": {
+    "train": 435,
+    "val": 180,
+    "test": 453
+   }
+  },
+  "C_realesrgan|0": {
+   "name": "official_C_realesrgan_seed0",
+   "weights": "/kaggle/working/project/runs/official_C_realesrgan_seed0/weights/last.pt",
+   "seconds": 1077.3,
+   "epochs": 67,
+   "model": "yolo11m-obb.pt",
+   "split": "official",
+   "source": "C_realesrgan",
+   "seed": 0,
+   "counts": {
+    "train": 435,
+    "val": 180,
+    "test": 453
+   }
+  },
+  "C_realesrgan|1": {
+   "name": "official_C_realesrgan_seed1",
+   "weights": "/kaggle/working/project/runs/official_C_realesrgan_seed1/weights/last.pt",
+   "seconds": 1077.5,
+   "epochs": 67,
+   "model": "yolo11m-obb.pt",
+   "split": "official",
+   "source": "C_realesrgan",
+   "seed": 1,
+   "counts": {
+    "train": 435,
+    "val": 180,
+    "test": 453
+   }
+  },
+  "C_realesrgan|2": {
+   "name": "official_C_realesrgan_seed2",
+   "weights": "/kaggle/working/project/runs/official_C_realesrgan_seed2/weights/last.pt",
+   "seconds": 1081.7,
+   "epochs": 67,
+   "model": "yolo11m-obb.pt",
+   "split": "official",
+   "source": "C_realesrgan",
+   "seed": 2,
+   "counts": {
+    "train": 435,
+    "val": 180,
+    "test": 453
+   }
+  }
+ },
+ "epochs_used": 67
+}

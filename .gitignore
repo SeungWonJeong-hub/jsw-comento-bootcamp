@@ -1,5 +1,9 @@
 # 원본 데이터셋 캐시 (용량이 커서 저장소에 포함하지 않음)
 data/
+# 4차 파생 라벨·매니페스트는 8 MB 라 저장소에 둡니다 (원본 bmp 는 아님)
+!04_ship_detection_real_labels/data/
+# 다만 HRSC2016 영상 자체는 Google Earth 수집물이라 재배포하지 않습니다.
+04_ship_detection_real_labels/data/hrsc/images/
 .cache/
 *.npy
 
@@ -18,6 +22,7 @@ Thumbs.db
 
 # 발표 자료는 저장소에 두지 않는다 (제출은 로컬 파일로)
 *.pptx
+!04_ship_detection_real_labels/4차업무_정승원.pptx
 02_2d_to_3d/report/
 
 # 한국 적용 산출물 — 4차 과제 자료라 저장소에 두지 않습니다
@@ -28,9 +33,17 @@ Thumbs.db
 03_ship_detection/outputs/fig8_c_*.png
 
 # 4차 과제 — 체크포인트·빌드 산출물·학습 중간물은 저장소에 두지 않습니다
-04_ship_detection_real_labels/weights/
-04_ship_detection_real_labels/results/
-04_ship_detection_real_labels/runs/
+04_ship_detection_real_labels/weights/*
+# 배포 웹앱이 쓰는 가중치 한 벌은 재현을 위해 저장소에 둡니다 (42 MB)
+!04_ship_detection_real_labels/weights/hrsc_hr045_seed0.pt
+# 평가 결과(수치·표·PR 곡선)는 저장소에 둡니다. 700 KB.
+!04_ship_detection_real_labels/results/
+# 학습 기록(args.yaml · results.csv)만 두고,
+# 매번 다시 만드는 데이터셋 복사본(ds_*)과 런별 가중치는 제외합니다.
+04_ship_detection_real_labels/runs/**
+!04_ship_detection_real_labels/runs/*/
+!04_ship_detection_real_labels/runs/*/args.yaml
+!04_ship_detection_real_labels/runs/*/results.csv
 04_ship_detection_real_labels/webapp/dist/
 04_ship_detection_real_labels/webapp/build/
 04_ship_detection_real_labels/webapp/__pycache__/
