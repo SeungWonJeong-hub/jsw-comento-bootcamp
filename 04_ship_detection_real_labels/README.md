@@ -176,8 +176,10 @@ py pipeline/step10_make_ppt.py
 
 ## 라이선스와 한계
 
-- HRSC2016 — Liu Z. et al., ICPRAM 2017. Google Earth 화면 수집 영상이라 학술
-  목적 사용은 가능하지만 **원본·파생 영상을 재배포하지 않습니다.**
+- HRSC2016 — Liu Z., Yuan L., Weng L., Yang Y., *A High Resolution Optical
+  Satellite Image Dataset for Ship Recognition and Some New Baselines*,
+  ICPRAM 2017. 중국과학원 자동화연구소(CASIA). Google Earth 화면 수집
+  영상이라 학술 목적 사용은 가능하지만 **원본·파생 영상을 재배포하지 않습니다.**
 - Ultralytics YOLO11 은 AGPL-3.0 입니다.
 - 군함 데이터셋(장변 중앙 152 m)이라 민간 어선·화물선에 그대로 옮기면 낙관적입니다.
 - 에버렛(52척)·뉴포트(23척)는 항만별 수치의 신뢰구간이 항만 간 차이보다 큽니다.
