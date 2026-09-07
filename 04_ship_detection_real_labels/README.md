@@ -42,8 +42,9 @@ YOLO11m-OBB · 학습 435장 / test 453장(HRSC2016 공식 분할) · 67 epoch �
 
 ## 실행
 
-**실행 파일(exe):** https://drive.google.com/file/d/1_UyBzz7vqwi1Rt795klzWUuBGtC9tKXH/view?usp=sharing
-— `위성선박탐지_exe.zip`(391 MB)을 받아 풀고 `위성선박탐지\위성선박탐지.exe` 를 실행하면
+**실행 파일(exe):** https://github.com/SeungWonJeong-hub/jsw-comento-bootcamp/releases/tag/v4-ship-detection
+(구글드라이브 사본: https://drive.google.com/file/d/1_UyBzz7vqwi1Rt795klzWUuBGtC9tKXH/view?usp=sharing )
+— `ship-detection-app-win64.zip`(391 MB)을 받아 풀고 `위성선박탐지\위성선박탐지.exe` 를 실행하면
 브라우저가 열립니다. 파이썬 설치 불필요, Windows 10/11 64bit.
 
 > 웹앱이 쓰는 가중치 한 벌(`weights/hrsc_hr045_seed0.pt`, 42 MB)과 파생 라벨·
