@@ -36,7 +36,12 @@ Thumbs.db
 !04_ship_detection_real_labels/weights/hrsc_hr045_seed0.pt
 # 평가 결과(수치·표·PR 곡선)는 저장소에 둡니다. 700 KB.
 !04_ship_detection_real_labels/results/
-04_ship_detection_real_labels/runs/
+# 학습 기록(args.yaml · results.csv)만 두고,
+# 매번 다시 만드는 데이터셋 복사본(ds_*)과 런별 가중치는 제외합니다.
+04_ship_detection_real_labels/runs/**
+!04_ship_detection_real_labels/runs/*/
+!04_ship_detection_real_labels/runs/*/args.yaml
+!04_ship_detection_real_labels/runs/*/results.csv
 04_ship_detection_real_labels/webapp/dist/
 04_ship_detection_real_labels/webapp/build/
 04_ship_detection_real_labels/webapp/__pycache__/
