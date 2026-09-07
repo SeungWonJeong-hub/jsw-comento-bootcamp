@@ -341,11 +341,18 @@ py src/measure_representable_width.py
 
 **중앙값 1.61 초입니다** (영상 내려받기는 별도). GPU 없이 4차를 설계할 수 있습니다.
 
-### 4차에 넘길 설계
+### 4차에 넘기려던 설계 — 채택하지 않았습니다
 
 ONNX Runtime 을 `intra_op=8` 로 직접 부르고 NMS 를 직접 씁니다. 순전파 26 ms
 에 자체 후처리를 얹으면 타일당 30~35 ms 가 되어 항만 한 곳이 **1 초 아래**로
 내려갑니다. ultralytics 껍데기를 거치면 오히려 두 배 느려집니다.
+
+> **실제 4차는 이 경로를 쓰지 않았습니다.** 회전상자(OBB) 모델을
+> `ultralytics` 의 `.pt` 추론으로 그대로 돌렸고, 실행 파일도 `onnxruntime` 을
+> 번들에서 제외합니다(`04_ship_detection_real_labels/webapp/ship_detect.spec`).
+> 속도를 더 짜내는 대신 후처리를 직접 쓰지 않는 쪽을 골랐습니다.
+> 다만 이 절의 결론 — **GPU 서버 없이 CPU 만으로 웹앱이 성립한다** — 는
+> 그대로 쓰였습니다. 4차 실행 파일은 CPU 로 돕니다.
 
 ```bash
 py src/bench_cpu.py --weights weights/yolo11s_dota.pt
