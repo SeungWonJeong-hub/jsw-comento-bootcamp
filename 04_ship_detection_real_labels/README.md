@@ -16,7 +16,7 @@
 
 ## 핵심 결과
 
-YOLO11m-OBB · 학습 429장 / test 451장(HRSC2016 공식 분할) · 67 epoch · 학습 시드 3개 평균
+YOLO11m-OBB · 학습 435장 / test 453장(HRSC2016 공식 분할) · 67 epoch · 학습 시드 3개 평균
 
 | precision | recall | F1 | AP50 | AP50-95 |
 |---|---|---|---|---|
@@ -34,15 +34,22 @@ YOLO11m-OBB · 학습 429장 / test 451장(HRSC2016 공식 분할) · 67 epoch �
 
 시드 간 표준편차는 F1 ±0.004, AP50 ±0.003 입니다.
 
+> 두 표의 기준이 다릅니다. 종합 수치는 공식 test 453장·1,228척 전부이고,
+> 항만별 표는 미국 5곳만 세므로 451장·1,226척입니다(무르만스크 2장 제외).
+> 학습·평가 코드는 항만으로 거르지 않으므로 무르만스크 7장이 학습에,
+> 2장이 평가에 들어가 있습니다. 실측 장수는
+> `results/train_state_official.json` 의 `counts` 에 있습니다.
+
 ## 실행
 
 **실행 파일(exe):** https://drive.google.com/file/d/1_UyBzz7vqwi1Rt795klzWUuBGtC9tKXH/view?usp=sharing
 — `위성선박탐지_exe.zip`(391 MB)을 받아 풀고 `위성선박탐지\위성선박탐지.exe` 를 실행하면
 브라우저가 열립니다. 파이썬 설치 불필요, Windows 10/11 64bit.
 
-> 가중치(`weights/*.pt`)와 영상(`data/`)은 저장소에 넣지 않았습니다. HRSC2016 은
-> Google Earth 화면 수집 영상이라 재배포가 제한됩니다. 만드는 법은 아래
-> "자료 만들기" 에 있습니다.
+> 웹앱이 쓰는 가중치 한 벌(`weights/hrsc_hr045_seed0.pt`, 42 MB)과 파생 라벨·
+> manifest(`data/hrsc/`)는 저장소에 있습니다. 원본 HRSC2016 영상 1,680장은
+> Google Earth 화면 수집물이라 재배포가 제한되어 넣지 않았습니다. 만드는 법은
+> 아래 "자료 만들기" 에 있습니다.
 
 소스로 직접 돌리려면:
 
@@ -90,8 +97,10 @@ kaggle_train/
   kaggle_train_and_evaluate.py           Kaggle T4 커널 (step6 -> step7)
   kernel-metadata.json
 outputs/                                 그림 · 항만별 실측표
-weights/                                 hrsc_hr045_seed0.pt            (저장소 밖)
-data/hrsc/                               test 영상 451장 · 라벨 · manifest (저장소 밖)
+weights/                                 hrsc_hr045_seed0.pt (42 MB)
+data/hrsc/                               파생 라벨 451개 · 대표 영상 25장 · manifest
+results/                                 평가 수치 · 표 · 캐글 세션 로그
+runs/                                    런별 args.yaml · results.csv (24런 중 21런)
 ```
 
 ---
