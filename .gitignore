@@ -1,5 +1,7 @@
 # 원본 데이터셋 캐시 (용량이 커서 저장소에 포함하지 않음)
 data/
+# 4차 파생 라벨·매니페스트는 8 MB 라 저장소에 둡니다 (원본 bmp 는 아님)
+!04_ship_detection_real_labels/data/
 .cache/
 *.npy
 
@@ -18,6 +20,7 @@ Thumbs.db
 
 # 발표 자료는 저장소에 두지 않는다 (제출은 로컬 파일로)
 *.pptx
+!04_ship_detection_real_labels/4차업무_정승원.pptx
 02_2d_to_3d/report/
 
 # 한국 적용 산출물 — 4차 과제 자료라 저장소에 두지 않습니다
