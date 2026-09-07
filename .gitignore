@@ -34,7 +34,8 @@ Thumbs.db
 04_ship_detection_real_labels/weights/*
 # 배포 웹앱이 쓰는 가중치 한 벌은 재현을 위해 저장소에 둡니다 (42 MB)
 !04_ship_detection_real_labels/weights/hrsc_hr045_seed0.pt
-04_ship_detection_real_labels/results/
+# 평가 결과(수치·표·PR 곡선)는 저장소에 둡니다. 700 KB.
+!04_ship_detection_real_labels/results/
 04_ship_detection_real_labels/runs/
 04_ship_detection_real_labels/webapp/dist/
 04_ship_detection_real_labels/webapp/build/

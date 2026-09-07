@@ -1,0 +1,185 @@
+{
+ "done": {
+  "hr|0": {
+   "name": "portwise_hr_seed0",
+   "weights": "/kaggle/working/project/runs/portwise_hr_seed0/weights/last.pt",
+   "seconds": 953.1,
+   "epochs": 54,
+   "model": "yolo11n-obb.pt",
+   "split": "portwise",
+   "source": "hr",
+   "seed": 0,
+   "counts": {
+    "train": 808,
+    "val": 145,
+    "test": 104
+   }
+  },
+  "hr|1": {
+   "name": "portwise_hr_seed1",
+   "weights": "/kaggle/working/project/runs/portwise_hr_seed1/weights/last.pt",
+   "seconds": 954.4,
+   "epochs": 54,
+   "model": "yolo11n-obb.pt",
+   "split": "portwise",
+   "source": "hr",
+   "seed": 1,
+   "counts": {
+    "train": 808,
+    "val": 145,
+    "test": 104
+   }
+  },
+  "hr|2": {
+   "name": "portwise_hr_seed2",
+   "weights": "/kaggle/working/project/runs/portwise_hr_seed2/weights/last.pt",
+   "seconds": 952.8,
+   "epochs": 54,
+   "model": "yolo11n-obb.pt",
+   "split": "portwise",
+   "source": "hr",
+   "seed": 2,
+   "counts": {
+    "train": 808,
+    "val": 145,
+    "test": 104
+   }
+  },
+  "A_native_lr|0": {
+   "name": "portwise_A_native_lr_seed0",
+   "weights": "/kaggle/working/project/runs/portwise_A_native_lr_seed0/weights/last.pt",
+   "seconds": 509.1,
+   "epochs": 54,
+   "model": "yolo11n-obb.pt",
+   "split": "portwise",
+   "source": "A_native_lr",
+   "seed": 0,
+   "counts": {
+    "train": 808,
+    "val": 145,
+    "test": 104
+   }
+  },
+  "A_native_lr|1": {
+   "name": "portwise_A_native_lr_seed1",
+   "weights": "/kaggle/working/project/runs/portwise_A_native_lr_seed1/weights/last.pt",
+   "seconds": 506.6,
+   "epochs": 54,
+   "model": "yolo11n-obb.pt",
+   "split": "portwise",
+   "source": "A_native_lr",
+   "seed": 1,
+   "counts": {
+    "train": 808,
+    "val": 145,
+    "test": 104
+   }
+  },
+  "A_native_lr|2": {
+   "name": "portwise_A_native_lr_seed2",
+   "weights": "/kaggle/working/project/runs/portwise_A_native_lr_seed2/weights/last.pt",
+   "seconds": 505.1,
+   "epochs": 54,
+   "model": "yolo11n-obb.pt",
+   "split": "portwise",
+   "source": "A_native_lr",
+   "seed": 2,
+   "counts": {
+    "train": 808,
+    "val": 145,
+    "test": 104
+   }
+  },
+  "B_bicubic|0": {
+   "name": "portwise_B_bicubic_seed0",
+   "weights": "/kaggle/working/project/runs/portwise_B_bicubic_seed0/weights/last.pt",
+   "seconds": 522.9,
+   "epochs": 54,
+   "model": "yolo11n-obb.pt",
+   "split": "portwise",
+   "source": "B_bicubic",
+   "seed": 0,
+   "counts": {
+    "train": 808,
+    "val": 145,
+    "test": 104
+   }
+  },
+  "B_bicubic|1": {
+   "name": "portwise_B_bicubic_seed1",
+   "weights": "/kaggle/working/project/runs/portwise_B_bicubic_seed1/weights/last.pt",
+   "seconds": 523.7,
+   "epochs": 54,
+   "model": "yolo11n-obb.pt",
+   "split": "portwise",
+   "source": "B_bicubic",
+   "seed": 1,
+   "counts": {
+    "train": 808,
+    "val": 145,
+    "test": 104
+   }
+  },
+  "B_bicubic|2": {
+   "name": "portwise_B_bicubic_seed2",
+   "weights": "/kaggle/working/project/runs/portwise_B_bicubic_seed2/weights/last.pt",
+   "seconds": 525.2,
+   "epochs": 54,
+   "model": "yolo11n-obb.pt",
+   "split": "portwise",
+   "source": "B_bicubic",
+   "seed": 2,
+   "counts": {
+    "train": 808,
+    "val": 145,
+    "test": 104
+   }
+  },
+  "C_realesrgan|0": {
+   "name": "portwise_C_realesrgan_seed0",
+   "weights": "/kaggle/working/project/runs/portwise_C_realesrgan_seed0/weights/last.pt",
+   "seconds": 522.9,
+   "epochs": 54,
+   "model": "yolo11n-obb.pt",
+   "split": "portwise",
+   "source": "C_realesrgan",
+   "seed": 0,
+   "counts": {
+    "train": 808,
+    "val": 145,
+    "test": 104
+   }
+  },
+  "C_realesrgan|1": {
+   "name": "portwise_C_realesrgan_seed1",
+   "weights": "/kaggle/working/project/runs/portwise_C_realesrgan_seed1/weights/last.pt",
+   "seconds": 518.7,
+   "epochs": 54,
+   "model": "yolo11n-obb.pt",
+   "split": "portwise",
+   "source": "C_realesrgan",
+   "seed": 1,
+   "counts": {
+    "train": 808,
+    "val": 145,
+    "test": 104
+   }
+  },
+  "C_realesrgan|2": {
+   "name": "portwise_C_realesrgan_seed2",
+   "weights": "/kaggle/working/project/runs/portwise_C_realesrgan_seed2/weights/last.pt",
+   "seconds": 524.6,
+   "epochs": 54,
+   "model": "yolo11n-obb.pt",
+   "split": "portwise",
+   "source": "C_realesrgan",
+   "seed": 2,
+   "counts": {
+    "train": 808,
+    "val": 145,
+    "test": 104
+   }
+  }
+ },
+ "epochs_used": 54
+}
