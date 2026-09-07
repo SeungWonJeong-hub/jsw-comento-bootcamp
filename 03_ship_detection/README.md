@@ -38,17 +38,17 @@
 03_ship_detection/
 ├── src/
 │   ├── build_dataset.py        핀란드 주석 + AWS COG → 타일·OBB 라벨
-│   ├── build_gfw_dataset.py    GFW 탐지 → 타일 라벨            (4차용)
-│   ├── fetch_gfw.py            GFW 6GB 스트리밍 추출           (4차용)
+│   ├── build_gfw_dataset.py    GFW 탐지 → 타일 라벨            (한국 확장용)
+│   ├── fetch_gfw.py            GFW 6GB 스트리밍 추출           (한국 확장용)
 │   ├── eval_size_strata.py     선박 크기별 층화 평가
 │   ├── eval_point.py           점 기반 평가          ← 핵심
 │   ├── operating_point.py      운용 임계값 결정
-│   ├── eval_korea_ports.py     한국 항만 GFW 참조 평가         (4차용)
-│   ├── korea_ports.py          항만 22곳 → 장면 검색 → 탐지    (4차 웹앱의 핵심)
+│   ├── eval_korea_ports.py     한국 항만 GFW 참조 평가         (한국 확장용)
+│   ├── korea_ports.py          항만 22곳 → 장면 검색 → 탐지    (한국 확장 웹앱의 핵심)
 │   ├── measure_box_convention.py   라벨의 박스 규약 실측  ← 회전 부재를 잡아낸 도구
 │   ├── verify_aihub_convention.py  AI Hub 규약 확정 (좌표계·각도 부호 전수 시험)
 │   ├── measure_representable_width.py  10 m 에서 폭이 표현되는가  ← 규약 논쟁의 결말
-│   ├── bench_cpu.py            ONNX 내보내기·CPU 지연시간 (4차 웹앱의 전제)
+│   ├── bench_cpu.py            ONNX 내보내기·CPU 지연시간 (웹앱 배포의 전제, 8절)
 │   ├── figures.py              그림 생성
 │   ├── fig_before_after.py     타일을 확대해 원본·탐지를 나란히 (fig_hero 이전)
 │   ├── fig_hero.py             탐지 결과 대표 그림 (PPT 3장)
